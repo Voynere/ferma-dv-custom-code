@@ -1384,6 +1384,13 @@ function fdv_add_fasovka_attribute( $attributes, $product, $ms_product ) {
  * Проверка: товар в категориях "0.1 кг" (по slug) или их подкатегориях
  */
 function ferma_product_in_ratio_01_categories( $product_id ) {
+    static $cache = array();
+
+    $product_id = (int) $product_id;
+    if (isset($cache[$product_id])) {
+        return $cache[$product_id];
+    }
+
     // slugs категорий, для которых нужен шаг 0.1 кг
     $target_slugs = array(
         'domashnie-syry', // "Домашние сыры"
@@ -1392,12 +1399,14 @@ function ferma_product_in_ratio_01_categories( $product_id ) {
 
     $terms = get_the_terms( $product_id, 'product_cat' );
     if ( empty( $terms ) || is_wp_error( $terms ) ) {
+        $cache[$product_id] = false;
         return false;
     }
 
     foreach ( $terms as $term ) {
         // 1) Совпадение по slug самой категории
         if ( in_array( $term->slug, $target_slugs, true ) ) {
+            $cache[$product_id] = true;
             return true;
         }
 
@@ -1407,13 +1416,50 @@ function ferma_product_in_ratio_01_categories( $product_id ) {
             foreach ( $ancestors as $ancestor_id ) {
                 $parent = get_term( $ancestor_id, 'product_cat' );
                 if ( $parent && ! is_wp_error( $parent ) && in_array( $parent->slug, $target_slugs, true ) ) {
+                    $cache[$product_id] = true;
                     return true;
                 }
             }
         }
     }
 
+    $cache[$product_id] = false;
     return false;
+}
+
+function ferma_is_weighted_product( $product_id ) {
+    static $weighted_cache = array();
+
+    $product_id = (int) $product_id;
+    if (!array_key_exists($product_id, $weighted_cache)) {
+        $weighted_cache[$product_id] = ( get_field( 'razbivka_vesa', $product_id ) == 'да' );
+    }
+
+    return $weighted_cache[$product_id];
+}
+
+function ferma_get_catalog_weight_ratio( $product_id ) {
+    static $ratio_cache = array();
+
+    $product_id = (int) $product_id;
+    if (!isset($ratio_cache[$product_id])) {
+        if ( function_exists( 'fdv_ms_get_weight_ratio_for_product' ) ) {
+            $ratio = (float) fdv_ms_get_weight_ratio_for_product( $product_id );
+        } else {
+            $ratio = 0.1;
+        }
+
+        if ( ferma_product_in_ratio_01_categories( $product_id ) ) {
+            $ratio = 0.1;
+        }
+        if ( $ratio <= 0 ) {
+            $ratio = 0.1;
+        }
+
+        $ratio_cache[$product_id] = $ratio;
+    }
+
+    return $ratio_cache[$product_id];
 }
 
 // Check and validate the mobile phone
@@ -1468,27 +1514,17 @@ function func_quantity_based_price( $cart_object ) {
             : $product->get_id()
         );
 
-        $rz = function_exists('get_field')
-            ? (string) get_field('razbivka_vesa', $product_id)
-            : (string) get_post_meta($product_id, 'razbivka_vesa', true);
+        $is_weighted = ferma_is_weighted_product( $product_id );
 
-        $rz = mb_strtolower(trim($rz));
-
-        if ( $rz !== 'да' && ! ferma_product_in_ratio_01_categories( $product_id ) ) {
+        if ( ! $is_weighted && ! ferma_product_in_ratio_01_categories( $product_id ) ) {
             continue;
         }
 
-        $ratio = function_exists('fdv_ms_get_weight_ratio_for_product')
-            ? (float) fdv_ms_get_weight_ratio_for_product( $product_id )
-            : 0.1;
-
-        if ( $rz !== 'да' ) {
+        if ( ! $is_weighted ) {
             continue;
         }
 
-        $ratio = function_exists('fdv_ms_get_weight_ratio_for_product')
-            ? (float) fdv_ms_get_weight_ratio_for_product( $product_id )
-            : 0.1;
+        $ratio = ferma_get_catalog_weight_ratio( $product_id );
 
         if ( $ratio == 1 || $ratio <= 0 ) {
             continue;
@@ -1588,19 +1624,26 @@ function fdv_set_razbivka_for_konfety() {
 }
 
 function fdv_get_cart_qty_for_product( $product_id ) {
+    static $cart_qty_map = null;
+
     if ( ! WC()->cart || WC()->cart->is_empty() ) {
         return 0;
     }
 
-    $qty = 0;
+    $product_id = (int) $product_id;
 
-    foreach ( WC()->cart->get_cart() as $cart_item ) {
-        if ( (int) $cart_item['product_id'] === (int) $product_id ) {
-            $qty += (float) $cart_item['quantity'];
+    if ($cart_qty_map === null) {
+        $cart_qty_map = array();
+        foreach ( WC()->cart->get_cart() as $cart_item ) {
+            $cart_product_id = (int) $cart_item['product_id'];
+            if (!isset($cart_qty_map[$cart_product_id])) {
+                $cart_qty_map[$cart_product_id] = 0;
+            }
+            $cart_qty_map[$cart_product_id] += (float) $cart_item['quantity'];
         }
     }
 
-    return $qty;
+    return $cart_qty_map[$product_id] ?? 0;
 }
 
 function fdv_format_price_rub( $value ) {
@@ -1615,7 +1658,7 @@ function wb_change_product_html( $price ) {
     $product_id  = $product->get_id();
     $real_price  = (float) $product->get_regular_price(); // без скидки
     $price_tovar = (float) $product->get_price();
-    $is_weighted = ( get_field( 'razbivka_vesa', $product_id ) == 'да' );
+    $is_weighted = ferma_is_weighted_product( $product_id );
 
     // НЕ весовые как были — можно оставить
     if ( ! $is_weighted ) {
@@ -1638,18 +1681,7 @@ function wb_change_product_html( $price ) {
     }
 
     // ВЕСОВЫЕ
-    if ( function_exists( 'fdv_ms_get_weight_ratio_for_product' ) ) {
-        $ratio = (float) fdv_ms_get_weight_ratio_for_product( $product_id );
-    } else {
-        $ratio = 0.1;
-    }
-
-    if ( ferma_product_in_ratio_01_categories( $product_id ) ) {
-        $ratio = 0.1;
-    }
-    if ( $ratio <= 0 ) {
-        $ratio = 0.1;
-    }
+    $ratio = ferma_get_catalog_weight_ratio( $product_id );
 
     // Смотрим, есть ли товар в корзине
     $cart_qty = fdv_get_cart_qty_for_product( $product_id );
@@ -2085,7 +2117,7 @@ function custom_shipping_costs( $rates, $package ) {
 function get_weight_ratio($product_id)
 {
     // Если включена разбивка веса – всегда 0.1 кг
-    if ( get_field( "razbivka_vesa", $product_id ) == 'да' ) {
+    if ( ferma_is_weighted_product( $product_id ) ) {
         return 0.1;
     }
 

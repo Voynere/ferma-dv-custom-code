@@ -522,6 +522,12 @@ function fdv_ms_store($customerOrder, WC_Order $Order) {
  * @return float
  */
 function fdv_ms_get_weight_ratio_for_product( $product_id ) {
+    static $ratio_cache = array();
+
+    $cache_key = (int) $product_id;
+    if (isset($ratio_cache[$cache_key])) {
+        return $ratio_cache[$cache_key];
+    }
 
     // Всегда работаем по parent (если вдруг сюда прилетит variation_id)
     $p = wc_get_product( $product_id );
@@ -536,6 +542,7 @@ function fdv_ms_get_weight_ratio_for_product( $product_id ) {
     $rz = mb_strtolower(trim($rz));
 
     if ( $rz !== 'да' ) {
+        $ratio_cache[$cache_key] = 1;
         return 1;
     }
 
@@ -554,10 +561,12 @@ function fdv_ms_get_weight_ratio_for_product( $product_id ) {
 
     // Только весовые товары из этих категорий → 0.1 кг
     if ( fdv_ms_product_in_categories_recursive( $product_id, $cats_01 ) ) {
+        $ratio_cache[$cache_key] = 0.1;
         return 0.1;
     }
 
     // Все остальные весовые → шаг 1 кг
+    $ratio_cache[$cache_key] = 1;
     return 1;
 }
 
@@ -672,9 +681,16 @@ function fdv_ya_order_qty_to_wc_already_kg(float $ya_quantity, int $product_id):
  * @return bool
  */
 function fdv_ms_product_in_categories_recursive( $product_id, array $category_names ) {
+    static $result_cache = array();
+
+    $cache_key = (int) $product_id . '|' . md5(wp_json_encode($category_names));
+    if (isset($result_cache[$cache_key])) {
+        return $result_cache[$cache_key];
+    }
 
     $product_terms = get_the_terms( $product_id, 'product_cat' );
     if ( empty( $product_terms ) || is_wp_error( $product_terms ) ) {
+        $result_cache[$cache_key] = false;
         return false;
     }
 
@@ -704,15 +720,18 @@ function fdv_ms_product_in_categories_recursive( $product_id, array $category_na
     }
 
     if ( empty( $all_ids ) ) {
+        $result_cache[$cache_key] = false;
         return false;
     }
 
     foreach ( $product_terms as $t ) {
         if ( in_array( (int) $t->term_id, $all_ids, true ) ) {
+            $result_cache[$cache_key] = true;
             return true;
         }
     }
 
+    $result_cache[$cache_key] = false;
     return false;
 }
 add_filter( 'wms_order_action', 'fdv_ms_add_qpromo_to_comment', 9999, 2 );

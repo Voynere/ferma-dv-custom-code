@@ -3,6 +3,12 @@
 if(!function_exists('ferma_get_current_shops')) {
 	
 	function ferma_get_current_shops() {
+		static $shops_cache = null;
+
+		if ($shops_cache !== null) {
+			return $shops_cache;
+		}
+
 		$shops = [];
 		
 		if ( is_user_logged_in() ) {
@@ -46,7 +52,9 @@ if(!function_exists('ferma_get_current_shops')) {
 			}
 		}
 		
-		return $shops;
+		$shops_cache = $shops;
+
+		return $shops_cache;
 	}
 	
 }
@@ -124,22 +132,44 @@ if(!function_exists('limit_cart_item_quantity')) {
 
 if(!function_exists('ferma_product_is_available')) {
 	function ferma_product_is_available( $product_id ) {
+		static $availability_cache = [];
+
+		$product_id = (int) $product_id;
+		if (isset($availability_cache[$product_id])) {
+			return $availability_cache[$product_id];
+		}
+
 		$shops = ferma_get_current_shops();
 		
 		if(!isset($shops[0]) || $shops[0] == '') {
+			$availability_cache[$product_id] = true;
 			return true;
 		}
 		
 		$is_available = false;
 		
-		$product = wc_get_product( $product_id );
+		$store_stocks = function_exists('ferma_get_store_stocks_with_fallback')
+			? ferma_get_store_stocks_with_fallback($product_id, $shops)
+			: [];
+
+		$product = null;
 		foreach($shops as $shop) {
-			$balance = $product->get_meta($shop);
+			if (array_key_exists($shop, $store_stocks)) {
+				$balance = $store_stocks[$shop];
+			} else {
+				if ($product === null) {
+					$product = wc_get_product( $product_id );
+				}
+				$balance = $product ? $product->get_meta($shop) : 0;
+			}
 			if(floatval($balance) > 0) {
 				$is_available = true;
+				break;
 			}
 		}
 		
+		$availability_cache[$product_id] = $is_available;
+
 		return $is_available;
 	}
 }

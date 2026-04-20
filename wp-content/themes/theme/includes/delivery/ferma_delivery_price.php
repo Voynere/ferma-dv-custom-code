@@ -6,20 +6,78 @@ use Location\Polygon;
 
 if(!function_exists('ferma_get_shops_by_coords')) {
 
+	function ferma_get_cached_delivery_geojson() {
+		static $geojson_cache = null;
+
+		if ($geojson_cache !== null) {
+			return $geojson_cache;
+		}
+
+		$geojson_cache = [];
+		$file_geojson = get_field('delivery_geofile', 'option');
+		if(!$file_geojson || !isset($file_geojson['url'])) {
+			return $geojson_cache;
+		}
+
+		$json = file_get_contents($file_geojson['url']);
+		$zones = json_decode($json, true);
+		if (is_array($zones)) {
+			$geojson_cache = $zones;
+		}
+
+		return $geojson_cache;
+	}
+
+	function ferma_get_cached_delivery_zone_rows() {
+		static $zone_rows = null;
+
+		if ($zone_rows !== null) {
+			return $zone_rows;
+		}
+
+		$zone_rows = get_field('delivery_zones', 'option');
+		if (!is_array($zone_rows)) {
+			$zone_rows = [];
+		}
+
+		return $zone_rows;
+	}
+
+	function ferma_get_cached_delivery_zone_shops_map() {
+		static $shops_map = null;
+
+		if ($shops_map !== null) {
+			return $shops_map;
+		}
+
+		$shops_map = [];
+		foreach (ferma_get_cached_delivery_zone_rows() as $row) {
+			if (!empty($row['delivery_zones_name'])) {
+				$shops_map[$row['delivery_zones_name']] = $row['delivery_zones_shops'] ?? [];
+			}
+		}
+
+		return $shops_map;
+	}
+
 	function ferma_get_shops_by_coords($coords) {
+		static $shops_cache = [];
+
+		if (isset($shops_cache[$coords])) {
+			return $shops_cache[$coords];
+		}
+
 		$coords = explode(",", $coords);
 		
 		$shops = false;
 		
 		if(isset($coords[0]) && isset($coords[1])) {
-			$file_geojson = get_field('delivery_geofile', 'option');
-			$json = file_get_contents($file_geojson['url']);
-		
-			$zones = json_decode($json, true);
+			$zones = ferma_get_cached_delivery_geojson();
+			$shops_map = ferma_get_cached_delivery_zone_shops_map();
 			
 			$point = new Coordinate($coords[0], $coords[1]);
 			
-			foreach ($zones['features'] as $feature) {
+			foreach (($zones['features'] ?? []) as $feature) {
 				$polygon = new Polygon();
 
 				foreach ($feature['geometry']['coordinates'][0] as $coord) {
@@ -28,17 +86,14 @@ if(!function_exists('ferma_get_shops_by_coords')) {
 				
 				if($polygon->contains($point)) {
 					$zone = $feature['properties']['description'];
-				
-					while( have_rows('delivery_zones', 'option') ) {
-						the_row();
-						if(get_sub_field('delivery_zones_name') == $zone) {
-							$shops = get_sub_field('delivery_zones_shops');
-						}
-					}
+					$shops = $shops_map[$zone] ?? false;
+					break;
 				}
 			}
 		}
 		
+		$shops_cache[implode(",", $coords)] = $shops;
+
 		return $shops;
 	}
 	
@@ -47,19 +102,22 @@ if(!function_exists('ferma_get_shops_by_coords')) {
 if(!function_exists('ferma_check_coords')) {
 
 	function ferma_check_coords($coords) {
+		static $check_cache = [];
+
+		if (isset($check_cache[$coords])) {
+			return $check_cache[$coords];
+		}
+
 		$coords = explode(",", $coords);
 		
 		$check = false;
 		
 		if(isset($coords[0]) && isset($coords[1])) {
-			$file_geojson = get_field('delivery_geofile', 'option');
-			$json = file_get_contents($file_geojson['url']);
-		
-			$zones = json_decode($json, true);
+			$zones = ferma_get_cached_delivery_geojson();
 			
 			$point = new Coordinate($coords[0], $coords[1]);
 			
-			foreach ($zones['features'] as $feature) {
+			foreach (($zones['features'] ?? []) as $feature) {
 				$polygon = new Polygon();
 
 				foreach ($feature['geometry']['coordinates'][0] as $coord) {
@@ -68,10 +126,13 @@ if(!function_exists('ferma_check_coords')) {
 				
 				if($polygon->contains($point)) {
 					$check = true;
+					break;
 				}
 			}
 		}
 		
+		$check_cache[implode(",", $coords)] = $check;
+
 		return $check;
 	}
 	
