@@ -1,0 +1,425 @@
+
+/* Cначала обозначаем стили для IE8 и более старых версий
+т.е. здесь мы немного облагораживаем стандартный чекбокс. */
+.wdc-checkbox {
+  vertical-align: top;
+  margin: 0 3px 0 0;
+  width: 17px;
+  height: 17px;
+}
+/* Это для всех браузеров, кроме совсем старых, которые не поддерживают
+селекторы с плюсом. Показываем, что label кликабелен. */
+.wdc-checkbox + label {
+  cursor: pointer;
+}
+
+/* Далее идет оформление чекбокса в современных браузерах, а также IE9 и выше.
+Благодаря тому, что старые браузеры не поддерживают селекторы :not и :checked,
+в них все нижеследующие стили не сработают. */
+
+/* Прячем оригинальный чекбокс. */
+.wdc-checkbox:not(checked) {
+  position: absolute;
+  opacity: 0;
+}
+.wdc-checkbox:not(checked) + label {
+  position: relative; /* будем позиционировать псевдочекбокс относительно label */
+  padding: 0 0 0 60px; /* оставляем слева от label место под псевдочекбокс */
+}
+/* Оформление первой части чекбокса в выключенном состоянии (фон). */
+.wdc-checkbox:not(checked) + label:before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 0;
+  width: 50px;
+  height: 26px;
+  border-radius: 13px;
+  background: #CDD1DA;
+  box-shadow: inset 0 2px 3px rgba(0,0,0,.2);
+}
+/* Оформление второй части чекбокса в выключенном состоянии (переключатель). */
+.wdc-checkbox:not(checked) + label:after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 10px;
+  background: #FFF;
+  box-shadow: 0 2px 5px rgba(0,0,0,.3);
+  transition: all .2s; /* анимация, чтобы чекбокс переключался плавно */
+}
+/* Меняем фон чекбокса, когда он включен. */
+.wdc-checkbox:checked + label:before {
+  background: #9FD468;
+}
+/* Сдвигаем переключатель чекбокса, когда он включен. */
+.wdc-checkbox:checked + label:after {
+  left: 26px;
+}
+/* Показываем получение фокуса. */
+.wdc-checkbox:focus + label:before {
+  box-shadow: 0 0 0 3px rgba(255,255,0,.5);
+}
+.wdc-radio {
+  vertical-align: top;
+  width: 17px;
+  height: 17px;
+  margin: 0 3px 0 0;
+}
+.wdc-radio + label {
+  cursor: pointer;
+}
+.wdc-radio:not(checked) {
+  position: absolute;
+  opacity: 0;
+}
+.wdc-radio:not(checked) + label {
+  position: relative;
+  padding: 0 0 0 35px;
+}
+.wdc-radio:not(checked) + label:before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: 0;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #CDD1DA;
+  border-radius: 50%;
+  background: #FFF;
+}
+.wdc-radio:not(checked) + label:after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #9FD468;
+  box-shadow: inset 0 1px 1px rgba(0,0,0,.5);
+  opacity: 0;
+  transition: all .2s;
+}
+.wdc-radio:checked + label:after {
+  opacity: 1;
+}
+.wdc-radio:focus + label:before {
+  box-shadow: 0 0 0 3px rgba(255,255,0,.5);
+}
+
+.wms-monitor{
+    width: 100%;
+    border: 1px solid #99a09c;
+    min-height:50px;
+    margin: 20px 0;
+    padding: 5px;
+}
+
+#product-monitor-id, #stock-monitor-id, #image-monitor-id, #counterparty-monitor-id{
+    color: #009fea;
+}
+
+
+.wms-table th {
+    width: auto;
+}
+
+.woocommerce table.wms-table th .woocommerce-help-tip {
+    margin: 0;
+    float: none;
+}
+
+
+.wms-table{
+    background: white;
+    font-size: 14px;
+    border: 1px solid #e2e2e2;
+    border-collapse: collapse;
+    width: 100%;
+    margin: 20px 0;
+    padding: 5px;
+}
+
+
+thead .wms-table-tr{
+    height: 40px;
+    text-align: left!important;
+    border-bottom: 1px solid #e2e2e2;
+}
+
+thead .wms-table-tr th{
+    font-weight: normal;
+    color: #32373c;
+}
+
+tbody .wms-table-tr{
+    height: 70px;
+}
+
+tbody .wms-table-tr:nth-child(odd) {
+    background: #f7f6f6;
+}
+
+tbody .wms-table-tr:hover {
+    background: #CECECE;
+}
+
+tbody .wms-table-name{
+    font-weight: bold;
+}
+
+
+.wms-table td, .wms-table th{
+    padding-left: 3%;
+    padding-right: 3%;
+}
+
+
+#circularG{
+  position:relative;
+  width:28px;
+  height:28px;
+  margin: auto;
+}
+
+.circularG{
+  position:absolute;
+  background-color:rgb(255,255,255);
+  width:7px;
+  height:7px;
+  border-radius:4px;
+  -o-border-radius:4px;
+  -ms-border-radius:4px;
+  -webkit-border-radius:4px;
+  -moz-border-radius:4px;
+  animation-name:bounce_circularG;
+  -o-animation-name:bounce_circularG;
+  -ms-animation-name:bounce_circularG;
+  -webkit-animation-name:bounce_circularG;
+  -moz-animation-name:bounce_circularG;
+  animation-duration:1.1s;
+  -o-animation-duration:1.1s;
+  -ms-animation-duration:1.1s;
+  -webkit-animation-duration:1.1s;
+  -moz-animation-duration:1.1s;
+  animation-iteration-count:infinite;
+  -o-animation-iteration-count:infinite;
+  -ms-animation-iteration-count:infinite;
+  -webkit-animation-iteration-count:infinite;
+  -moz-animation-iteration-count:infinite;
+  animation-direction:normal;
+  -o-animation-direction:normal;
+  -ms-animation-direction:normal;
+  -webkit-animation-direction:normal;
+  -moz-animation-direction:normal;
+}
+
+#circularG_1{
+  left:0;
+  top:11px;
+  animation-delay:0.41s;
+  -o-animation-delay:0.41s;
+  -ms-animation-delay:0.41s;
+  -webkit-animation-delay:0.41s;
+  -moz-animation-delay:0.41s;
+}
+
+#circularG{
+  position:relative;
+  width:21px;
+  height:21px;
+  margin: auto;
+}
+
+.circularG{
+  position:absolute;
+  background-color:rgb(255,255,255);
+  width:5px;
+  height:5px;
+  border-radius:3px;
+  -o-border-radius:3px;
+  -ms-border-radius:3px;
+  -webkit-border-radius:3px;
+  -moz-border-radius:3px;
+  animation-name:bounce_circularG;
+  -o-animation-name:bounce_circularG;
+  -ms-animation-name:bounce_circularG;
+  -webkit-animation-name:bounce_circularG;
+  -moz-animation-name:bounce_circularG;
+  animation-duration:1.1s;
+  -o-animation-duration:1.1s;
+  -ms-animation-duration:1.1s;
+  -webkit-animation-duration:1.1s;
+  -moz-animation-duration:1.1s;
+  animation-iteration-count:infinite;
+  -o-animation-iteration-count:infinite;
+  -ms-animation-iteration-count:infinite;
+  -webkit-animation-iteration-count:infinite;
+  -moz-animation-iteration-count:infinite;
+  animation-direction:normal;
+  -o-animation-direction:normal;
+  -ms-animation-direction:normal;
+  -webkit-animation-direction:normal;
+  -moz-animation-direction:normal;
+}
+
+#circularG_1{
+  left:0;
+  top:8px;
+  animation-delay:0.41s;
+  -o-animation-delay:0.41s;
+  -ms-animation-delay:0.41s;
+  -webkit-animation-delay:0.41s;
+  -moz-animation-delay:0.41s;
+}
+
+#circularG_2{
+  left:2px;
+  top:2px;
+  animation-delay:0.55s;
+  -o-animation-delay:0.55s;
+  -ms-animation-delay:0.55s;
+  -webkit-animation-delay:0.55s;
+  -moz-animation-delay:0.55s;
+}
+
+#circularG_3{
+  top:0;
+  left:8px;
+  animation-delay:0.69s;
+  -o-animation-delay:0.69s;
+  -ms-animation-delay:0.69s;
+  -webkit-animation-delay:0.69s;
+  -moz-animation-delay:0.69s;
+}
+
+#circularG_4{
+  right:2px;
+  top:2px;
+  animation-delay:0.83s;
+  -o-animation-delay:0.83s;
+  -ms-animation-delay:0.83s;
+  -webkit-animation-delay:0.83s;
+  -moz-animation-delay:0.83s;
+}
+
+#circularG_5{
+  right:0;
+  top:8px;
+  animation-delay:0.97s;
+  -o-animation-delay:0.97s;
+  -ms-animation-delay:0.97s;
+  -webkit-animation-delay:0.97s;
+  -moz-animation-delay:0.97s;
+}
+
+#circularG_6{
+  right:2px;
+  bottom:2px;
+  animation-delay:1.1s;
+  -o-animation-delay:1.1s;
+  -ms-animation-delay:1.1s;
+  -webkit-animation-delay:1.1s;
+  -moz-animation-delay:1.1s;
+}
+
+#circularG_7{
+  left:8px;
+  bottom:0;
+  animation-delay:1.24s;
+  -o-animation-delay:1.24s;
+  -ms-animation-delay:1.24s;
+  -webkit-animation-delay:1.24s;
+  -moz-animation-delay:1.24s;
+}
+
+#circularG_8{
+  left:2px;
+  bottom:2px;
+  animation-delay:1.38s;
+  -o-animation-delay:1.38s;
+  -ms-animation-delay:1.38s;
+  -webkit-animation-delay:1.38s;
+  -moz-animation-delay:1.38s;
+}
+
+
+
+@keyframes bounce_circularG{
+  0%{
+    transform:scale(1);
+  }
+
+  100%{
+    transform:scale(.3);
+  }
+}
+
+@-o-keyframes bounce_circularG{
+  0%{
+    -o-transform:scale(1);
+  }
+
+  100%{
+    -o-transform:scale(.3);
+  }
+}
+
+@-ms-keyframes bounce_circularG{
+  0%{
+    -ms-transform:scale(1);
+  }
+
+  100%{
+    -ms-transform:scale(.3);
+  }
+}
+
+@-webkit-keyframes bounce_circularG{
+  0%{
+    -webkit-transform:scale(1);
+  }
+
+  100%{
+    -webkit-transform:scale(.3);
+  }
+}
+
+@-moz-keyframes bounce_circularG{
+  0%{
+    -moz-transform:scale(1);
+  }
+
+  100%{
+    -moz-transform:scale(.3);
+  }
+}
+
+nav .nav-pills li.active a{
+  color: #fff;
+  background-color: #007bff;
+}
+
+.wdc-check {
+  height: 30px;
+  width: 30px;
+  padding: 5px;
+  border: solid 1px;
+  border-radius: 50%;
+}
+
+.wdc-a{
+  color: green;
+}
+
+.wdc-d{
+  color: red;
+}
+
+.wdc-as{
+  font-size: 10px;
+}

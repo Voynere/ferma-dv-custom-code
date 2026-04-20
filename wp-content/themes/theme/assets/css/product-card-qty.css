@@ -1,0 +1,88 @@
+.product-card__cart {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.product-card__cart .add_to_cart_button {
+    margin-left: auto;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap;
+}
+.product-card__cart {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.product-card {
+    padding-right: 10px;
+}
+.add_to_cart_button.shop-ferma__rel-add {
+    margin-left: 28px;
+}
+.product-card__cart .cart__qty {
+    margin-right: 32px; 
+}
+
+.cart__qty {
+    margin-right: 20px;
+}
+.product-card__cart .add_to_cart_button {
+    margin-left: auto;
+    margin-right: 10px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap;
+}
+
+
+.product-card__cart .cart__qty {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+.product-card__cart {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+}
+
+.cart__qty {
+    margin-right: 20px !important;
+}
+
+.product-card__cart .cart__qty {
+    gap: 8px !important;
+}
+.product-card__cart {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.product-card__cart .cart__qty {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: 32px;
+}
+
+.cart__qty {
+    margin-right: 20px;
+}
+
+.product-card__cart .add_to_cart_button {
+    margin-left: auto;
+    margin-right: 10px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.add_to_cart_button.shop-ferma__rel-add {
+    margin-left: 28px;
+}

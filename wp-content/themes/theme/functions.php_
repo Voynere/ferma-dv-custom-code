@@ -1,0 +1,1225 @@
+<?php
+/**
+ * Theme functions and definitions
+ *
+ * @link https://developer.wordpress.org/themes/basics/theme-functions/
+ *
+ * @package Theme
+ */
+
+ add_action('wp_ajax_update_user_address1', 'update_user_address1_callback');
+ add_action('wp_ajax_nopriv_update_user_address1', 'update_user_address1_callback'); // для неавторизованных пользователей
+ 
+ function update_user_address1_callback() {
+	setcookie( 'delivery', 1, time() + 3600, '/' );
+	$user_id = get_current_user_id();
+	$address = $_POST['address'];
+	SetCookie("data_of_samoviviz", $address['data_of'], time()+60*60, '/');
+	SetCookie("data_check", $address['billing_comment_zakaz'], time()+60*60, '/');
+	if ( is_user_logged_in() ) {
+	  update_user_meta($user_id, 'delivery', 1);
+	  foreach ($address as $key => $value) {
+		update_user_meta($user_id, $key, $value);
+	  }
+		if ($address['billing_samoviziv'] == 'Эгершельд, Верхнепортовая,68а') {
+			update_user_meta($user_id, 'samovivoz', 'Эгершельд');
+		}
+		if ($address['billing_samoviziv'] == 'Реми-Сити (ул. Народный пр-т, 20)') {
+			update_user_meta($user_id, 'samovivoz', 'Реми-Сити');
+		}
+		if ($address['billing_samoviziv'] == 'ТЦ «Море», Гипермаркет (ул. Некрасовская, 49а)') {
+			update_user_meta($user_id, 'samovivoz', 'ГринМаркет ТЦ Море');
+
+		}
+		if ($address['billing_samoviziv'] == 'ул. Тимирязева,31 строение 1 (район Спутник)') {
+			update_user_meta($user_id, 'samovivoz', 'Космос');
+
+		}
+		if ($address['billing_samoviziv'] == 'ТЦ Москва, 1-й этаж (ул. Суханова,52)') {
+			update_user_meta($user_id, 'samovivoz', 'Уссурийск');
+
+		}
+	  $user_data = array(
+		'ID' => $user_id,
+		// другие поля можно добавить по аналогии
+	  );
+	  
+	   $result = wp_update_user($user_data);
+	} else {
+		setcookie( 'billing_samoviziv', $address['billing_samoviziv'], time() + 3600, '/' );
+		setcookie( 'time_to_dev', $address['time_type'], time() + 3600, '/' );
+	}
+	if ($address['billing_samoviziv'] == 'Эгершельд, Верхнепортовая,68а') {
+		SetCookie("market", 'Эгершельд', time()+60*60*24*1, '/');
+		SetCookie("key_market", '7c0dc9ce-ce1e-11ea-0a80-09ca000e5e93', time()+60*60*24*1, '/');
+	}
+	if ($address['billing_samoviziv'] == 'Реми-Сити (ул. Народный пр-т, 20)') {
+		SetCookie("key_market", 'b24e4c35-9609-11eb-0a80-0d0d008550c2', time()+60*60*24*1, '/');
+		SetCookie("market", 'Реми-Сити', time()+60*60*24*1, '/');
+	}
+	if ($address['billing_samoviziv'] == 'ТЦ «Море», Гипермаркет (ул. Некрасовская, 49а)') {
+		SetCookie("key_market", 'cab1caa9-da10-11eb-0a80-07410026c356', time()+60*60*24*1, '/');
+		SetCookie("market", 'ГринМаркет ТЦ Море', time()+60*60*24*1, '/');
+	}
+	if ($address['billing_samoviziv'] == 'ул. Тимирязева,31 строение 1 (район Спутник)') {
+		SetCookie("market", 'Космос', time()+60*60*24*1, '/');
+		SetCookie("key_market", 'a99d6fdf-0970-11ed-0a80-0ed600075845', time()+60*60*24*1, '/');
+	}
+	if ($address['billing_samoviziv'] == 'ТЦ Москва, 1-й этаж (ул. Суханова,52)') {
+		SetCookie("market", 'Уссурийск', time()+60*60*24*1, '/');
+		SetCookie("key_market", '9c9dfcc4-733f-11ec-0a80-0da1013a560d', time()+60*60*24*1, '/');
+
+	}
+
+ }
+
+
+ add_filter('woocommerce_checkout_get_value', 'update_checkout_user_address', 10, 2);
+
+ function update_checkout_user_address($value, $input) {
+	 $user_id = get_current_user_id();
+	 if (!$user_id) {
+		 return $value;
+	 }
+	 switch ($input) {
+		 case 'billing_country':
+			 return get_user_meta($user_id, 'billing_country', true);
+		 case 'billing_state':
+			 return get_user_meta($user_id, 'billing_state', true);
+		 case 'billing_city':
+			 return get_user_meta($user_id, 'billing_city', true);
+		 case 'billing_postcode':
+			 return get_user_meta($user_id, 'billing_postcode', true);
+		 case 'billing_address_1':
+			 return get_user_meta($user_id, 'billing_address_1', true);
+		 case 'billing_address_2':
+			 return get_user_meta($user_id, 'billing_address_2', true);
+		 case 'shipping_country':
+			 return get_user_meta($user_id, 'shipping_country', true);
+		 case 'shipping_state':
+			 return get_user_meta($user_id, 'shipping_state', true);
+		 case 'shipping_city':
+			 return get_user_meta($user_id, 'shipping_city', true);
+		 case 'shipping_postcode':
+			 return get_user_meta($user_id, 'shipping_postcode', true);
+		 case 'shipping_address_1':
+			 return get_user_meta($user_id, 'shipping_address_1', true);
+		 case 'shipping_address_2':
+			 return get_user_meta($user_id, 'shipping_address_2', true);
+		 default:
+			 return $value;
+	 }
+ }
+ 
+
+ // передаем значение поля в админ-панель
+add_action('woocommerce_checkout_update_order_meta', 'save_custom_checkout_field');
+function save_custom_checkout_field($order_id) {
+    if (!empty($_POST['billing_type_delivery'])) {
+        update_post_meta($order_id, 'billing_type_delivery', sanitize_text_field($_POST['billing_type_delivery']));
+    }
+}
+ add_filter( 'woocommerce_checkout_fields' , 'custom_checkout_fields' );
+ function custom_checkout_fields( $fields ) {
+
+	// Получаем значение адреса из сессии или cookie
+	if ( is_user_logged_in() ) {
+	   $user_id = get_current_user_id();
+	   $address2 = get_user_meta( $user_id, 'billing_delivery', true );
+	   $coment_address = get_user_meta( $user_id, 'billing_comment', true );
+	   $coment_samoviziv =  get_user_meta( $user_id, 'billing_samoviziv', true );
+	   $coment_address_type = isset( $_COOKIE['time_type'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['time_type'] ) ) : '';
+	} else {
+	   $address2 = isset( $_COOKIE['billing_delivery'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['billing_delivery'] ) ) : '';
+	   $coment_address = isset( $_COOKIE['billing_comment'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['billing_comment'] ) ) : '';
+	   $coment_samoviziv = isset( $_COOKIE['billing_samoviziv'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['billing_samoviziv'] ) ) : '';
+	   $coment_address_type = isset( $_COOKIE['time_type'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['time_type'] ) ) : '';
+	}
+	if ($coment_address_type == 1) {
+		$result_mes = '15:00-17:00';
+	} elseif ($coment_address_type == 2) {
+			$result_mes = '19:00-21:00';
+	}
+	if ($_COOKIE['time'] == 1) {
+		$message = 'Сегодня';
+	} elseif ($_COOKIE['time'] == 2 ) {
+		$message = 'Завтра';
+	}
+	if ($_COOKIE['time_type'] = 1) {
+		$time_of_type = '15:00-17:00';
+	}
+	if ($_COOKIE['time_type'] = 2) {
+		$time_of_type = '19:00-21:00';
+	}
+	// Добавляем значение адреса в поле billing_address_2
+	$fields['billing']['billing_delivery']['default'] = $address2;
+	$current_time = current_time( 'H:i' );
+	if ($current_time > '14:00') {
+		$fields['billing']['billing_asdx1'] = array(
+			'label' => __('Время доставки', 'woocommerce'),
+			'type' => 'select',
+			'options' => array(
+				'Сегодня, 19:00-21:00' => __('Сегодня, 19:00-21:00'),
+				'Завтра, 15:00-17:00' => __('Завтра, 15:00-17:00', 'woocommerce'),
+				'Завтра, 19:00-21:00' => __('Завтра, 19:00-21:00', 'woocommerce'),
+			),
+			'default' => $message . ', ' . $result_mes,
+			'required' => true,
+		);
+	}
+	if ($current_time > '20:00') {
+		$fields['billing']['billing_asdx1'] = array(
+			'label' => __('Время доставки', 'woocommerce'),
+			'type' => 'select',
+			'options' => array(
+				'Завтра, 15:00-17:00' => __('Завтра, 15:00-17:00', 'woocommerce'),
+				'Завтра, 19:00-21:00' => __('Завтра, 19:00-21:00', 'woocommerce'),
+			),
+			'default' => $message . ', ' . $result_mes,
+			'required' => true,
+		);
+	} 
+	if ($current_time < '14:00') {
+		$fields['billing']['billing_asdx1'] = array(
+			'label' => __('Время доставки', 'woocommerce'),
+			'type' => 'select',
+			'options' => array(
+				'Сегодня, 15:00-17:00' => __('Сегодня, 15:00-17:00', 'woocommerce'),
+				'Сегодня, 19:00-21:00' => __('Сегодня, 19:00-21:00'),
+				'Завтра, 15:00-17:00' => __('Завтра, 15:00-17:00', 'woocommerce'),
+				'Завтра, 19:00-21:00' => __('Завтра, 19:00-21:00', 'woocommerce'),
+			),
+			'default' => $message . ', ' . $result_mes,
+			'required' => true,
+		);
+	}
+	$fields['billing']['billing_comment']['default'] = $coment_address;
+	
+	$fields['billing']['billing_samoviziv']['default'] = $coment_samoviziv;
+	$fields['billing']['billing_comment_zakaz']['default'] = $_COOKIE['data_check'];
+
+	$current_time = current_time('H:i'); // Получаем текущее местное время в формате часы:минуты
+	$start_time = strtotime('10:00'); // Устанавливаем начальное время
+	$end_time = strtotime('21:00'); // Устанавливаем конечное время
+	$interval = 2 * 60 * 60; // Устанавливаем интервал в 2 часа
+	$additional_options = array(
+		'Завтра, 10:00-12:00' => 'Завтра, 10:00-12:00',
+		'Завтра, 12:00-14:00' => 'Завтра, 12:00-14:00',
+		'Завтра, 14:00-16:00' => 'Завтра, 14:00-16:00',
+		'Завтра, 16:00-18:00' => 'Завтра, 16:00-18:00',
+		'Завтра, 18:00-20:00' => 'Завтра, 18:00-20:00',
+		'Завтра, 20:00-21:00' => 'Завтра, 20:00-21:00',
+	);
+	$options = array();
+	for ($time = $start_time; $time <= $end_time; $time += $interval) {
+		$start = date('H:i', $time); // Преобразуем начальное время в формат часы:минуты
+		$end = date('H:i', $time + $interval); // Преобразуем конечное время в формат часы:минуты
+		if ($end > '21:00') { // Проверяем, если конечное время больше, чем 21:00
+			$end = '21:00'; // Устанавливаем конечное время на 21:00
+		}
+		$option_time = 'Сегодня, ' . $start . '-' . $end; // Формируем строку вида "часы:минуты-часы:минуты"
+		if ($option_time == $_COOKIE['data_of_samoviviz'])
+		{
+			echo 1;
+		}
+		if ($start > $current_time) { // Проверяем, если начальное время больше, чем текущее время
+			$options[$option_time] = $option_time;
+		}
+	}
+	$options = array_merge($options, $additional_options);
+	$fields['billing']['billing_type_delivery_sam'] = array(
+		'label' => __('Время самовывоза', 'woocommerce'),
+		'type' => 'select',
+		'options' => $options,
+		'required' => true,
+		'default' => urldecode($_COOKIE['data_of_samoviviz']),
+	);
+	
+	if ( !is_user_logged_in() && empty($_COOKIE['delivery'])) {
+		if ( isset( $fields['billing']['billing_samoviziv'] ) ) {
+            unset( $fields['billing']['billing_samoviziv'] );
+        }
+		if ( isset( $fields['billing']['billing_type_delivery_sam'] ) ) {
+            unset( $fields['billing']['billing_type_delivery_sam'] );
+        }
+	}
+	if ( is_user_logged_in() && get_user_meta( get_current_user_id(), 'delivery', true ) == '1' ) {
+		if ( isset( $fields['billing']['billing_delivery'] ) ) {
+            unset( $fields['billing']['billing_delivery'] );
+        }
+		if ( isset( $fields['billing']['billing_comment'] ) ) {
+            unset( $fields['billing']['billing_comment'] );
+        }
+		if ( isset( $fields['billing']['billing_asdx1'] ) ) {
+            unset( $fields['billing']['billing_asdx1'] );
+        }
+		if ( isset( $fields['billing']['billing_dev_1'] ) ) {
+            unset( $fields['billing']['billing_dev_1'] );
+        }
+		if ( isset( $fields['billing']['billing_dev_2'] ) ) {
+            unset( $fields['billing']['billing_dev_2'] );
+        }
+		if ( isset( $fields['billing']['billing_dev_3'] ) ) {
+            unset( $fields['billing']['billing_dev_3'] );
+        }
+		if ( isset( $fields['billing']['billing_dev_4'] ) ) {
+            unset( $fields['billing']['billing_dev_4'] );
+        }
+		if ( isset( $fields['billing']['billing_type_delivery'] ) ) {
+            unset( $fields['billing']['billing_type_delivery'] );
+        }
+		if ( isset( $fields['billing']['billing_comment_zakaz'] ) ) {
+            unset( $fields['billing']['billing_comment_zakaz'] );
+        }
+	}
+	if ( (is_user_logged_in() && get_user_meta( get_current_user_id(), 'delivery', true ) == '0') || (is_user_logged_in() && empty(get_user_meta( get_current_user_id(), 'delivery', true )))) {
+		if ( isset( $fields['billing']['billing_samoviziv'] ) ) {
+            unset( $fields['billing']['billing_samoviziv'] );
+        }
+		if ( isset( $fields['billing']['billing_type_delivery_sam'] ) ) {
+            unset( $fields['billing']['billing_type_delivery_sam'] );
+        }
+
+	}
+	if ( !is_user_logged_in() && $_COOKIE['delivery'] == '1' ) {
+		if ( isset( $fields['billing']['billing_delivery'] ) ) {
+            unset( $fields['billing']['billing_delivery'] );
+        }
+		if ( isset( $fields['billing']['billing_comment'] ) ) {
+            unset( $fields['billing']['billing_comment'] );
+        }
+		if ( isset( $fields['billing']['billing_asdx1'] ) ) {
+            unset( $fields['billing']['billing_asdx1'] );
+        }
+		if ( isset( $fields['billing']['billing_dev_1'] ) ) {
+            unset( $fields['billing']['billing_dev_1'] );
+        }
+		if ( isset( $fields['billing']['billing_dev_2'] ) ) {
+            unset( $fields['billing']['billing_dev_2'] );
+        }
+		if ( isset( $fields['billing']['billing_dev_3'] ) ) {
+            unset( $fields['billing']['billing_dev_3'] );
+        }
+		if ( isset( $fields['billing']['billing_dev_4'] ) ) {
+            unset( $fields['billing']['billing_dev_4'] );
+        }
+		if ( isset( $fields['billing']['billing_type_delivery'] ) ) {
+            unset( $fields['billing']['billing_type_delivery'] );
+        }
+		if ( isset( $fields['billing']['billing_comment_zakaz'] ) ) {
+            unset( $fields['billing']['billing_comment_zakaz'] );
+        }
+	}
+	if (  !is_user_logged_in() && $_COOKIE['delivery'] == '0' ) {
+		if ( isset( $fields['billing']['billing_samoviziv'] ) ) {
+            unset( $fields['billing']['billing_samoviziv'] );
+        }
+		if ( isset( $fields['billing']['billing_type_delivery_sam'] ) ) {
+            unset( $fields['billing']['billing_type_delivery_sam'] );
+        }
+
+	}
+	return $fields;
+	
+ }
+ 
+ add_action( 'woocommerce_checkout_update_order_review', 'custom_woocommerce_checkout_update_order_review', 10, 1 );
+ function custom_woocommerce_checkout_update_order_review( $post_data ) {
+	 WC()->session->set( 'custom_cache', false );
+ }
+ 
+ add_action('wp_ajax_update_user_address', 'update_user_address_callback');
+ add_action('wp_ajax_nopriv_update_user_address', 'update_user_address_callback'); // для неавторизованных пользователей
+ 
+ function update_user_address_callback() {
+	setcookie( 'delivery', 0, time() + 3600, '/' );
+	WC()->session->set( 'custom_cache', false );
+	setcookie( 'billing_delivery', 0, time() - 1, '/' );
+	setcookie( 'billing_comment', 0, time() - 1, '/' );
+	$user_id = get_current_user_id();
+	$address = $_POST['address'];
+	SetCookie("data_check", $address['billing_comment_zakaz'], time()+60*60, '/');
+	setcookie( 'time', $address['time'], time() + 3600, '/' );
+setcookie( 'coords', $address['coords'], time() + 3600, '/' );
+setcookie( 'time_type', $address['time_type'], time() + 3600, '/' );
+
+   if ( is_user_logged_in() ) {
+	update_user_meta($user_id, 'delivery', 0);
+	update_user_meta($user_id, 'time_type', 0);
+   foreach ($address as $key => $value) {
+	 update_user_meta($user_id, $key, $value);
+   }
+   $user_data = array(
+	'ID' => $user_id,
+	'time_type' => $address['time_type']
+  );
+  
+   wp_update_user($user_data);
+	} else {
+setcookie( 'delivery', 0, time() + 3600, '/' );
+
+// Сохраняем адрес в cookie
+setcookie( 'billing_delivery', $address['billing_delivery'], time() + 3600, '/' );
+setcookie( 'billing_comment', $address['billing_comment'], time() + 3600, '/' );
+}
+ }
+ 
+
+if ( ! function_exists( 'theme_setup' ) ) :
+	/**
+	 * Sets up theme defaults and registers support for various WordPress features.
+	 *
+	 * Note that this function is hooked into the after_setup_theme hook, which
+	 * runs before the init hook. The init hook is too late for some features, such
+	 * as indicating support for post thumbnails.
+	 */
+	function theme_setup() {
+		/*
+		 * Make theme available for translation.
+		 * Translations can be filed in the /languages/ directory.
+		 * If you're building a theme based on Theme, use a find and replace
+		 * to change 'theme' to the name of your theme in all the template files.
+		 */
+		load_theme_textdomain( 'theme', get_template_directory() . '/languages' );
+
+		// Add default posts and comments RSS feed links to head.
+		add_theme_support( 'automatic-feed-links' );
+
+		/*
+		 * Let WordPress manage the document title.
+		 * By adding theme support, we declare that this theme does not use a
+		 * hard-coded <title> tag in the document head, and expect WordPress to
+		 * provide it for us.
+		 */
+		add_theme_support( 'title-tag' );
+
+		/*
+		 * Enable support for Post Thumbnails on posts and pages.
+		 *
+		 * @link https://developer.wordpress.org/themes/functionality/featured-images-post-thumbnails/
+		 */
+		add_theme_support( 'post-thumbnails' );
+
+		// This theme uses wp_nav_menu() in one location.
+		register_nav_menus( array(
+			'menu-1' => esc_html__( 'Primary', 'theme' ),
+		) );
+
+		/*
+		 * Switch default core markup for search form, comment form, and comments
+		 * to output valid HTML5.
+		 */
+		add_theme_support( 'html5', array(
+			'search-form',
+			'comment-form',
+			'comment-list',
+			'gallery',
+			'caption',
+		) );
+
+		// Set up the WordPress core custom background feature.
+		add_theme_support( 'custom-background', apply_filters( 'theme_custom_background_args', array(
+			'default-color' => 'ffffff',
+			'default-image' => '',
+		) ) );
+
+		// Add theme support for selective refresh for widgets.
+		add_theme_support( 'customize-selective-refresh-widgets' );
+
+		/**
+		 * Add support for core custom logo.
+		 *
+		 * @link https://codex.wordpress.org/Theme_Logo
+		 */
+		add_theme_support( 'custom-logo', array(
+			'height'      => 250,
+			'width'       => 250,
+			'flex-width'  => true,
+			'flex-height' => true,
+		) );
+	}
+endif;
+
+
+function my_shortcode(){
+	$img1 = get_field( "1_izobrazhenie" );
+	$img2 = get_field( "2_izobrazhenie" );
+	$img3 = get_field( "3_izobrazhenie" );
+	$link1 = get_field( "1_ssylka" );
+	$link2 = get_field( "2_ssylka" );
+	$link3 = get_field( "3_ssylka" );
+	echo'
+	<div style="display:flex">
+	<img style="width: 633px;;margin-bottom: -5px;" id="photo_pc_1" onclick="location.href = '. "'" . $link1. "'" .';" src="' . $img1 . '" height="250" alt="" /> 
+  <div class="class" style="width:50%;margin-left:5px"> 
+	  <img  onclick="location.href = '. "'" . $link2. "'" .';" src="' . $img2 . '" style="width:100%;height: 50%;"  alt="" /> 
+	<img  onclick="location.href = '. "'" . $link3. "'" .';" src="' . $img3 . '" id="photo_pc_2" style="margin-top:5px;width:100%;height: 50%;" alt="" /> 
+  
+  </div>
+   
+  </div>
+	<img style="width: 633px;display:none" id="photo_0"  onclick="location.href = '. "'" . $link1. "'" .';" src="' . $img1 . '" height="250" alt="" /> 
+   <img  onclick="location.href = '. "'" . $link2. "'" .';" style="width: 100%;display:none;margin-top:1em" id="photo_1" src="' . $img2 . '" height="250" alt="" /> 
+   <img style="width: 100%;display:none;margin-top:1em;" onclick="location.href = '. "'" . $link3. "'" .';"  id="photo_2" src="' . $img3 . '" height="250" alt="" /> ';
+ }
+add_shortcode('say_banner','my_shortcode');
+
+
+add_filter ( 'woocommerce_account_menu_items', 'truemisha_log_history_link', 25 );
+function truemisha_log_history_link( $menu_links ){
+	$menu_links = array_slice( $menu_links, 0, 4, true ) + array( 'user-market' => 'Выбор ближайшего магазина' ) + array_slice( $menu_links, 4, NULL, true );
+	return $menu_links;
+ 
+}
+
+add_action( 'woocommerce_order_status_completed','callback_function_name' );
+function callback_function_name(){
+	$url = $_SERVER["REQUEST_URI"];
+	$parts = parse_url($url); 
+	parse_str($parts['query'], $query); 
+	$order_id = $query['post'][0];
+	$order = wc_get_order( $order_id );
+	$user_id = $order->get_user_id();
+	$total = $order->get_total();
+	$percent = 5;
+	$fulltotal =  $total * ($percent / 100); 
+	$user_info = get_userdata($user_id);
+	$userlogin = $user_info->user_login;
+	$content = preg_replace("/[^0-9]/", "", $userlogin);
+
+	$arr = array('search_mode' => 0, 'search_value' => $content);
+
+	$url = "https://bonus.kilbil.ru/load/searchclient?h=b2bf915a8c4460f29b499307082cf5af";
+	$content = json_encode($arr);
+	$curl = curl_init($url);
+	curl_setopt($curl, CURLOPT_HEADER, false);
+	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($curl, CURLOPT_HTTPHEADER,
+			array("Content-type: application/json"));
+	curl_setopt($curl, CURLOPT_POST, true);
+	curl_setopt($curl, CURLOPT_POSTFIELDS, $content);
+	$json_response = curl_exec($curl);
+	$status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+	$obj = json_decode($json_response);
+	$userbonus = $obj->{'client_id'};
+	curl_close($curl);
+
+	$arr = array('client_id' => $userbonus, 'bonus_in' => $fulltotal);
+
+	$url = "https://bonus.kilbil.ru/load/manualadd?h=b2bf915a8c4460f29b499307082cf5af";
+	$content = json_encode($arr);
+	$curl = curl_init($url);
+	curl_setopt($curl, CURLOPT_HEADER, false);
+	curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($curl, CURLOPT_HTTPHEADER,
+			array("Content-type: application/json"));
+	curl_setopt($curl, CURLOPT_POST, true);
+	curl_setopt($curl, CURLOPT_POSTFIELDS, $content);
+	$json_response = curl_exec($curl);
+	$status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+	$obj = json_decode($json_response);
+	curl_close($curl);
+	echo "<script>console.log('Debug Objects: " . $content . "' );</script>";
+	$data  = $order->get_data();
+	$bonus = get_post_meta( $order->get_id(), 'billing_bonus', true );
+	if($bonus > 0) {
+		$arr = array('client_id' => $userbonus, 'bonus_out' => $bonus);
+
+		$url = "https://bonus.kilbil.ru/load/manualadd?h=b2bf915a8c4460f29b499307082cf5af";
+		$content = json_encode($arr);
+		$curl = curl_init($url);
+		curl_setopt($curl, CURLOPT_HEADER, false);
+		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl, CURLOPT_HTTPHEADER,
+				array("Content-type: application/json"));
+		curl_setopt($curl, CURLOPT_POST, true);
+		curl_setopt($curl, CURLOPT_POSTFIELDS, $content);
+		$json_response = curl_exec($curl);
+		$status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+		$obj = json_decode($json_response);
+		curl_close($curl);
+		unset($_COOKIE['balik']);
+setcookie('balik', null, -1, '/');
+		echo "<script>console.log('Debug Objects: " . $content . "' );</script>";
+	}
+
+}
+add_action( 'init', 'truemisha_add_endpoint', 25 );
+function truemisha_add_endpoint() {
+ 
+	add_rewrite_endpoint( 'user-market', EP_PAGES );
+ 
+}
+add_action( 'woocommerce_account_user-market_endpoint', 'truemisha_content', 25 );
+function truemisha_content() {
+ 
+	echo 'В последний раз вы входили вчера через браузер Safari.';
+ 
+}
+add_action( 'after_setup_theme', 'theme_setup' );
+
+/**
+ * Set the content width in pixels, based on the theme's design and stylesheet.
+ *
+ * Priority 0 to make it available to lower priority callbacks.
+ *
+ * @global int $content_width
+ */
+function theme_content_width() {
+	// This variable is intended to be overruled from themes.
+	// Open WPCS issue: {@link https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/issues/1043}.
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+	$GLOBALS['content_width'] = apply_filters( 'theme_content_width', 640 );
+}
+add_action( 'after_setup_theme', 'theme_content_width', 0 );
+
+/**
+ * Register widget area.
+ *
+ * @link https://developer.wordpress.org/themes/functionality/sidebars/#registering-a-sidebar
+ */
+function theme_widgets_init() {
+	register_sidebar( array(
+		'name'          => esc_html__( 'Sidebar', 'theme' ),
+		'id'            => 'sidebar-1',
+		'description'   => esc_html__( 'Add widgets here.', 'theme' ),
+		'before_widget' => '<section id="%1$s" class="widget %2$s">',
+		'after_widget'  => '</section>',
+		'before_title'  => '<h2 class="widget-title">',
+		'after_title'   => '</h2>',
+	) );
+}
+add_action( 'widgets_init', 'theme_widgets_init' );
+
+/**
+ * Enqueue scripts and styles.
+ */
+function theme_scripts() {
+	wp_enqueue_style( 'theme-style', get_stylesheet_uri() );
+
+	wp_enqueue_script( 'theme-navigation', get_template_directory_uri() . '/js/navigation.js', array(), '20151215', true );
+
+	wp_enqueue_script( 'theme-skip-link-focus-fix', get_template_directory_uri() . '/js/skip-link-focus-fix.js', array(), '20151215', true );
+
+	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
+		wp_enqueue_script( 'comment-reply' );
+	}
+}
+add_action( 'wp_enqueue_scripts', 'theme_scripts' );
+
+/**
+ * Implement the Custom Header feature.
+ */
+require get_template_directory() . '/inc/custom-header.php';
+
+/**
+ * Custom template tags for this theme.
+ */
+require get_template_directory() . '/inc/template-tags.php';
+
+/**
+ * Functions which enhance the theme by hooking into WordPress.
+ */
+require get_template_directory() . '/inc/template-functions.php';
+
+/**
+ * Customizer additions.
+ */
+require get_template_directory() . '/inc/customizer.php';
+
+/**
+ * Load Jetpack compatibility file.
+ */
+if ( defined( 'JETPACK__VERSION' ) ) {
+	require get_template_directory() . '/inc/jetpack.php';
+}
+
+//add_filter('show_admin_bar', '__return_false'); // отключить
+
+
+// Display the mobile phone field
+// add_action( 'woocommerce_edit_account_form_start', 'add_billing_mobile_phone_to_edit_account_form' ); // At start
+add_action( 'woocommerce_edit_account_form', 'add_billing_mobile_phone_to_edit_account_form' ); // After existing fields
+function add_billing_mobile_phone_to_edit_account_form() {
+    $user = wp_get_current_user();
+    ?>
+		<script src="https://unpkg.com/imask"></script>
+
+     <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide" style="display:block;">
+        <label for="billing_phone"><?php _e( 'Номер телефона', 'woocommerce' ); ?> <span class="required">*</span></label>
+        <input type="text" class="woocommerce-Input woocommerce-Input--phone input-text" name="billing_phone" style="width:50%;" id="billing_phone" value="<?php echo esc_attr( $user->billing_phone ); ?>" disabled/>
+		<script>
+function izmena() {
+    var inputs=document.getElementsByTagName('input');
+	for(i=0;i<inputs.length;i++){
+		inputs[i].disabled=false;
+	}
+
+	var a = FindByAttributeValue("for", "billing_phone");   
+a.innerHTML = 'Введите новый номер телефона <span class="required">*</span>';
+var b = FindByAttributeValue("name", "save_account_details");   
+b.disabled = true;
+$("#smenanomera").hide();
+$("#smenanomera2").show();
+function FindByAttributeValue(attribute, value, element_type)    {
+  element_type = element_type || "*";
+  var All = document.getElementsByTagName(element_type);
+  for (var i = 0; i < All.length; i++)       {
+    if (All[i].getAttribute(attribute) == value) { return All[i]; }
+  }
+}
+  }
+		</script>
+		<style>
+			#smenanomera2, #smenanomera, #smenanomera3 {
+				font-size: 100%;
+    margin: 0;
+    line-height: 1;
+    cursor: pointer;
+    position: relative;
+    text-decoration: none;
+    overflow: visible;
+    padding: 0.618em 1em;
+    font-weight: 700;
+    border-radius: 3px;
+    left: auto;
+    color: #ffffff;
+    background-color: #6ba802;
+    border: 0;
+    display: inline-block;
+    background-image: none;
+    box-shadow: none;
+    text-shadow: none;
+			}
+		</style>
+		<button type="button" onclick="izmena()" id="smenanomera">Изменить</button>
+		<button type="button" style="display:none" id="smenanomera2">Применить</button>
+		<button type="button" style="display:none" id="smenanomera3">Изменить</button>
+		<input type="hidden" id="id_user" value="<?$cur_user_id = get_current_user_id();
+echo $cur_user_id;?>">
+	</p>
+
+	
+
+
+
+
+
+	<script>
+		var e = FindByAttributeValue("id", "billing_phone");   
+
+		$("#smenanomera2").on("click", function(){
+			$.ajax({
+	url: '/wp-content/themes/theme/obrabotka.php',
+	method: 'post',
+	dataType: 'html',
+	data: {text: e.value},
+	success: function(data){
+		var jsonData = JSON.parse(data);
+		if (jsonData.error == 1 ) {
+			document.getElementById("ajaxresult").innerHTML = '<p>Вы неверно ввели номер</p>';
+		} else {
+			document.cookie = "snemanomera1=1;path=/;max-age=30;";
+			var number = FindByAttributeValue("name", "billing_phone").value;   
+		document.getElementById("ajaxresult").innerHTML = '<input type="hidden" id="code_telephone" name="code_telephone" value="' + jsonData.code +'" ><input type="hidden" id="telephone" name="telephone" value="' + number +'" >';
+		var g = FindByAttributeValue("name", "billing_phone");   
+		g.value = "";
+	var a = FindByAttributeValue("for", "billing_phone");   
+		a.innerHTML = 'ВВЕДИТЕ ПОСЛЕДНИЕ 4 ЦИФРЫ ЗВОНЯЩЕГО НОМЕРА <span class="required">*</span>';
+	$("#smenanomera").hide();
+	$("#smenanomera2").hide();
+	$("#smenanomera3").show();
+		}
+
+
+
+	}
+});
+});
+
+function FindByAttributeValue(attribute, value, element_type)    {
+  element_type = element_type || "*";
+  var All = document.getElementsByTagName(element_type);
+  for (var i = 0; i < All.length; i++)       {
+    if (All[i].getAttribute(attribute) == value) { return All[i]; }
+  }
+}
+	</script>
+
+
+
+
+
+	<script>
+
+		$("#smenanomera3").on("click", function(){
+			var e = FindByAttributeValue("id", "billing_phone");   
+		var k = document.getElementById("code_telephone");   
+			$.ajax({
+	url: '/wp-content/themes/theme/obrabotka1.php',
+	method: 'post',
+	dataType: 'html',
+	data: {text: e.value, code: k.value},
+	success: function(data){
+		var jsonData = JSON.parse(data);
+		if (jsonData.success == 0) {
+			document.getElementById("ajaxresult").innerHTML += '<p>Вы ввели неверный код</p>';
+		} else {
+			var l = FindByAttributeValue("id", "id_user").value;   
+			document.cookie = "snemanomera=" + l + ";path=/;max-age=60;";
+			var g = FindByAttributeValue("name", "billing_phone");   
+			var m = FindByAttributeValue("id", "telephone").value;   
+			g.value = m;
+			document.getElementById("ajaxresult").innerHTML += '<p>Вы успешно прошли изменение номера</p>';
+			$("#smenanomera2").hide();
+			var b = FindByAttributeValue("name", "save_account_details");   
+			b.disabled = false;	
+			IMask(
+  document.getElementById('billing_phone'), {
+    mask: '+{7}(000)0000000'
+  });
+			FindByAttributeValue("name", "save_account_details").click();   
+		}
+		
+	}
+});
+});
+
+function FindByAttributeValue(attribute, value, element_type)    {
+  element_type = element_type || "*";
+  var All = document.getElementsByTagName(element_type);
+  for (var i = 0; i < All.length; i++)       {
+    if (All[i].getAttribute(attribute) == value) { return All[i]; }
+  }
+}
+	</script>
+	<div id="ajaxresult" class="ajaxresult">
+
+	</div>
+	<script>
+	</script>
+    <?php
+}
+
+// Check and validate the mobile phone
+add_action( 'woocommerce_save_account_details_errors','billing_mobile_phone_field_validation', 20, 1 );
+function billing_mobile_phone_field_validation( $args ){
+    if ( isset($_POST['billing_phone']) && empty($_POST['billing_phone']) )
+        $args->add( 'error', __( 'Please fill in your Mobile phone', 'woocommerce' ),'');
+}
+
+// Save the mobile phone value to user data
+add_action( 'woocommerce_save_account_details', 'my_account_saving_billing_mobile_phone', 20, 1 );
+function my_account_saving_billing_mobile_phone( $user_id ) {
+    if( isset($_POST['billing_phone']) && ! empty($_POST['billing_phone']) )
+        update_user_meta( $user_id, 'billing_phone', sanitize_text_field($_POST['billing_phone']) );
+		if($_COOKIE['snemanomera1'] == 1) {
+			global $wpdb;
+			$cur_user_id = get_current_user_id();
+			$wpdb->update( 'wp_users',
+			array( 'user_login' => $_POST['billing_phone'], 'display_name' => $_POST['billing_phone']),
+			
+			array( 'ID' => $cur_user_id )
+		);
+	
+		}
+
+
+}
+
+
+
+add_action( 'woocommerce_before_calculate_totals', 'func_quantity_based_price' );
+function func_quantity_based_price( $cart_object ) {
+
+	// 100 гр
+	$product_cat_sir = array();
+	$product_cat_sir[] = 144;
+	
+	$product_cats_sir = get_categories( [
+		'taxonomy' => 'product_cat',
+		'parent'   => 144
+	] );
+	
+    foreach( $product_cats_sir as $product_cats ) {
+             $product_cat_sir[] = $product_cats->term_id; 
+    }
+	
+		// 250 гр
+		$product_malso_slivochnoe = array();
+		$product_malso_slivochnoe[] = 221;
+		
+		$product_malsos_slivochnoe = get_categories( [
+			'taxonomy' => 'product_cat',
+			'parent'   => 221
+		] );
+		
+	    foreach( $product_malsos_slivochnoe as $product_cats ) {
+	             $product_malso_slivochnoe[] = $product_cats->term_id; 
+	    }
+
+	// 500 гр
+	$product_cat_pr = array();
+	$product_cat_pr6[] = 152;
+	
+	$product_cats_kolbasy = get_categories( [
+		'taxonomy' => 'product_cat',
+		'parent'   => 152
+	] );
+    foreach( $product_cats_kolbasy as $product_kolbasy ) {
+             $product_cat_pr6[] = $product_kolbasy->term_id; 
+    }
+	
+
+
+
+	$product_cat_pr5[] = 156;
+	$product_cats_kopch = get_categories( [
+		'taxonomy' => 'product_cat',
+		'parent'   => 156
+	] );
+	
+    foreach( $product_cats_kopch as $product_kopch ) {
+             $product_cat_pr5[] = $product_kopch->term_id; 
+    }
+	
+	$product_cat_pr[] = 164;
+	$product_cats_myaso = get_categories( [
+		'taxonomy' => 'product_cat',
+		'parent'   => 164
+	] );
+	
+    foreach( $product_cats_myaso as $product_myaso ) {
+             $product_cat_pr[] = $product_myaso->term_id; 
+    }
+	
+	$product_cat_pr[] = 168;
+	
+	$product_cats_ryba = get_categories( [
+		'taxonomy' => 'product_cat',
+		'parent'   => 168
+	] );
+	
+    foreach( $product_cats_ryba as $product_ryba ) {
+             $product_cat_pr[] = $product_ryba->term_id; 
+    }
+	
+ 
+	foreach ( $cart_object->get_cart() as $cart_id => $cart_item ) {
+
+		$product_id = $cart_item[ 'product_id' ];
+
+		if (get_field( "razbivka_vesa", $product_id ) == 'да') {
+
+			$terms = wp_get_post_terms( $product_id, 'product_cat' );
+			foreach ( $terms as $term ) {
+				$categories[] = $term->term_id;
+			}
+
+			if( has_term( $product_cat_sir, 'product_cat', $product_id ) ) {
+				$quantity = $cart_item[ 'quantity' ];
+
+				if( ! empty( $quantity ) && $quantity >= 1 ) {
+					$newprice = $cart_item['data']->get_regular_price() * 0.2;
+			 
+					$cart_item['data']->set_price( $newprice );
+
+				}
+			}
+			if( has_term( $product_malso_slivochnoe, 'product_cat', $product_id ) ) {
+				$quantity = $cart_item[ 'quantity' ];
+
+				if( ! empty( $quantity ) && $quantity >= 1 ) {
+					$newprice = $cart_item['data']->get_regular_price() * 0.25;
+			 
+					$cart_item['data']->set_price( $newprice );
+
+				}
+			}
+
+			else if( has_term( $product_cat_pr, 'product_cat', $product_id ) ) {
+				$quantity = $cart_item[ 'quantity' ];
+
+				if( ! empty( $quantity ) && $quantity >= 1 ) {
+					$newprice = $cart_item['data']->get_regular_price() * 1;
+			 
+					$cart_item['data']->set_price( $newprice );
+
+				}
+			}
+			
+			else if( has_term( $product_cat_pr5, 'product_cat', $product_id ) ) {
+				$quantity = $cart_item[ 'quantity' ];
+
+				if( ! empty( $quantity ) && $quantity >= 1 ) {
+					$newprice = $cart_item['data']->get_regular_price() * 0.5;
+			 
+					$cart_item['data']->set_price( $newprice );
+
+				}
+			}
+
+			else if( has_term( $product_cat_pr6, 'product_cat', $product_id ) ) {
+				$quantity = $cart_item[ 'quantity' ];
+
+				if( ! empty( $quantity ) && $quantity >= 1 ) {
+					$newprice = $cart_item['data']->get_regular_price() * 0.5;
+			 
+					$cart_item['data']->set_price( $newprice );
+
+				}
+			}
+			else if( has_term( $product_cat_pr, 'product_cat', $product_id ) ) {
+				$quantity = $cart_item[ 'quantity' ];
+
+				if( ! empty( $quantity ) && $quantity >= 1 ) {
+					$newprice = $cart_item['data']->get_regular_price() * 0.5;
+			 
+					$cart_item['data']->set_price( $newprice );
+
+				}
+			}
+			$categories = array();
+		
+		}
+ 
+	}
+
+}
+add_action( 'woocommerce_before_single_product_summary', 'cusom_woo_info_1', 10 );
+function cusom_woo_info_1() {
+    global $post;
+	global $woocommerce;
+	?>
+    <p id="posttovar" style="display:none"><?php echo $post->ID?></p><?}
+add_filter( 'woocommerce_get_price_html', 'wb_change_product_html', 30 );
+function wb_change_product_html( $price ) {
+	
+	global $product;
+	
+	$product_id = $product->get_id();
+	
+	if (get_field( "razbivka_vesa", $product_id ) == 'да') {
+		
+
+		// 1 кг
+		$product_cat_polufabricat = array();
+		$product_cat_polufabricat[] = 174;
+
+		$product_cats_polufabricat = get_categories( [
+			'taxonomy' => 'product_cat',
+			'child_of'   => 174
+		] );
+	    foreach( $product_cats_polufabricat as $product_cats ) {
+	             $product_cat_polufabricat[] = $product_cats->term_id; 
+	    }
+
+
+	
+		// 100 гр
+		$product_cat_sir = array();
+		$product_cat_sir[] = 144;
+		
+		$product_cats_sir = get_categories( [
+			'taxonomy' => 'product_cat',
+			'parent'   => 144
+		] );
+		
+	    foreach( $product_cats_sir as $product_cats ) {
+	             $product_cat_sir[] = $product_cats->term_id; 
+	    }
+
+
+          // 173
+				$product_cat_sir1 = array();
+				$product_cat_sir1[] = 173;
+				
+				$product_cats_sir1 = get_categories( [
+					'taxonomy' => 'product_cat',
+					'parent'   => 173
+				] );
+				
+				foreach( $product_cats_sir1 as $product_cats1 ) {
+						 $product_cat_sir1[] = $product_cats1->term_id; 
+				}
+		
+
+		// 250 гр
+		$product_malso_slivochnoe = array();
+		$product_malso_slivochnoe[] = 221;
+		
+		$product_malsos_slivochnoe = get_categories( [
+			'taxonomy' => 'product_cat',
+			'parent'   => 221
+		] );
+		
+	    foreach( $product_malsos_slivochnoe as $product_cats ) {
+	             $product_malso_slivochnoe[] = $product_cats->term_id; 
+	    }
+			
+		// 500 гр
+		$product_cat_pr = array();
+		$product_cat_pr6[] = 152;
+		
+		$product_cats_kolbasy = get_categories( [
+			'taxonomy' => 'product_cat',
+			'parent'   => 152
+		] );
+		
+	    foreach( $product_cats_kolbasy as $product_kolbasy ) {
+	             $product_cat_pr6[] = $product_kolbasy->term_id; 
+	    }
+		
+		$product_cat_pr5[] = 156;
+		
+		$product_cats_kopch = get_categories( [
+			'taxonomy' => 'product_cat',
+			'parent'   => 156
+		] );
+		
+	    foreach( $product_cats_kopch as $product_kopch ) {
+	             $product_cat_pr5[] = $product_kopch->term_id; 
+	    }
+		
+		$product_cat_pr[] = 164;
+		
+		$product_cats_myaso = get_categories( [
+			'taxonomy' => 'product_cat',
+			'parent'   => 164
+		] );
+		
+	    foreach( $product_cats_myaso as $product_myaso ) {
+	             $product_cat_pr[] = $product_myaso->term_id; 
+	    }
+		
+		$product_cat_pr[] = 168;
+		
+		$product_cats_ryba = get_categories( [
+			'taxonomy' => 'product_cat',
+			'parent'   => 168
+		] );
+		
+	    foreach( $product_cats_ryba as $product_ryba ) {
+	             $product_cat_pr[] = $product_ryba->term_id; 
+	    }
+		
+
+		if( has_term( $product_cat_sir, 'product_cat', $product_id ) ) {
+			
+			$price_tovar = $product->get_price();
+
+			$price_html = '<span class="woocommerce-Price-amount amount">' . $price_tovar * 0.2 . ' ₽ за 0.2 кг. </span>';	// change weight measurement here
+			
+		}
+		else if( has_term( $product_cat_sir1, 'product_cat', $product_id ) ) {
+			
+			$price_tovar = $product->get_price();
+
+			$count_pre = wc_get_stock_html( $product );
+			preg_match_all('!\d+\.?\d+!', $count_pre ,$matches);
+			$count_tovar = $matches[0][0];
+
+			$price_html = '<span class="woocommerce-Price-amount amount">' . $price_tovar * 1 . ' ₽ за 1 кг. </span>';	// change weight measurement here
+
+		} 
+
+		else if( has_term( $product_cat_pr, 'product_cat', $product_id ) ) {
+			
+			$price_tovar = $product->get_price();
+
+			$count_pre = wc_get_stock_html( $product );
+			preg_match_all('!\d+\.?\d+!', $count_pre ,$matches);
+			$count_tovar = $matches[0][0];
+
+			$price_html = '<span class="woocommerce-Price-amount amount">' . $price_tovar * 1 . ' ₽ за 1 кг. </span>';	// change weight measurement here
+
+		} 
+		else if( has_term( $product_cat_pr5, 'product_cat', $product_id ) ) {
+			
+			$price_tovar = $product->get_price();
+
+			$count_pre = wc_get_stock_html( $product );
+			preg_match_all('!\d+\.?\d+!', $count_pre ,$matches);
+			$count_tovar = $matches[0][0];
+
+			$price_html = '<span class="woocommerce-Price-amount amount">' . $price_tovar * 0.5 . ' ₽ за 0.5 кг. </span>';	// change weight measurement here
+
+		} 
+
+		else if( has_term( $product_cat_pr6, 'product_cat', $product_id ) ) {
+			
+			$price_tovar = $product->get_price();
+
+			$count_pre = wc_get_stock_html( $product );
+			preg_match_all('!\d+\.?\d+!', $count_pre ,$matches);
+			$count_tovar = $matches[0][0];
+
+			$price_html = '<span class="woocommerce-Price-amount amount">' . $price_tovar * 0.5 . ' ₽ за 0.5 кг. </span>';	// change weight measurement here
+
+		} 
+
+		else if( has_term( $product_malso_slivochnoe, 'product_cat', $product_id ) ) {
+			
+			$price_tovar = $product->get_price();
+
+			$price_html = '<span class="woocommerce-Price-amount amount">' . $price_tovar * 0.25 . ' ₽ за 0.25 кг. </span>';	// change weight measurement here
+
+		} 
+		else if( has_term( $product_cat_polufabricat, 'product_cat', $product_id ) ) {
+			$price_tovar = $product->get_price();
+			$price_html = '<span class="woocommerce-Price-amount amount">' . $price_tovar . ' ₽ за 1 кг. </span>';
+		}
+
+		else {
+			
+			$price_tovar = $product->get_price();
+			$price_html = '<span class="woocommerce-Price-amount amount">' . $price_tovar . ' ₽ за шт. </span>';
+			
+		}
+	
+	} else {
+		
+		$price_tovar = $product->get_price();
+		$price_html = '<span class="woocommerce-Price-amount amount">' . $price_tovar . ' ₽ за шт. </span>';
+		
+	}
+
+	return $price_html;
+}
+add_action( 'woocommerce_cart_calculate_fees', 'truemisha_add_fee_paypal', 15);
+ 
+function truemisha_add_fee_paypal() {
+	if(isset($_COOKIE["balik"])) {
+		WC()->cart->add_fee( 'Бонусы', -$_COOKIE["balik"]);
+	}
+}
+
+add_action( 'woocommerce_cart_calculate_fees', 'truemisha_add_fee_paypal1', 15);
+ 
+function truemisha_add_fee_paypal1() {
+	if(isset($_COOKIE["discount"])) {
+		if($_COOKIE["discount"] == 0) {
+
+		} else {
+			WC()->cart->add_fee( 'Скидка', -$_COOKIE["discount"]);
+		}
+		
+	}
+}
+add_action('woocommerce_cart_item_removed', 'remove_discount_cookie_on_cart_item_removed', 10, 2);
+
+function remove_discount_cookie_on_cart_item_removed($cart_item_key, $cart) {
+    // проверяем, есть ли установленная cookie
+    if (isset($_COOKIE['discount'])) {
+        // удаляем cookie
+        setcookie('discount', '', time() - 3600, '/');
+    }
+}
+
+
+// add_action( 'template_redirect', function(){
+//     ob_start( function( $ag_filter ){
+//         $ag_filter = str_replace( array( '<input type="email"' ), '<input type="text"', $ag_filter );
+//         return $ag_filter;
+//     });
+// });

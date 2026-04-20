@@ -1,0 +1,60 @@
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Environment-specific files
+wp-config.php
+.htaccess
+error_log
+
+# Runtime logs / archives
+logs/
+logs_*/
+*.log
+*.sql
+*.gz
+*.zip
+
+# WordPress runtime and generated content
+.tmb/
+wp-content/uploads/
+wp-content/cache/
+wp-content/webp-express/
+wp-content/ewww/
+wp-content/updraft/
+wp-content/wflogs/
+wp-content/upgrade/
+wp-content/backup-db/
+wp-content/ai1wm-backups/
+wp-content/debug.log
+
+# Generated integration outputs
+green-friday.json
+llms.txt
+llms-full.txt
+wp-content/themes/theme/kilbil.txt
+wp-content/themes/theme/includes/kuper/*.txt
+wp-content/themes/theme/includes/kuper/*.xml
+wp-content/themes/theme/includes/kuper/*.log
+wp-content/themes/theme/includes/kuper/*.tmp
+wp-content/themes/theme/includes/kuper/*.cache
+wp-content/themes/theme/includes/kuper/*.bak
+wp-content/themes/theme/includes/kuper/*.old
+wp-content/themes/theme/includes/kuper/*.csv
+wp-content/themes/theme/includes/kuper/*.json
+wp-content/themes/theme/includes/kuper/*.gz
+wp-content/themes/theme/includes/kuper/*.zip
+wp-content/themes/theme/includes/kuper/*.tar
+wp-content/themes/theme/includes/kuper/*.tar.gz
+wp-content/themes/theme/includes/kuper/*.tgz
+wp-content/themes/theme/includes/kuper/*.lock
+wp-content/themes/theme/includes/kuper/temp/
+wp-content/themes/theme/includes/kuper/cache/
+wp-content/themes/theme/includes/kuper/logs/
+wp-content/themes/theme/includes/kuper/tmp/
+*.tmp
+*.temp
+*.bak
+*.old

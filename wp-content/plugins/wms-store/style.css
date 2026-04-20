@@ -1,0 +1,37 @@
+.wms-addon-store-filter{
+  position: relative;
+  display:table;
+}
+
+
+.wms-addon-store-filter-form-h {
+    display:inline-block;
+}
+
+.wms-addon-store-filter-form-s {
+    display:inline-block;
+}
+
+.wms-sub-menu
+{
+    display: none;
+}
+
+.wms-main-item::after
+{
+    content: "\2713";
+
+}
+.wms-main-item:focus ~ .wms-sub-menu,
+.wms-main-item:active ~ .wms-sub-menu,
+.wms-sub-menu:hover
+{
+    display: block;
+    position: absolute;
+    background: #fff;
+    z-index: 99999;
+    padding: 10px;
+    border: 1px solid #87939A;
+    width: 500px;
+}
+
