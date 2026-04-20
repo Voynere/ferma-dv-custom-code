@@ -4166,6 +4166,11 @@ add_action('rest_api_init', function () {
         'callback' => 'ferma_get_stocks',
         'permission_callback' => '__return_true',
     ]);
+    register_rest_route('ferma/v1', '/stock-migration-status', [
+        'methods'  => 'GET',
+        'callback' => 'ferma_get_stock_migration_status',
+        'permission_callback' => '__return_true',
+    ]);
 });
 
 
@@ -4176,30 +4181,7 @@ function ferma_get_stocks(WP_REST_Request $req)
         return new WP_REST_Response(['error' => 'product_id is required'], 400);
     }
 
-    $store_meta = [
-        '028e05a7-b4fa-11ee-0a80-1198000442be' => 'Заря',
-        '7c0dc9ce-ce1e-11ea-0a80-09ca000e5e93' => 'Эгершельд',
-        'a99d6fdf-0970-11ed-0a80-0ed600075845' => 'Космос',
-        'b24e4c35-9609-11eb-0a80-0d0d008550c2' => 'Реми-Сити',
-    ];
-
-    $data = [
-        'product_id' => $id,
-        'sku' => get_post_meta($id, '_sku', true),
-        'manage_stock' => get_post_meta($id, '_manage_stock', true) === 'yes',
-        'stock_total' => (float)get_post_meta($id, '_stock', true),
-        'stores' => [],
-    ];
-
-    foreach ($store_meta as $meta_key => $title) {
-        $data['stores'][] = [
-            'id' => $meta_key,
-            'name' => $title,
-            'stock' => (float)get_post_meta($id, $meta_key, true),
-        ];
-    }
-
-    return new WP_REST_Response($data, 200);
+    return new WP_REST_Response(ferma_build_stock_payload($id), 200);
 }
 
 
@@ -4267,6 +4249,20 @@ function ferma_build_stock_payload(int $product_id): array {
     }
 
     return $data;
+}
+
+function ferma_get_stock_migration_status(WP_REST_Request $req) {
+    if (!class_exists('\Wdc\Addition\Stores\StockTable')) {
+        return new WP_REST_Response([
+            'enabled' => false,
+            'error' => 'StockTable service is not available',
+        ], 200);
+    }
+
+    return new WP_REST_Response([
+        'enabled' => true,
+        'status' => \Wdc\Addition\Stores\StockTable::get_diagnostics(),
+    ], 200);
 }
 
 function ferma_get_stocks_by_sku(WP_REST_Request $req) {

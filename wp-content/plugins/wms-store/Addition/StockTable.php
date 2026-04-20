@@ -56,6 +56,56 @@ class StockTable
         return isset($state['status']) && $state['status'] === 'done';
     }
 
+    public static function get_filter_read_source()
+    {
+        return self::is_ready_for_reads() ? 'stock_table' : 'postmeta_fallback';
+    }
+
+    public static function get_backfill_status()
+    {
+        return self::get_backfill_state();
+    }
+
+    public static function get_diagnostics($settings = null)
+    {
+        $store_ids = self::get_store_ids_from_settings($settings);
+        $backfill_state = self::get_backfill_state();
+        $stats = self::get_cached_diagnostics_stats($store_ids);
+        $next_run = wp_next_scheduled(self::BACKFILL_HOOK);
+
+        $completed = (int) ($stats['products_in_table'] ?? 0);
+        $total = (int) ($stats['source_products_total'] ?? 0);
+        $progress = 0;
+        if ($total > 0) {
+            $progress = min(100, round(($completed / $total) * 100, 1));
+        }
+
+        return array(
+            'table_exists' => self::table_exists(),
+            'table_name' => self::get_table_name(),
+            'db_version' => get_option(self::DB_VERSION_OPTION),
+            'backfill' => array(
+                'status' => $backfill_state['status'] ?? 'unknown',
+                'last_post_id' => (int) ($backfill_state['last_post_id'] ?? 0),
+                'stores_hash' => $backfill_state['stores_hash'] ?? '',
+                'updated_at_unix' => (int) ($backfill_state['updated_at'] ?? 0),
+                'updated_at_gmt' => !empty($backfill_state['updated_at']) ? gmdate('c', (int) $backfill_state['updated_at']) : null,
+                'next_run_unix' => $next_run ? (int) $next_run : null,
+                'next_run_gmt' => $next_run ? gmdate('c', (int) $next_run) : null,
+                'progress_percent' => $progress,
+            ),
+            'reads' => array(
+                'ready_for_reads' => self::is_ready_for_reads(),
+                'filter_source' => self::get_filter_read_source(),
+            ),
+            'stores' => array(
+                'configured_count' => count($store_ids),
+                'configured_ids' => $store_ids,
+            ),
+            'counts' => $stats,
+        );
+    }
+
     public static function get_product_stocks($product_id, $store_ids = array())
     {
         global $wpdb;
@@ -303,6 +353,72 @@ class StockTable
         if (!wp_next_scheduled(self::BACKFILL_HOOK)) {
             wp_schedule_single_event(time() + 10, self::BACKFILL_HOOK);
         }
+    }
+
+    private static function get_cached_diagnostics_stats($store_ids)
+    {
+        $store_ids = self::normalize_store_ids($store_ids);
+        $cache_key = 'stock_diag_' . md5(wp_json_encode($store_ids));
+
+        $cached = wp_cache_get($cache_key, self::CACHE_GROUP);
+        if ($cached !== false) {
+            return $cached;
+        }
+
+        $cached = get_transient($cache_key);
+        if ($cached !== false) {
+            wp_cache_set($cache_key, $cached, self::CACHE_GROUP, 60);
+            return $cached;
+        }
+
+        global $wpdb;
+
+        $stats = array(
+            'rows_in_table' => 0,
+            'products_in_table' => 0,
+            'source_products_total' => 0,
+            'last_table_update_gmt' => null,
+        );
+
+        if (!empty($store_ids)) {
+            $store_placeholders = implode(', ', array_fill(0, count($store_ids), '%s'));
+
+            if (self::table_exists()) {
+                $table_name = self::get_table_name();
+                $stats['rows_in_table'] = (int) $wpdb->get_var(
+                    $wpdb->prepare(
+                        "SELECT COUNT(*) FROM {$table_name} WHERE store_id IN ({$store_placeholders})",
+                        $store_ids
+                    )
+                );
+                $stats['products_in_table'] = (int) $wpdb->get_var(
+                    $wpdb->prepare(
+                        "SELECT COUNT(DISTINCT product_id) FROM {$table_name} WHERE store_id IN ({$store_placeholders})",
+                        $store_ids
+                    )
+                );
+                $stats['last_table_update_gmt'] = $wpdb->get_var(
+                    $wpdb->prepare(
+                        "SELECT MAX(updated_at) FROM {$table_name} WHERE store_id IN ({$store_placeholders})",
+                        $store_ids
+                    )
+                );
+            }
+
+            $source_sql = "
+                SELECT COUNT(DISTINCT pm.post_id)
+                FROM {$wpdb->postmeta} pm
+                INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+                WHERE pm.meta_key IN ({$store_placeholders})
+                  AND p.post_type IN ('product', 'product_variation')
+            ";
+            $stats['source_products_total'] = (int) $wpdb->get_var($wpdb->prepare($source_sql, $store_ids));
+        }
+
+        set_transient($cache_key, $stats, 60);
+        wp_cache_set($cache_key, $stats, self::CACHE_GROUP, 60);
+
+        return $stats;
     }
 
     private static function get_post_ids_for_backfill($store_ids, $last_post_id, $limit)
