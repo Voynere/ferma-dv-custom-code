@@ -538,11 +538,20 @@ function fdv_store_filter_suffix($args_check) {
 }
 $store_suffix = fdv_store_filter_suffix($args_check);
 
+function ferma_is_catalog_cache_candidate() {
+    return is_shop() || is_product_category() || is_product_tag();
+}
+
+$ferma_catalog_cache_candidate = ferma_is_catalog_cache_candidate();
+
 // Determine delivery display text
 $delivery_display = '';
 $delivery_address = 'Выберите способ получения';
 
-if (is_user_logged_in()) {
+if ($ferma_catalog_cache_candidate) {
+    $delivery_display = 'Доставка или самовывоз';
+    $delivery_address = 'Выберите способ получения';
+} elseif (is_user_logged_in()) {
     $row = get_user_meta($user_id, 'delivery', true);
     if ($row === '') {
         $delivery_display = 'Доставка или самовывоз';
@@ -618,6 +627,7 @@ $is_delivery_0 = (is_user_logged_in() && get_user_meta(get_current_user_id(), 'd
 
 <!-- Hidden data elements -->
 <p style="display:none;"><?php echo isset($args_check) ? esc_html($args_check) : ''; ?></p>
+<?php if (!$ferma_catalog_cache_candidate): ?>
 <p id="postsumma" style="display:none"><?php global $woocommerce; echo $woocommerce->cart->total; ?></p>
 <p style="display:none" id="carttovar" class="carttovar"><?php
     global $woocommerce;
@@ -629,6 +639,10 @@ $is_delivery_0 = (is_user_logged_in() && get_user_meta(get_current_user_id(), 'd
     }
     echo json_encode($array);
     ?></p>
+<?php else: ?>
+<p id="postsumma" style="display:none"></p>
+<p style="display:none" id="carttovar" class="carttovar">[]</p>
+<?php endif; ?>
 
 <!-- Google Tag Manager (noscript) -->
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-PS4BM6F"
@@ -638,7 +652,7 @@ $is_delivery_0 = (is_user_logged_in() && get_user_meta(get_current_user_id(), 'd
 <p class="new_life dblock d-lg-none" style="display: flex; align-items: center; width: 83%;">
     <a href="/"><img src="https://ferma-dv.ru/wp-content/uploads/2022/07/Logotype-svg.svg" alt="Логотип Ферма ДВ" style="height:40px" width="120" height="40"></a>
     <span style="font-size:11px;margin-left:auto;margin-right:auto;width:14em;color:black;background:white;border:2px solid #036313c9;padding:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-top:3px;padding-bottom:3px;border-radius:9px;" class="<?php if(wp_is_mobile()) echo 'open-modal1'; ?>">
-        <?php echo $delivery_display; ?><br><?php echo $delivery_address; ?>
+        <span class="js-delivery-display"><?php echo $delivery_display; ?></span><br><span class="js-delivery-address"><?php echo $delivery_address; ?></span>
     </span>
     <a href="https://ferma-dv.ru/my-account/" style="color:#ffffff;"><?php echo is_user_logged_in() ? 'ЛК' : 'ВХОД'; ?></a>
 </p>
@@ -734,7 +748,7 @@ $is_delivery_0 = (is_user_logged_in() && get_user_meta(get_current_user_id(), 'd
                 </div>
             </div>
             <div class="new_block_vibor col-5" style="width:35%;flex:0 0 35%;justify-content:center;display:flex;align-items:center;">
-                <a class="open-modal1 open-modal__st"><?php echo esc_html($delivery_address); ?></a>
+                <a class="open-modal1 open-modal__st"><span class="js-delivery-address"><?php echo esc_html($delivery_address); ?></span></a>
             </div>
         </div>
     </div>
@@ -745,9 +759,9 @@ $is_delivery_0 = (is_user_logged_in() && get_user_meta(get_current_user_id(), 'd
 <?php
 // Wide banner logic
 $cur_shop = false;
-if (isset($_COOKIE['delivery']) && $_COOKIE['delivery'] == 1 && isset($_COOKIE['key_market']) && $_COOKIE['key_market'] != '') {
+if (!$ferma_catalog_cache_candidate && isset($_COOKIE['delivery']) && $_COOKIE['delivery'] == 1 && isset($_COOKIE['key_market']) && $_COOKIE['key_market'] != '') {
     $cur_shop = $_COOKIE['key_market'];
-} elseif ((!isset($_COOKIE['delivery']) || $_COOKIE['delivery'] == 0) && isset($_COOKIE['coords']) && $_COOKIE['coords'] != '') {
+} elseif (!$ferma_catalog_cache_candidate && (!isset($_COOKIE['delivery']) || $_COOKIE['delivery'] == 0) && isset($_COOKIE['coords']) && $_COOKIE['coords'] != '') {
     $shops = ferma_get_shops_by_coords($_COOKIE['coords']);
     $cur_shop = $shops[0];
 }
@@ -994,8 +1008,52 @@ endif; ?>
 <!-- Yandex Maps loads ONLY when modal opens -->
 <script>
     (function(){
+        var isCatalogCacheCandidate = <?php echo $ferma_catalog_cache_candidate ? 'true' : 'false'; ?>;
         var ymapsLoaded = false;
         var ymapsCallbacks = [];
+
+        function readCookie(name) {
+            var prefix = name + '=';
+            var cookies = document.cookie ? document.cookie.split(';') : [];
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.indexOf(prefix) === 0) {
+                    return decodeURIComponent(cookie.substring(prefix.length));
+                }
+            }
+            return '';
+        }
+
+        function updateCatalogDeliveryLabelsFromCookies() {
+            if (!isCatalogCacheCandidate) return;
+
+            var display = 'Доставка или самовывоз';
+            var address = 'Выберите способ получения';
+            var delivery = readCookie('delivery');
+
+            if (delivery === '1') {
+                display = 'Самовывоз';
+                address = readCookie('billing_samoviziv') || address;
+            } else if (delivery === '0') {
+                display = 'Доставка';
+                var billingDelivery = readCookie('billing_delivery');
+                if (billingDelivery) {
+                    var parts = billingDelivery.split(',');
+                    if (parts.length > 2) {
+                        address = parts.slice(2).join(',');
+                    }
+                }
+            }
+
+            document.querySelectorAll('.js-delivery-display').forEach(function(el) {
+                el.textContent = display;
+            });
+            document.querySelectorAll('.js-delivery-address').forEach(function(el) {
+                el.textContent = address;
+            });
+        }
+
+        updateCatalogDeliveryLabelsFromCookies();
 
         function loadYandexMaps(callback) {
             if (ymapsLoaded) { callback(); return; }
