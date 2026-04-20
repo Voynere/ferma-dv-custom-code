@@ -14,6 +14,14 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Show deploy payload
+        run: |
+          pwd
+          ls -la
+          ls -la wp-content
+          ls -la wp-content/themes
+          ls -la wp-content/plugins
+
       - name: Upload custom code bundle
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -24,6 +32,7 @@ jobs:
           source: "wp-content/themes/theme,yandexeda,wp-content/plugins/woocommerce-mysklad-sync,wp-content/plugins/wms-store,wp-content/plugins/wms-addon-groop,update_green_friday.php,ferma_fasovka_sync_once.php"
           target: "/tmp/ferma-dv-custom-code"
           rm: true
+          debug: true
 
       - name: Sync custom code into WordPress
         uses: appleboy/ssh-action@v1.0.3
@@ -32,11 +41,20 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           port: ${{ secrets.SERVER_PORT }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          debug: true
           script: |
             set -euo pipefail
 
             STAGING="/tmp/ferma-dv-custom-code"
             TARGET="${{ secrets.SERVER_PATH }}"
+
+            echo "TARGET=$TARGET"
+            echo "STAGING=$STAGING"
+            command -v rsync
+            ls -la "$STAGING" || true
+            ls -la "$STAGING/wp-content" || true
+            ls -la "$STAGING/wp-content/themes" || true
+            ls -la "$STAGING/wp-content/plugins" || true
 
             mkdir -p "$TARGET/wp-content/themes" "$TARGET/wp-content/plugins"
 
