@@ -32,6 +32,7 @@ if (!is_plugin_active('woocommerce-mysklad-sync/woocommerce-mysklad-sync.php')) 
 } else {
 
     require_once plugin_dir_path(__FILE__) . 'Addition/Stores.php';
+    require_once plugin_dir_path(__FILE__) . 'Addition/StockTable.php';
     require_once plugin_dir_path(__FILE__) . 'Addition/AdditionController.php';
     require_once plugin_dir_path(__FILE__) . 'Addition/Core.php';
     require_once plugin_dir_path(__FILE__) . 'WmsAddonStoreFilterWidget.php';

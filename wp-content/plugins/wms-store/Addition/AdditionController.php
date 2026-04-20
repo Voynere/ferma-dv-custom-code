@@ -45,16 +45,19 @@ class AdditionController
             return false;
         }
 
+        $store_quantities = array();
         foreach ($stock['stockByStore'] as $aStores){
             $sStoreId = array_pop(explode('/', $aStores['meta']['href']));
 
             if (in_array($sStoreId, $this->getSettings()['wms_stock_store'])) {
                 $quantity = (float)$aStores['stock'] - (float)$aStores['reserve'];
                 $product->update_meta_data($sStoreId, $quantity);
+                $store_quantities[$sStoreId] = $quantity;
             }
         }
 
         $product->save();
+        StockTable::upsert_stocks($product_id, $store_quantities);
 
     }
 
@@ -149,6 +152,8 @@ class AdditionController
      */
     public function getStocks($id)
     {
+        $store_ids = array_keys($this->stores->getAllowStores());
+        $table_stocks = StockTable::get_product_stocks($id, $store_ids);
         $aProductMeta = get_post_meta($id);
 
         if(!is_array($aProductMeta)){
@@ -157,6 +162,10 @@ class AdditionController
 
         foreach ($aProductMeta as $key => $value){
             $aProductMeta[$key] = $value[0];
+        }
+
+        foreach ($table_stocks as $store_id => $quantity) {
+            $aProductMeta[$store_id] = $quantity;
         }
 
         return $aProductMeta;

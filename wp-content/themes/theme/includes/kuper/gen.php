@@ -172,13 +172,25 @@ foreach( $products as $key => $product ) {
 		continue;
 	}
 	
-	$chkalova_stock_quantity = $product->get_meta('028e05a7-b4fa-11ee-0a80-1198000442be');
-	$narodniy_stock_quantity = $product->get_meta('b24e4c35-9609-11eb-0a80-0d0d008550c2');
-	$more_stock_quantity = $product->get_meta('cab1caa9-da10-11eb-0a80-07410026c356');
+	$store_stock_ids = [
+		'028e05a7-b4fa-11ee-0a80-1198000442be',
+		'b24e4c35-9609-11eb-0a80-0d0d008550c2',
+		'cab1caa9-da10-11eb-0a80-07410026c356',
+		'7c0dc9ce-ce1e-11ea-0a80-09ca000e5e93',
+		'a99d6fdf-0970-11ed-0a80-0ed600075845',
+		'9c9dfcc4-733f-11ec-0a80-0da1013a560d',
+	];
+	$store_stocks = function_exists('ferma_get_store_stocks_with_fallback')
+		? ferma_get_store_stocks_with_fallback($product_id, $store_stock_ids)
+		: [];
+
+	$chkalova_stock_quantity = $store_stocks['028e05a7-b4fa-11ee-0a80-1198000442be'] ?? $product->get_meta('028e05a7-b4fa-11ee-0a80-1198000442be');
+	$narodniy_stock_quantity = $store_stocks['b24e4c35-9609-11eb-0a80-0d0d008550c2'] ?? $product->get_meta('b24e4c35-9609-11eb-0a80-0d0d008550c2');
+	$more_stock_quantity = $store_stocks['cab1caa9-da10-11eb-0a80-07410026c356'] ?? $product->get_meta('cab1caa9-da10-11eb-0a80-07410026c356');
 	
-	$eger_stock_quantity = $product->get_meta('7c0dc9ce-ce1e-11ea-0a80-09ca000e5e93');
-	$timir_stock_quantity = $product->get_meta('a99d6fdf-0970-11ed-0a80-0ed600075845');
-	$ussur_stock_quantity = $product->get_meta('9c9dfcc4-733f-11ec-0a80-0da1013a560d');
+	$eger_stock_quantity = $store_stocks['7c0dc9ce-ce1e-11ea-0a80-09ca000e5e93'] ?? $product->get_meta('7c0dc9ce-ce1e-11ea-0a80-09ca000e5e93');
+	$timir_stock_quantity = $store_stocks['a99d6fdf-0970-11ed-0a80-0ed600075845'] ?? $product->get_meta('a99d6fdf-0970-11ed-0a80-0ed600075845');
+	$ussur_stock_quantity = $store_stocks['9c9dfcc4-733f-11ec-0a80-0da1013a560d'] ?? $product->get_meta('9c9dfcc4-733f-11ec-0a80-0da1013a560d');
 	
 	if(!$image_url || !$price || $stock_quantity == 0) {
 		continue;

@@ -58,14 +58,14 @@ class WmsAddonStoreFilter
     /**
      * Сериализация запрещена
      */
-    private function __sleep()
+    public function __sleep()
     {
     }
 
     /**
      * Десериализация запрещена
      */
-    private function __wakeup()
+    public function __wakeup()
     {
     }
 
@@ -199,6 +199,18 @@ class WmsAddonStoreFilter
     }
 
     private function get_filtered_product_ids($shops)
+    {
+        if (class_exists('\Wdc\Addition\Stores\StockTable') && \Wdc\Addition\Stores\StockTable::is_ready_for_reads()) {
+            $product_ids = \Wdc\Addition\Stores\StockTable::get_product_ids_by_stores($shops);
+            if (is_array($product_ids)) {
+                return $product_ids;
+            }
+        }
+
+        return $this->get_filtered_product_ids_from_postmeta($shops);
+    }
+
+    private function get_filtered_product_ids_from_postmeta($shops)
     {
         $shops = array_values(array_unique(array_filter((array) $shops)));
         sort($shops);

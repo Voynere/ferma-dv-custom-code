@@ -4228,8 +4228,27 @@ function ferma_store_meta_map(): array {
     ];
 }
 
+function ferma_get_store_stocks_with_fallback(int $product_id, array $store_ids): array {
+    $stocks = [];
+
+    if (class_exists('\Wdc\Addition\Stores\StockTable')) {
+        $stocks = \Wdc\Addition\Stores\StockTable::get_product_stocks($product_id, $store_ids);
+    }
+
+    foreach ($store_ids as $store_id) {
+        if (!array_key_exists($store_id, $stocks)) {
+            $stocks[$store_id] = (float) get_post_meta($product_id, $store_id, true);
+        } else {
+            $stocks[$store_id] = (float) $stocks[$store_id];
+        }
+    }
+
+    return $stocks;
+}
+
 function ferma_build_stock_payload(int $product_id): array {
     $store_meta = ferma_store_meta_map();
+    $store_stocks = ferma_get_store_stocks_with_fallback($product_id, array_keys($store_meta));
 
     $data = [
         'product_id' => $product_id,
@@ -4243,7 +4262,7 @@ function ferma_build_stock_payload(int $product_id): array {
         $data['stores'][] = [
             'id' => $meta_key,
             'name' => $title,
-            'stock' => (float) get_post_meta($product_id, $meta_key, true),
+            'stock' => (float) ($store_stocks[$meta_key] ?? 0),
         ];
     }
 

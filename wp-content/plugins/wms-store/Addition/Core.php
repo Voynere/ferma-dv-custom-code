@@ -24,6 +24,7 @@ class Core
         $settings = get_option('wms_settings_stock');
 
         $this->setSettings($settings);
+        StockTable::bootstrap($settings);
         $AdditionController = new AdditionController($settings);
 
         if (isset($settings['wms_addon_store_visible_filter']) and $settings['wms_addon_store_visible_filter'] == 'on') {
