@@ -114,6 +114,78 @@ function ferma_send_public_cache_headers_catalog() {
 	header( 'Cache-Control: public, max-age=120, s-maxage=600, stale-while-revalidate=60', true );
 }
 
+/**
+ * Каталог: серверная пагинация (основной WC-запрос).
+ * Снижает TTFB и размер HTML на «тяжёлых» категориях; совместимо с фильтром складов WMS и сортировкой.
+ *
+ * Число товаров на страницу: фильтр `ferma_catalog_products_per_page` (по умолчанию 24) или стандартный `loop_shop_per_page`.
+ */
+function ferma_catalog_products_per_page_default() {
+	return (int) apply_filters( 'ferma_catalog_products_per_page', 24 );
+}
+
+add_filter( 'loop_shop_per_page', 'ferma_loop_shop_per_page_catalog', 20, 1 );
+function ferma_loop_shop_per_page_catalog( $per_page ) {
+	if ( ! function_exists( 'WC' ) ) {
+		return $per_page;
+	}
+	$default = ferma_catalog_products_per_page_default();
+	if ( $default < 1 ) {
+		return $per_page;
+	}
+	$n = (int) $per_page;
+	// Подменяем только «показать все» / битые значения; нормальные настройки магазина сохраняем.
+	if ( $n <= 0 || $n > 200 ) {
+		return $default;
+	}
+	return $n;
+}
+
+/**
+ * Сохраняем GET-параметры (фильтр складов, сортировка, фильтры цен) в ссылках пагинации каталога.
+ */
+add_filter( 'woocommerce_pagination_args', 'ferma_catalog_pagination_preserve_query_args', 10, 1 );
+function ferma_catalog_pagination_preserve_query_args( $args ) {
+	if ( ! is_array( $args ) ) {
+		return $args;
+	}
+
+	$deny_keys = array(
+		'paged',
+		'page',
+		'add-to-cart',
+		'added-to-cart',
+		'remove_item',
+		'preview',
+		'preview_id',
+		'preview_nonce',
+		'doing_wp_cron',
+	);
+
+	$add_args = array();
+	foreach ( $_GET as $key => $value ) {
+		$key_l = strtolower( (string) $key );
+		if ( in_array( $key_l, $deny_keys, true ) ) {
+			continue;
+		}
+		if ( is_array( $value ) ) {
+			$add_args[ $key ] = array_map( 'sanitize_text_field', wp_unslash( $value ) );
+		} else {
+			$add_args[ $key ] = sanitize_text_field( wp_unslash( $value ) );
+		}
+	}
+
+	if ( ! empty( $add_args ) ) {
+		if ( isset( $args['add_args'] ) && is_array( $args['add_args'] ) ) {
+			$args['add_args'] = array_merge( $args['add_args'], $add_args );
+		} else {
+			$args['add_args'] = $add_args;
+		}
+	}
+
+	return $args;
+}
+
 // Include ferma functions
 if(file_exists(get_template_directory() . "/includes/sort/ferma_sort_products_by_balance.php")) {
 	require_once(get_template_directory() . "/includes/sort/ferma_sort_products_by_balance.php");
@@ -2304,7 +2376,7 @@ function checkout_show_green_prices( ) {
 	</section>
 	<?php endif; ?>
 </div>
-<?
+<?php
 }
 function custom_display_price( $price, $cart_item, $cart_item_key ) {
     if ( empty( $cart_item['data'] ) || ! $cart_item['data'] instanceof WC_Product ) {
@@ -5700,115 +5772,4 @@ add_action('admin_bar_menu', 'remove_shop_link_from_admin_bar', 999);
 function remove_shop_link_from_admin_bar($wp_admin_bar) {
     $wp_admin_bar->remove_node('view-store');
     $wp_admin_bar->remove_node('view-shop');
-}
-
-/**
- * ============================================================
- * Ферма ДВ — Ленивая подгрузка каталога (фронтенд)
- * Все товары загружены сервером, JS показывает по 20 при скролле
- * Вставить в конец functions.php (без открывающего тега php)
- * ============================================================
- */
-
-add_action('wp_footer', 'ferma_lazy_catalog_script', 99);
-function ferma_lazy_catalog_script() {
-    if (!is_shop() && !is_product_category() && !is_product_tag()) return;
-    ?>
-    <style>
-        ul.products > li.product.ferma-hidden { display: none !important; }
-        .ferma-scroll-loader { text-align:center; padding:30px 0 50px; }
-        .ferma-scroll-loader.is-done .ferma-scroll-spinner,
-        .ferma-scroll-loader.is-done span { display:none; }
-        .ferma-scroll-spinner { display:inline-block; width:28px; height:28px; border:3px solid #e0e0e0; border-top-color:#6ba802; border-radius:50%; animation:ferma-sp .7s linear infinite; vertical-align:middle; margin-right:10px; }
-        @keyframes ferma-sp { to { transform:rotate(360deg); } }
-        .ferma-scroll-loader span { color:#888; font-size:14px; }
-        .ferma-scroll-end { text-align:center; color:#aaa; font-size:14px; padding:20px 0 40px; }
-    </style>
-    <script>
-        (function(){
-            var list = document.querySelector('ul.products');
-            if (!list) return;
-
-            var allCards = Array.prototype.slice.call(list.querySelectorAll(':scope > li.product'));
-            var BATCH   = 20;
-            var shown   = 0;
-            var total   = allCards.length;
-
-            if (total <= BATCH) return;
-
-            // Скрываем всё кроме первых BATCH
-            allCards.forEach(function(card, i) {
-                if (i >= BATCH) card.classList.add('ferma-hidden');
-            });
-            shown = BATCH;
-
-            // Создаём sentinel — невидимый элемент-триггер внизу списка
-            var sentinel = document.createElement('div');
-            sentinel.className = 'ferma-scroll-loader';
-            sentinel.innerHTML = '<div class="ferma-scroll-spinner"></div><span>Загрузка товаров...</span>';
-            list.after(sentinel);
-
-            var loading = false;
-
-            function showNext() {
-                if (loading || shown >= total) return;
-                loading = true;
-
-                setTimeout(function() {
-                    var end = Math.min(shown + BATCH, total);
-                    for (var i = shown; i < end; i++) {
-                        allCards[i].classList.remove('ferma-hidden');
-                    }
-                    shown = end;
-                    loading = false;
-
-                    if (shown >= total) {
-                        sentinel.innerHTML = '<div class="ferma-scroll-end">Все товары загружены</div>';
-                        if (obs) obs.disconnect();
-                    }
-                }, 300);
-            }
-
-            // Используем scroll вместо IntersectionObserver —
-            // надёжнее работает когда контент динамически меняет высоту
-            var obs = null;
-
-            function initObserver() {
-                if (!('IntersectionObserver' in window)) {
-                    // Fallback на scroll
-                    var throttle;
-                    window.addEventListener('scroll', function() {
-                        clearTimeout(throttle);
-                        throttle = setTimeout(checkScroll, 150);
-                    });
-                    return;
-                }
-
-                obs = new IntersectionObserver(function(entries) {
-                    entries.forEach(function(entry) {
-                        if (entry.isIntersecting && !loading && shown < total) {
-                            showNext();
-                        }
-                    });
-                }, {
-                    root: null,
-                    rootMargin: '0px 0px 600px 0px',
-                    threshold: 0
-                });
-
-                obs.observe(sentinel);
-            }
-
-            function checkScroll() {
-                if (loading || shown >= total) return;
-                var rect = sentinel.getBoundingClientRect();
-                if (rect.top < window.innerHeight + 600) {
-                    showNext();
-                }
-            }
-
-            initObserver();
-        })();
-    </script>
-    <?php
 }
