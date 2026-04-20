@@ -21,31 +21,26 @@ global $product;
 
 $sale_class = '';
 
-$sale_percent = get_field('priceint', 'option');
-$check_ac = array_shift( wc_get_product_terms( $product->id, 'pa_akcziya', array( 'fields' => 'names' ) ) );
-if ($sale_percent and $check_ac) {
-	$sale_class = 'sale_class';
-}
-
-
 // Ensure visibility.
 if ( empty( $product ) || ! $product->is_visible() ) {
 	return;
 }
 
-$discount = get_field('priceint', 'option');
-$green_friday_products = get_green_friday_products();
-
-$is_green_friday = false;
-
-foreach($green_friday_products['good_ids_with_discount'] as $percent => $green_friday_product) {
-	if(in_array($product->id, $green_friday_product)) {
-		$discount = $percent;
-		$is_green_friday = true;
-	}
+$product_id = $product->get_id();
+$sale_percent = ferma_get_cached_option_field('priceint');
+$check_ac = $product->get_attribute('pa_akcziya');
+if ($sale_percent and $check_ac) {
+	$sale_class = 'sale_class';
 }
 
-$end_date = strtotime(get_field('pricedate', 'option'));
+$discount = ferma_get_cached_option_field('priceint');
+$green_friday_discount = ferma_get_green_friday_discount_for_product($product_id);
+$is_green_friday = $green_friday_discount !== null;
+if ($is_green_friday) {
+	$discount = $green_friday_discount;
+}
+
+$end_date = strtotime(ferma_get_cached_option_field('pricedate'));
 $price_tovar = $product->get_price();
 $real_price = $product->get_regular_price();
 if($price_tovar != $real_price) {

@@ -32,7 +32,7 @@ class WmsAddonStoreFilter
 
         }
 		
-        add_filter('posts_where', array($this, 'wms_addon_store_filter_where'));
+        add_filter('posts_where', array($this, 'wms_addon_store_filter_where'), 10, 2);
 
     }
 
@@ -130,51 +130,87 @@ class WmsAddonStoreFilter
      * @param string $where
      * @return string
      */
-    function wms_addon_store_filter_where($where = '')
+    private function should_filter_query($query, $where)
     {
-		//$where = str_replace("wp_posts.ID NOT IN", "wp_posts.ID IN", $where);
-		
-        $bIsProductQuery = strpos($where, "wp_posts.post_type = 'product'");
+        if (is_admin() || !($query instanceof WP_Query) || !$query->is_main_query()) {
+            return false;
+        }
 
-        if ($bIsProductQuery === false) {
+        if (strpos($where, "wp_posts.post_type = 'product'") === false) {
+            return false;
+        }
+
+        $wc_query = $query->get('wc_query');
+        if ($wc_query === 'product_query') {
+            return true;
+        }
+
+        $post_type = $query->get('post_type');
+        if ($post_type === 'product' || (is_array($post_type) && in_array('product', $post_type, true))) {
+            return true;
+        }
+
+        $taxonomy = $query->get('taxonomy');
+
+        return in_array($taxonomy, array('product_cat', 'product_tag'), true);
+    }
+
+    private function resolve_filter_shops()
+    {
+        $shops = isset($_REQUEST['wms-addon-store-filter-form']) ? (array) $_REQUEST['wms-addon-store-filter-form'] : array();
+
+        global $uss_shops,
+               $vl_shops,
+               $art_shops;
+
+        if (isset($_COOKIE['wms_city']) && $_COOKIE['wms_city'] == "vl") {
+            $shops = (array) $vl_shops;
+        }
+
+        if (isset($_COOKIE['wms_city']) && $_COOKIE['wms_city'] == "uss") {
+            $shops = (array) $uss_shops;
+        }
+
+        if (isset($_COOKIE['wms_city']) && $_COOKIE['wms_city'] == "art") {
+            $shops = (array) $art_shops;
+        }
+
+        if (isset($_COOKIE['wms_city']) && is_array($_COOKIE['wms_city'])) {
+            $shops = $_COOKIE['wms_city'];
+        }
+
+        if (isset($_COOKIE['wms_city']) && is_string($_COOKIE['wms_city'])) {
+            $decoded = base64_decode($_COOKIE['wms_city'], true);
+            if ($decoded !== false) {
+                $shops_serialize = @unserialize($decoded);
+                if (is_array($shops_serialize)) {
+                    $shops = $shops_serialize;
+                }
+            }
+        }
+
+        if (isset($_COOKIE['key_market']) && $_COOKIE['key_market'] != '' && isset($_COOKIE['delivery']) && $_COOKIE['delivery'] == 1) {
+            $shops[] = $_COOKIE['key_market'];
+        }
+
+        $shops = array_values(array_unique(array_filter(array_map('sanitize_text_field', (array) $shops))));
+
+        return $shops;
+    }
+
+    function wms_addon_store_filter_where($where = '', $query = null)
+    {
+        if (!$this->should_filter_query($query, $where)) {
             return $where;
         }
-		
-		$shops = ($_REQUEST['wms-addon-store-filter-form']) ?? false;
-		
-		global $uss_shops,
-			   $vl_shops,
-			   $art_shops;
-			   
-		if(isset($_COOKIE['wms_city']) && $_COOKIE['wms_city'] == "vl") {
-			$shops = $vl_shops;
-		}
-		
-		if(isset($_COOKIE['wms_city']) && $_COOKIE['wms_city'] == "uss") {
-			$shops = $uss_shops;
-		}
-		
-		if(isset($_COOKIE['wms_city']) && $_COOKIE['wms_city'] == "art") {
-			$shops = $art_shops;
-		}
-		
-		if(isset($_COOKIE['wms_city']) && is_array($_COOKIE['wms_city'])) {
-			$shops = $_COOKIE['wms_city'];
-		}
-		
-		$shops_serialize = unserialize(base64_decode( $_COOKIE['wms_city']));
-		
-		if($shops_serialize) {
-			$shops = $shops_serialize;
-		}
-		if(isset($_COOKIE['key_market']) && $_COOKIE['key_market'] != '' && isset($_COOKIE['delivery']) && $_COOKIE['delivery'] == 1) {
-			$shops[] = $_COOKIE['key_market'];
-		}
-		
-		if (!isset($shops)) return $where;
-        if ($shops == 'all' or empty($shops)) return $where;
+
+        $shops = $this->resolve_filter_shops();
+        if (empty($shops) || in_array('all', $shops, true)) {
+            return $where;
+        }
+
         global $wpdb;
-		
+
 		$product_is_kulich = false;
 		$uri = explode("/", $_SERVER['REQUEST_URI']);
 
@@ -191,9 +227,7 @@ class WmsAddonStoreFilter
 		
 		//echo $where;
 
-        if (!is_admin() && !is_product_category( 'kulichi' ) && !$product_is_kulich) {
-
-            if (!isset($shops) and empty($shops)) return $where;
+        if (!is_product_category('kulichi') && !$product_is_kulich) {
 
             $where .= " AND (";
             $count = count($shops);
@@ -201,7 +235,8 @@ class WmsAddonStoreFilter
 			
 			foreach ($shops as $k => $v) {
                 ++$i;
-                $where .= " $wpdb->posts.ID IN (SELECT $wpdb->postmeta.post_id FROM $wpdb->postmeta WHERE meta_key = '$v' AND meta_value > '0' ) OR  $wpdb->posts.ID  IN (SELECT $wpdb->posts.post_parent FROM $wpdb->posts WHERE $wpdb->posts.post_type = 'product_variation' AND $wpdb->posts.ID  IN (SELECT $wpdb->postmeta.post_id FROM $wpdb->postmeta WHERE meta_key = '$v' AND meta_value > '0' ) )";
+                $meta_key = esc_sql($v);
+                $where .= " $wpdb->posts.ID IN (SELECT $wpdb->postmeta.post_id FROM $wpdb->postmeta WHERE meta_key = '$meta_key' AND meta_value > '0' ) OR  $wpdb->posts.ID  IN (SELECT $wpdb->posts.post_parent FROM $wpdb->posts WHERE $wpdb->posts.post_type = 'product_variation' AND $wpdb->posts.ID  IN (SELECT $wpdb->postmeta.post_id FROM $wpdb->postmeta WHERE meta_key = '$meta_key' AND meta_value > '0' ) )";
                 if ($i !== $count) $where .= " OR ";
             }
 			

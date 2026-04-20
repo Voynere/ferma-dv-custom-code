@@ -1861,7 +1861,7 @@ add_filter( 'woocommerce_product_get_price', 'products_price_with_discount', 40,
 
 function products_price_with_discount( $price, $product )
 {
-    $discount = get_field('priceint', 'option');
+    $discount = ferma_get_cached_option_field('priceint');
     $product_id = $product->get_id();
 
 	//$price = $product->get_regular_price();
@@ -1872,22 +1872,19 @@ function products_price_with_discount( $price, $product )
 
 	$is_action = $product->get_attribute( 'pa_akcziya' );
 
-	$price_date = get_field('pricedate', 'option');
+	$price_date = ferma_get_cached_option_field('pricedate');
 
 	$price_date = date("Y-m-d 23:59:59", strtotime($price_date));
 
 	$end_date = strtotime($price_date);
 	$current_date = strtotime(date("Y-m-d H:i:s"));
 
-	$green_friday_products = get_green_friday_products();
-
-	foreach($green_friday_products['good_ids_with_discount'] as $percent => $green_friday_product) {
-		if(in_array($product_id, $green_friday_product)) {
-			$is_action = 1;
-			$price_date = get_field('zp_date_end', 'option');
-			$end_date = strtotime($price_date);
-			$discount = $percent;
-		}
+	$green_friday_discount = ferma_get_green_friday_discount_for_product($product_id);
+	if ($green_friday_discount !== null) {
+		$is_action = 1;
+		$price_date = ferma_get_cached_option_field('zp_date_end');
+		$end_date = strtotime($price_date);
+		$discount = $green_friday_discount;
 	}
 
 	if($end_date > $current_date && $discount > 0 && $is_action == 1) {
@@ -1901,36 +1898,89 @@ function products_price_with_discount( $price, $product )
 
 function get_green_friday_products()
 {
+	static $green_friday_products = null;
 
-	$goods = file_get_contents($_SERVER['DOCUMENT_ROOT'] . "/green-friday.json");
-	//if(current_user_can('administrator')) {
-		return json_decode($goods, true);
-	/*} else {
-		return json_decode(['good_ids' => [], 'good_ids_with_discount' => []], true);
-	}*/
+	if ($green_friday_products !== null) {
+		return $green_friday_products;
+	}
+
+	$cache_key = 'ferma_green_friday_products';
+	$cached = wp_cache_get($cache_key, 'theme');
+	if ($cached !== false) {
+		$green_friday_products = $cached;
+		return $green_friday_products;
+	}
+
+	$path = trailingslashit($_SERVER['DOCUMENT_ROOT']) . 'green-friday.json';
+	$green_friday_products = array(
+		'good_ids' => array(),
+		'good_ids_with_discount' => array(),
+	);
+
+	if (is_readable($path)) {
+		$goods = file_get_contents($path);
+		$decoded = json_decode($goods, true);
+		if (is_array($decoded)) {
+			$green_friday_products = array_merge($green_friday_products, $decoded);
+		}
+	}
+
+	wp_cache_set($cache_key, $green_friday_products, 'theme', 300);
+
+	return $green_friday_products;
+}
+
+function ferma_get_green_friday_discount_for_product($product_id)
+{
+	static $discount_map = null;
+
+	if ($discount_map === null) {
+		$discount_map = array();
+		$green_friday_products = get_green_friday_products();
+		$product_groups = $green_friday_products['good_ids_with_discount'] ?? array();
+
+		foreach ($product_groups as $percent => $product_ids) {
+			foreach ((array) $product_ids as $id) {
+				$discount_map[(int) $id] = (int) $percent;
+			}
+		}
+	}
+
+	$product_id = (int) $product_id;
+
+	return $discount_map[$product_id] ?? null;
+}
+
+function ferma_get_cached_option_field($field_name)
+{
+	static $option_cache = array();
+
+	if (!array_key_exists($field_name, $option_cache)) {
+		$option_cache[$field_name] = get_field($field_name, 'option');
+	}
+
+	return $option_cache[$field_name];
 }
 
 function product_is_green_price($product) {
+	$product_id = $product->get_id();
 
 	$is_action = $product->get_attribute( 'pa_akcziya' );
 
-	$discount = get_field('priceint', 'option');
-	$price_date = get_field('pricedate', 'option');
+	$discount = ferma_get_cached_option_field('priceint');
+	$price_date = ferma_get_cached_option_field('pricedate');
 
 	$price_date = date("Y-m-d 23:59:59", strtotime($price_date));
 
 	$end_date = strtotime($price_date);
 	$current_date = strtotime(date("Y-m-d H:i:s"));
 
-	$green_friday_products = get_green_friday_products();
-
-	foreach($green_friday_products['good_ids_with_discount'] as $percent => $green_friday_product) {
-		if(in_array($product_id, $green_friday_product)) {
-			$is_action = 1;
-			$price_date = get_field('zp_date_end', 'option');
-			$end_date = strtotime($price_date);
-			$discount = $percent;
-		}
+	$green_friday_discount = ferma_get_green_friday_discount_for_product($product_id);
+	if ($green_friday_discount !== null) {
+		$is_action = 1;
+		$price_date = ferma_get_cached_option_field('zp_date_end');
+		$end_date = strtotime($price_date);
+		$discount = $green_friday_discount;
 	}
 
 	if($end_date > $current_date && $discount > 0 && $is_action == 1) {
