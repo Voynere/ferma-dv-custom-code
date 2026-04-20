@@ -142,12 +142,47 @@ function ferma_loop_shop_per_page_catalog( $per_page ) {
 }
 
 /**
- * Жёстко задаём posts_per_page на главном запросе витрины.
- * Некоторые плагины или настройки перезаписывают лимит после loop_shop_per_page — из‑за этого в HTML уходят все товары.
+ * Лимит товаров на странице витрины: применяется и в WC (woocommerce_product_query), и в самом конце pre_get_posts.
  */
-add_action( 'pre_get_posts', 'ferma_catalog_force_main_query_posts_per_page', 999 );
+function ferma_catalog_apply_posts_per_page_limit( $q ) {
+	$default = ferma_catalog_products_per_page_default();
+	$per     = (int) apply_filters( 'ferma_catalog_loop_posts_per_page', $default, (int) $q->get( 'posts_per_page' ) );
+	if ( $per < 1 ) {
+		return;
+	}
+	// Иначе WP может игнорировать posts_per_page.
+	$q->set( 'nopaging', false );
+	$q->set( 'posts_per_page', $per );
+}
+
+/**
+ * Основной хук WooCommerce для списка товаров — срабатывает надёжнее, чем один только pre_get_posts.
+ */
+add_action( 'woocommerce_product_query', 'ferma_catalog_woocommerce_product_query_limit', 99999, 2 );
+function ferma_catalog_woocommerce_product_query_limit( $q, $wc_query_instance = null ) {
+	if ( is_admin() || ! apply_filters( 'ferma_catalog_force_posts_per_page_enabled', true ) ) {
+		return;
+	}
+	if ( ! $q instanceof WP_Query ) {
+		return;
+	}
+	global $wp_query;
+	if ( $q !== $wp_query ) {
+		return;
+	}
+	ferma_catalog_apply_posts_per_page_limit( $q );
+}
+
+/**
+ * Резерв: самый поздний pre_get_posts на главном запросе (плагины с большим приоритетом).
+ */
+add_action( 'pre_get_posts', 'ferma_catalog_force_main_query_posts_per_page', 999999 );
 function ferma_catalog_force_main_query_posts_per_page( $q ) {
-	if ( is_admin() || ! $q instanceof WP_Query || ! $q->is_main_query() ) {
+	if ( is_admin() || ! $q instanceof WP_Query ) {
+		return;
+	}
+	global $wp_query;
+	if ( $q !== $wp_query ) {
 		return;
 	}
 	if ( ! apply_filters( 'ferma_catalog_force_posts_per_page_enabled', true ) ) {
@@ -159,12 +194,7 @@ function ferma_catalog_force_main_query_posts_per_page( $q ) {
 	if ( ! ferma_catalog_is_main_product_listing_query( $q ) ) {
 		return;
 	}
-
-	$default = ferma_catalog_products_per_page_default();
-	$per     = (int) apply_filters( 'ferma_catalog_loop_posts_per_page', $default, (int) $q->get( 'posts_per_page' ) );
-	if ( $per > 0 ) {
-		$q->set( 'posts_per_page', $per );
-	}
+	ferma_catalog_apply_posts_per_page_limit( $q );
 }
 
 /**
@@ -173,6 +203,9 @@ function ferma_catalog_force_main_query_posts_per_page( $q ) {
  * @param WP_Query $q Query object.
  */
 function ferma_catalog_is_main_product_listing_query( $q ) {
+	if ( 'product_query' === $q->get( 'wc_query' ) ) {
+		return true;
+	}
 	if ( $q->is_post_type_archive( 'product' ) ) {
 		return true;
 	}
