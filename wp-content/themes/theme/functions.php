@@ -142,6 +142,48 @@ function ferma_loop_shop_per_page_catalog( $per_page ) {
 }
 
 /**
+ * Жёстко задаём posts_per_page на главном запросе витрины.
+ * Некоторые плагины или настройки перезаписывают лимит после loop_shop_per_page — из‑за этого в HTML уходят все товары.
+ */
+add_action( 'pre_get_posts', 'ferma_catalog_force_main_query_posts_per_page', 999 );
+function ferma_catalog_force_main_query_posts_per_page( $q ) {
+	if ( is_admin() || ! $q instanceof WP_Query || ! $q->is_main_query() ) {
+		return;
+	}
+	if ( ! apply_filters( 'ferma_catalog_force_posts_per_page_enabled', true ) ) {
+		return;
+	}
+	if ( ! function_exists( 'WC' ) ) {
+		return;
+	}
+	if ( ! ferma_catalog_is_main_product_listing_query( $q ) ) {
+		return;
+	}
+
+	$default = ferma_catalog_products_per_page_default();
+	$per     = (int) apply_filters( 'ferma_catalog_loop_posts_per_page', $default, (int) $q->get( 'posts_per_page' ) );
+	if ( $per > 0 ) {
+		$q->set( 'posts_per_page', $per );
+	}
+}
+
+/**
+ * Главный запрос списка товаров: магазин, категории/метки/атрибуты WooCommerce.
+ *
+ * @param WP_Query $q Query object.
+ */
+function ferma_catalog_is_main_product_listing_query( $q ) {
+	if ( $q->is_post_type_archive( 'product' ) ) {
+		return true;
+	}
+	$taxonomies = get_object_taxonomies( 'product', 'names' );
+	if ( empty( $taxonomies ) ) {
+		return false;
+	}
+	return $q->is_tax( $taxonomies );
+}
+
+/**
  * GET-параметры, которые нужно сохранять в ссылках пагинации и при подгрузке каталога (WMS, сортировка и т.д.).
  *
  * @return array<string, string|array>
