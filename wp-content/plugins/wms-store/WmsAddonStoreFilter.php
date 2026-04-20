@@ -198,6 +198,54 @@ class WmsAddonStoreFilter
         return $shops;
     }
 
+    private function get_filtered_product_ids($shops)
+    {
+        $shops = array_values(array_unique(array_filter((array) $shops)));
+        sort($shops);
+
+        $cache_key = 'wms_store_filter_ids_' . md5(wp_json_encode($shops));
+        $cached_ids = wp_cache_get($cache_key, 'wms_store');
+        if ($cached_ids !== false) {
+            return $cached_ids;
+        }
+
+        $cached_ids = get_transient($cache_key);
+        if ($cached_ids !== false) {
+            wp_cache_set($cache_key, $cached_ids, 'wms_store', 300);
+            return $cached_ids;
+        }
+
+        global $wpdb;
+
+        $placeholders = implode(', ', array_fill(0, count($shops), '%s'));
+        $sql = "
+            SELECT DISTINCT filtered.parent_id
+            FROM (
+                SELECT pm.post_id AS parent_id
+                FROM $wpdb->postmeta pm
+                WHERE pm.meta_key IN ($placeholders)
+                  AND pm.meta_value > '0'
+
+                UNION
+
+                SELECT p.post_parent AS parent_id
+                FROM $wpdb->posts p
+                INNER JOIN $wpdb->postmeta pm ON pm.post_id = p.ID
+                WHERE p.post_type = 'product_variation'
+                  AND pm.meta_key IN ($placeholders)
+                  AND pm.meta_value > '0'
+            ) filtered
+        ";
+
+        $prepared_sql = $wpdb->prepare($sql, array_merge($shops, $shops));
+        $product_ids = array_map('intval', $wpdb->get_col($prepared_sql));
+
+        set_transient($cache_key, $product_ids, 300);
+        wp_cache_set($cache_key, $product_ids, 'wms_store', 300);
+
+        return $product_ids;
+    }
+
     function wms_addon_store_filter_where($where = '', $query = null)
     {
         if (!$this->should_filter_query($query, $where)) {
@@ -228,20 +276,13 @@ class WmsAddonStoreFilter
 		//echo $where;
 
         if (!is_product_category('kulichi') && !$product_is_kulich) {
-
-            $where .= " AND (";
-            $count = count($shops);
-            $i = 0;
-			
-			foreach ($shops as $k => $v) {
-                ++$i;
-                $meta_key = esc_sql($v);
-                $where .= " $wpdb->posts.ID IN (SELECT $wpdb->postmeta.post_id FROM $wpdb->postmeta WHERE meta_key = '$meta_key' AND meta_value > '0' ) OR  $wpdb->posts.ID  IN (SELECT $wpdb->posts.post_parent FROM $wpdb->posts WHERE $wpdb->posts.post_type = 'product_variation' AND $wpdb->posts.ID  IN (SELECT $wpdb->postmeta.post_id FROM $wpdb->postmeta WHERE meta_key = '$meta_key' AND meta_value > '0' ) )";
-                if ($i !== $count) $where .= " OR ";
+            $product_ids = $this->get_filtered_product_ids($shops);
+            if (empty($product_ids)) {
+                return $where . " AND 1 = 0";
             }
-			
-			$where .= " )";
-			
+
+            $where .= " AND $wpdb->posts.ID IN (" . implode(',', $product_ids) . ")";
+
             return $where;
 
         }
