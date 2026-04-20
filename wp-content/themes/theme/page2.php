@@ -73,24 +73,24 @@ Template Post Type: post, page, product
   <div id="some-id" class="single">
     <form method="post">
       <input type="hidden" name="asd" value="ГринМаркет ТЦ Море">
-    <button type="submit">ТЦ Море, Некрасовская,49а</button>
+    <button type="submit">ТЦ Море, Некрасовская, 49а</button>
     </form>
     <form method="post">
       <input type="hidden" name="asd" value="Реми-Сити">
-    <button type="submit">Реми-сити, Народный проспект,20</button>
+    <button type="submit">Реми-Сити, Народный проспект, 20</button>
     </form>
     <form method="post">
       <input type="hidden" name="asd" value="Эгершельд">
-    <button type="submit">Эгершельд, Верхнепортовая, 68а</button>
+    <button type="submit">Эгершельд, Верхнепортовая, 41в</button>
     </form>
     <form method="post">
       <input type="hidden" name="asd" value="Космос">
-    <button type="submit">Космос, Тимирязева,31 ст 1</button>
+    <button type="submit">Космос, Тимирязева, 31 строение 1</button>
     </form>
   </div>
 <div class="single some-class">    <form method="post">
       <input type="hidden" name="asd" value="Уссурийск">
-    <button type="submit">Уссурийск, ТЦ Москва, 1-й этаж (ул. Суханова,52)</button>
+    <button type="submit">Уссурийск, ТЦ Москва, 1-й этаж (ул. Суханова, 52)</button>
     </form></div>
     </li>
       </ul>

@@ -1411,7 +1411,7 @@ if (!empty($_POST["vib"])) {
         <h5 class="modal-delivery__selfpickup-city">Владивосток:</h5>
         <!-- FIX: исправлены дублирующиеся id="market1" на уникальные -->
         <div id="market_egersheld" class="market_el">
-            <p class="modal-delivery__selfpickup-adress">Эгершельд, Верхнепортовая,41в</p>
+            <p class="modal-delivery__selfpickup-adress">Эгершельд, Верхнепортовая, 41в</p>
             <div class="mainblock_time1 enable1" data-market="11" style="">
                 <div class="underblocktime1" style="">
                     <p class="delivery-text modal-delivery__selfpickup-btn" style="margin-bottom:0px;">Выбрать</p>
@@ -1439,7 +1439,7 @@ if (!empty($_POST["vib"])) {
         </div>
 
         <div id="market_sputnik" class="market_el">
-            <p class="modal-delivery__selfpickup-adress">ул. Тимирязева,31 строение 1 (район Спутник)</p>
+            <p class="modal-delivery__selfpickup-adress">ул. Тимирязева, 31 строение 1 (район Спутник)</p>
             <div class="mainblock_time1 enable1" data-market="3" style="">
                 <div class="underblocktime1" style="">
                     <p class="delivery-text modal-delivery__selfpickup-btn"  style="margin-bottom:0px;">Выбрать</p>
@@ -1499,7 +1499,7 @@ if (!empty($_POST["vib"])) {
             map2.setCenter(coords, 16);
         }
         var myPlacemark11 = new ymaps.Placemark([43.09968, 131.863907], {
-            hintContent: 'Эгершельд, Верхнепортовая,41в'
+            hintContent: 'Эгершельд, Верхнепортовая, 41в'
         }, {
             balloonContentLayout: null
         });
@@ -1513,7 +1513,7 @@ if (!empty($_POST["vib"])) {
 
 
         var myPlacemark3 = new ymaps.Placemark([43.24827778336888, 132.02109573106299], {
-            hintContent: 'ул. Тимирязева,31 строение 1 (район Спутник)'
+            hintContent: 'ул. Тимирязева, 31 строение 1 (район Спутник)'
         }, {
             balloonContentLayout: null
         });

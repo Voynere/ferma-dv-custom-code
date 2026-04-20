@@ -178,7 +178,7 @@ $uss_shops = [
 	  foreach ($address as $key => $value) {
 		update_user_meta($user_id, $key, $value);
 	  }
-		if ($address['billing_samoviziv'] == 'Эгершельд, Верхнепортовая,68а') {
+		if ($address['billing_samoviziv'] == 'Эгершельд, Верхнепортовая, 41в') {
 			update_user_meta($user_id, 'samovivoz', 'Эгершельд');
 			$points[] = '7c0dc9ce-ce1e-11ea-0a80-09ca000e5e93';
 		}
@@ -190,7 +190,7 @@ $uss_shops = [
 			update_user_meta($user_id, 'samovivoz', 'ГринМаркет ТЦ Море');
 			$points[] = 'cab1caa9-da10-11eb-0a80-07410026c356';
 		}
-		if ($address['billing_samoviziv'] == 'ул. Тимирязева,31 строение 1 (район Спутник)') {
+		if ($address['billing_samoviziv'] == 'ул. Тимирязева, 31 строение 1 (район Спутник)') {
 			update_user_meta($user_id, 'samovivoz', 'Космос');
 			$points[] = 'a99d6fdf-0970-11ed-0a80-0ed600075845';
 
@@ -199,19 +199,13 @@ $uss_shops = [
             update_user_meta($user_id, 'samovivoz', 'Океанский проспект 108');
             $points[] = '076fd75d-aa46-11f0-0a80-16ae0009467c';
         }
-		/*if ($address['billing_samoviziv'] == 'ТЦ Москва, 1-й этаж (ул. Суханова,52)') {
+		/*if ($address['billing_samoviziv'] == 'ТЦ Москва, 1-й этаж (ул. Суханова, 52)') {
 			update_user_meta($user_id, 'samovivoz', 'Уссурийск');
 			$points[] = '9c9dfcc4-733f-11ec-0a80-0da1013a560d';
 		}*/
 		if($address['billing_samoviziv'] == 'ТЦ Светланская (Светланская, 43)') {
 			update_user_meta($user_id, 'samovivoz', 'Светланская');
 			$points[] = '431d0f6f-577a-11ee-0a80-0f790012da73';
-		}
-
-		if ($address['billing_samoviziv'] == 'Склад (Чкалова, 30)') {
-			update_user_meta($user_id, 'samovivoz', 'Склад');
-			//$points[] = '23797f09-1999-11ec-0a80-07e300149e52';
-			$points[] = '028e05a7-b4fa-11ee-0a80-1198000442be';
 		}
 
 		/*if ($address['billing_samoviziv'] == 'Находка, Проспект мира, 65/1') {
@@ -231,7 +225,7 @@ $uss_shops = [
 		setcookie( 'billing_samoviziv', $address['billing_samoviziv'], time() + 3600*24*7, '/' );
 		setcookie( 'time_to_dev', $address['time_type'], time() + 3600*24*7, '/' );
 	}
-	if ($address['billing_samoviziv'] == 'Эгершельд, Верхнепортовая,68а') {
+	if ($address['billing_samoviziv'] == 'Эгершельд, Верхнепортовая, 41в') {
 		setcookie("market", 'Эгершельд', time()+60*60*24*7, '/');
 		setcookie("key_market", '7c0dc9ce-ce1e-11ea-0a80-09ca000e5e93', time()+60*60*24*7, '/');
 		$points[] = '7c0dc9ce-ce1e-11ea-0a80-09ca000e5e93';
@@ -251,12 +245,12 @@ $uss_shops = [
 		setcookie("market", 'ГринМаркет ТЦ Море', time()+60*60*24*7, '/');
 		$points[] = 'cab1caa9-da10-11eb-0a80-07410026c356';
 	}
-	if ($address['billing_samoviziv'] == 'ул. Тимирязева,31 строение 1 (район Спутник)') {
+	if ($address['billing_samoviziv'] == 'ул. Тимирязева, 31 строение 1 (район Спутник)') {
 		setcookie("market", 'Космос', time()+60*60*24*7, '/');
 		setcookie("key_market", 'a99d6fdf-0970-11ed-0a80-0ed600075845', time()+60*60*24*7, '/');
 		$points[] = 'a99d6fdf-0970-11ed-0a80-0ed600075845';
 	}
-	/*if ($address['billing_samoviziv'] == 'ТЦ Москва, 1-й этаж (ул. Суханова,52)') {
+	/*if ($address['billing_samoviziv'] == 'ТЦ Москва, 1-й этаж (ул. Суханова, 52)') {
 		setcookie("market", 'Уссурийск', time()+60*60*24*7, '/');
 		setcookie("key_market", '9c9dfcc4-733f-11ec-0a80-0da1013a560d', time()+60*60*24*7, '/');
 		$points[] = '9c9dfcc4-733f-11ec-0a80-0da1013a560d';
@@ -265,14 +259,6 @@ $uss_shops = [
 		setcookie("market", 'Светланская', time()+60*60*24*7, '/');
 		setcookie("key_market", '431d0f6f-577a-11ee-0a80-0f790012da73', time()+60*60*24*7, '/');
 		$points[] = '431d0f6f-577a-11ee-0a80-0f790012da73';
-	}
-
-	if ($address['billing_samoviziv'] == 'Заря (Чкалова, 30)') {
-		setcookie("market", 'Склад', time()+60*60*24*7, '/');
-		//setcookie("key_market", '23797f09-1999-11ec-0a80-07e300149e52', time()+60*60*24*7, '/');
-		setcookie("key_market", '028e05a7-b4fa-11ee-0a80-1198000442be', time()+60*60*24*7, '/');
-		//$points[] = '23797f09-1999-11ec-0a80-07e300149e52';
-		$points[] = '028e05a7-b4fa-11ee-0a80-1198000442be';
 	}
 
 	/*if ($address['billing_samoviziv'] == 'Находка, Проспект мира, 65/1') {

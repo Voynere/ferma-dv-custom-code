@@ -368,7 +368,7 @@ foreach( $products as $key => $product ) {
 		$stock_data_chkalova->appendChild($offer_chkalova_stock_node);
 	}
 	
-	// Реми-сити Народный
+	// Реми-Сити Народный
 	if($narodniy_stock_quantity > 0) {
 		$offer_narodniy_stock_node = $dom_stock_narodniy->createElement('offer');
 		$offer_narodniy_stock_id_node = $dom_stock_narodniy->createElement('id', $product_id);

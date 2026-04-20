@@ -641,7 +641,7 @@ a.xoo-wsc-ft-btn.button.btn.xoo-wsc-ft-btn-checkout { background: #4caf50; color
     <h2 class="modal-delivery__selfpickup-title">Выбор магазина</h2>
     <h5 class="modal-delivery__selfpickup-city">Владивосток:</h5>
     <div id="market_egersheld" class="market_el">
-        <p class="modal-delivery__selfpickup-adress">Эгершельд, Верхнепортовая,41в</p>
+        <p class="modal-delivery__selfpickup-adress">Эгершельд, Верхнепортовая, 41в</p>
         <div class="mainblock_time1 enable1" data-market="11"><div class="underblocktime1"><p class="delivery-text modal-delivery__selfpickup-btn" style="margin-bottom:0px;">Выбрать</p></div></div>
     </div>
     <script>
@@ -654,7 +654,7 @@ a.xoo-wsc-ft-btn.button.btn.xoo-wsc-ft-btn-checkout { background: #4caf50; color
         <div class="mainblock_time1 enable1" data-market="1"><div class="underblocktime1"><p class="delivery-text modal-delivery__selfpickup-btn" style="margin-bottom:0px;">Выбрать</p></div></div>
     </div>
     <div id="market_sputnik" class="market_el">
-        <p class="modal-delivery__selfpickup-adress">ул. Тимирязева,31 строение 1 (район Спутник)</p>
+        <p class="modal-delivery__selfpickup-adress">ул. Тимирязева, 31 строение 1 (район Спутник)</p>
         <div class="mainblock_time1 enable1" data-market="3"><div class="underblocktime1"><p class="delivery-text modal-delivery__selfpickup-btn" style="margin-bottom:0px;">Выбрать</p></div></div>
     </div>
 </div>
@@ -685,9 +685,9 @@ function init() {
         }
     });
 
-    var myPlacemark11 = new ymaps.Placemark([43.09968, 131.863907], { hintContent: 'Эгершельд, Верхнепортовая,41в' }, { balloonContentLayout: null });
+    var myPlacemark11 = new ymaps.Placemark([43.09968, 131.863907], { hintContent: 'Эгершельд, Верхнепортовая, 41в' }, { balloonContentLayout: null });
     var myPlacemark1 = new ymaps.Placemark([43.128381, 131.919746], { hintContent: 'Реми-Сити (ул. Народный пр-т, 20)' }, { balloonContentLayout: null });
-    var myPlacemark3 = new ymaps.Placemark([43.24827778336888, 132.02109573106299], { hintContent: 'ул. Тимирязева,31 строение 1 (район Спутник)' }, { balloonContentLayout: null });
+    var myPlacemark3 = new ymaps.Placemark([43.24827778336888, 132.02109573106299], { hintContent: 'ул. Тимирязева, 31 строение 1 (район Спутник)' }, { balloonContentLayout: null });
     var myPlacemark8 = new ymaps.Placemark([43.132657, 131.905418], { hintContent: 'Океанский проспект 108' }, { balloonContentLayout: null });
 
     var myGroup = new ymaps.GeoObjectCollection({}, { draggable: false, preset: 'islands#blueIcon', iconColor: '#3caa3c' });

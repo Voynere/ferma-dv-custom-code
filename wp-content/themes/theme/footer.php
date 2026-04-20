@@ -504,7 +504,7 @@ if (document.getElementById("answer_user").innerText === "0") {
 				Океанский проспект, 108 (Первая Речка, магазин Реми)<br>
                 Реми-Сити (ул. Народный пр-т, 20) <br>
                 ТЦ «Море», Гипермаркет (ул. Некрасовская, 49а) <br>
-				ул. Тимирязева,31 строение 1 (район Спутник)<br>
+				ул. Тимирязева, 31 строение 1 (район Спутник)<br>
             </div>
         </div>
     </div>
@@ -634,14 +634,14 @@ if (document.getElementById("answer_user").innerText === "0") {
 				<div class="buyoneclick-modal__field buyoneclick-modal__hide" id="buyoneclick-shop">
 					<select name="shop">
 						<optgroup label="Владивосток">
-							<option>Эгершельд, Верхнепортовая,41в</option>
+							<option>Эгершельд, Верхнепортовая, 41в</option>
 							<option>Океанский проспект, 108 (Первая Речка, магазин Реми)</option>
 							<option>Реми-Сити (ул. Народный пр-т, 20)</option>
 							<option>ТЦ «Море», Гипермаркет (ул. Некрасовская, 49а)</option>
-							<option>ул. Тимирязева, 31, стр.1 (район Спутник)</option>
+							<option>ул. Тимирязева, 31 строение 1 (район Спутник)</option>
 						</optgroup>
 						<optgroup label="Уссурийск">
-							<option>ТЦ Москва, 1-й этаж (ул. Суханова,52)</option>
+							<option>ТЦ Москва, 1-й этаж (ул. Суханова, 52)</option>
 						</optgroup>
 						<optgroup label="Находка">
 							<option>Находка, Проспект мира, 65/1</option>

@@ -1875,7 +1875,7 @@
         <h2 class="modal-delivery__selfpickup-title">Выбор магазина </h2>
         <h5 class="modal-delivery__selfpickup-city">Владивосток:</h5>
         <div id="market1" class="market_el">
-            <p class="modal-delivery__selfpickup-adress">Эгершельд, Верхнепортовая,41в</p>
+            <p class="modal-delivery__selfpickup-adress">Эгершельд, Верхнепортовая, 41в</p>
             <div class="mainblock_time1 enable1" data-market="11" style="">
             <div class="underblocktime1" style="">
                 <p class="delivery-text modal-delivery__selfpickup-btn" style="margin-bottom:0px;">Выбрать</p>
@@ -1922,7 +1922,7 @@
         </div>
         </div>
         <div id="market1" class="market_el">
-            <p class="modal-delivery__selfpickup-adress">ул. Тимирязева,31 строение 1 (район Спутник)</p>
+            <p class="modal-delivery__selfpickup-adress">ул. Тимирязева, 31 строение 1 (район Спутник)</p>
             <div class="mainblock_time1 enable1" data-market="3" style="">
             <div class="underblocktime1" style="">
                 <p class="delivery-text modal-delivery__selfpickup-btn"  style="margin-bottom:0px;">Выбрать</p>
@@ -1932,7 +1932,7 @@
 		<? if(1==2): ?>
         <h5 class="modal-delivery__selfpickup-city">Уссурийск:</h5>
         <div id="market1" class="market_el">
-            <p class="modal-delivery__selfpickup-adress">ТЦ Москва, 1-й этаж (ул. Суханова,52)</p>
+            <p class="modal-delivery__selfpickup-adress">ТЦ Москва, 1-й этаж (ул. Суханова, 52)</p>
             <div class="mainblock_time1 enable1" data-market="4" style="">
             <div class="underblocktime1" style="">
                 <p class="delivery-text modal-delivery__selfpickup-btn"  style="margin-bottom:0px;">Выбрать</p>
@@ -2002,7 +2002,7 @@
             map2.setCenter(coords, 16);
             }
     var myPlacemark11 = new ymaps.Placemark([43.09968, 131.863907], {
-        hintContent: 'Эгершельд, Верхнепортовая,41в'
+        hintContent: 'Эгершельд, Верхнепортовая, 41в'
     }, {
         balloonContentLayout: null
     });
@@ -2020,13 +2020,13 @@
     });
     
     var myPlacemark3 = new ymaps.Placemark([43.24827778336888, 132.02109573106299], {
-        hintContent: 'ул. Тимирязева,31 строение 1 (район Спутник)'
+        hintContent: 'ул. Тимирязева, 31 строение 1 (район Спутник)'
     }, {
         balloonContentLayout: null
     });
     
     /*var myPlacemark4 = new ymaps.Placemark([43.793492, 131.954278], {
-        hintContent: 'ТЦ Москва, 1-й этаж (ул. Суханова,52)'
+        hintContent: 'ТЦ Москва, 1-й этаж (ул. Суханова, 52)'
     }, {
         balloonContentLayout: null
     });*/
