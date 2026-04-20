@@ -1,21 +1,45 @@
-<p style="display:none" id="answer_user"><? 
-if ( is_user_logged_in() ) {
+<p style="display:none" id="answer_user"><?php
+if ( function_exists( 'ferma_is_catalog_cache_candidate' ) && ferma_is_catalog_cache_candidate() && ! is_user_logged_in() ) {
+	echo '0';
+} elseif ( is_user_logged_in() ) {
 	$const = get_user_meta( get_current_user_id(), 'delivery', true );
-	if($const == "") {
-		unset($const);
+	if ( $const === '' ) {
+		unset( $const );
 	}
-} else {
-	if(isset($_COOKIE['delivery']) && ((isset($_COOKIE['coords']) && $_COOKIE['coords'] != '') || (isset($_COOKIE['billing_samoviziv']) && $_COOKIE['billing_samoviziv'] != '') )) {
-		$const = 1;
-	}
-}
-
-	if (isset($const)) {
+	if ( isset( $const ) ) {
 		echo 1;
 	} else {
 		echo 0;
 	}
-?></p>
+} else {
+	if ( isset( $_COOKIE['delivery'] ) && ( ( isset( $_COOKIE['coords'] ) && $_COOKIE['coords'] !== '' ) || ( isset( $_COOKIE['billing_samoviziv'] ) && $_COOKIE['billing_samoviziv'] !== '' ) ) ) {
+		echo 1;
+	} else {
+		echo 0;
+	}
+}
+?></p><?php if ( function_exists( 'ferma_is_catalog_cache_candidate' ) && ferma_is_catalog_cache_candidate() && ! is_user_logged_in() ) : ?>
+<script>
+(function () {
+	function readCookie(name) {
+		var prefix = name + '=';
+		var cookies = document.cookie ? document.cookie.split(';') : [];
+		for (var i = 0; i < cookies.length; i++) {
+			var c = cookies[i].trim();
+			if (c.indexOf(prefix) === 0) {
+				return decodeURIComponent(c.substring(prefix.length));
+			}
+		}
+		return '';
+	}
+	var el = document.getElementById('answer_user');
+	if (!el) return;
+	var d = readCookie('delivery');
+	var ok = d && ((readCookie('coords') && readCookie('coords') !== '') || (readCookie('billing_samoviziv') && readCookie('billing_samoviziv') !== ''));
+	el.textContent = ok ? '1' : '0';
+})();
+</script>
+<?php endif; ?>
 <script>
 	const samovivizValue = document.querySelector('#data_of_samoviviz').innerHTML;
 const options = document.querySelectorAll('#billing_type_delivery_sam option');

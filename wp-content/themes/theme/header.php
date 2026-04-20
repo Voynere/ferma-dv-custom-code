@@ -538,11 +538,7 @@ function fdv_store_filter_suffix($args_check) {
 }
 $store_suffix = fdv_store_filter_suffix($args_check);
 
-function ferma_is_catalog_cache_candidate() {
-    return is_shop() || is_product_category() || is_product_tag();
-}
-
-$ferma_catalog_cache_candidate = ferma_is_catalog_cache_candidate();
+$ferma_catalog_cache_candidate = function_exists( 'ferma_is_catalog_cache_candidate' ) && ferma_is_catalog_cache_candidate();
 
 // Determine delivery display text
 $delivery_display = '';
@@ -904,14 +900,20 @@ endif; ?>
                     </div>
                 </div>
                 <p id="status_delivery" style="display:none"><?php
-                    if (is_user_logged_in()) {
-                        $coords = get_user_meta(get_current_user_id(), 'coords', true);
-                        if (!empty($coords)) echo $coords;
-                    } elseif (isset($_COOKIE['coords'])) {
-                        echo $_COOKIE['coords'];
+                    if ( $ferma_catalog_cache_candidate && ! is_user_logged_in() ) {
+                        echo '';
+                    } elseif ( is_user_logged_in() ) {
+                        $coords = get_user_meta( get_current_user_id(), 'coords', true );
+                        if ( ! empty( $coords ) ) {
+                            echo esc_html( $coords );
+                        }
+                    } elseif ( isset( $_COOKIE['coords'] ) ) {
+                        echo esc_html( wp_unslash( $_COOKIE['coords'] ) );
                     }
                     ?></p>
-                <p id="user_authorize" style="display:none"><?php echo is_user_logged_in() ? 1 : 0; ?></p>
+                <p id="user_authorize" style="display:none"><?php
+                    echo ( $ferma_catalog_cache_candidate && ! is_user_logged_in() ) ? '0' : ( is_user_logged_in() ? '1' : '0' );
+                ?></p>
                 <div id="map"></div>
                 <div id="marker-coordinates"></div>
                 <div id="coords" style="display:none"></div>
@@ -1002,13 +1004,20 @@ endif; ?>
     </div>
 </div>
 
-<p id="data_of_samoviviz" style="display:none;"><?php echo isset($_COOKIE['data_of_samoviviz']) ? esc_html($_COOKIE['data_of_samoviviz']) : ''; ?></p>
+<p id="data_of_samoviviz" style="display:none;"><?php
+if ( $ferma_catalog_cache_candidate && ! is_user_logged_in() ) {
+	echo '';
+} else {
+	echo isset( $_COOKIE['data_of_samoviviz'] ) ? esc_html( wp_unslash( $_COOKIE['data_of_samoviz'] ) ) : '';
+}
+?></p>
 
 <!-- ===== DEFERRED: Yandex Maps + Modal JS ===== -->
 <!-- Yandex Maps loads ONLY when modal opens -->
 <script>
     (function(){
         var isCatalogCacheCandidate = <?php echo $ferma_catalog_cache_candidate ? 'true' : 'false'; ?>;
+        var fermaCatalogGuestSSR = <?php echo ( $ferma_catalog_cache_candidate && ! is_user_logged_in() ) ? 'true' : 'false'; ?>;
         var ymapsLoaded = false;
         var ymapsCallbacks = [];
 
@@ -1025,7 +1034,7 @@ endif; ?>
         }
 
         function updateCatalogDeliveryLabelsFromCookies() {
-            if (!isCatalogCacheCandidate) return;
+            if (!isCatalogCacheCandidate || !fermaCatalogGuestSSR) return;
 
             var display = 'Доставка или самовывоз';
             var address = 'Выберите способ получения';
@@ -1053,7 +1062,24 @@ endif; ?>
             });
         }
 
+        function seedCatalogHiddenFieldsFromCookies() {
+            if (!isCatalogCacheCandidate || !fermaCatalogGuestSSR) return;
+            var coords = readCookie('coords');
+            var sd = document.getElementById('status_delivery');
+            if (sd && !String(sd.innerHTML || '').trim() && coords) {
+                sd.innerHTML = coords;
+            }
+            var ds = document.getElementById('data_of_samoviviz');
+            if (ds) {
+                var dof = readCookie('data_of_samoviviz');
+                if (dof) {
+                    ds.textContent = dof;
+                }
+            }
+        }
+
         updateCatalogDeliveryLabelsFromCookies();
+        seedCatalogHiddenFieldsFromCookies();
 
         function loadYandexMaps(callback) {
             if (ymapsLoaded) { callback(); return; }

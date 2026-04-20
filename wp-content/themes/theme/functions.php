@@ -47,6 +47,73 @@ function add_nocache_to_checkout_url($url) {
     }
     return $url;
 }
+
+/**
+ * Витрина: магазин, категории и метки (без корзины/чекаута/ЛК).
+ */
+if ( ! function_exists( 'ferma_is_catalog_cache_candidate' ) ) {
+	function ferma_is_catalog_cache_candidate() {
+		if ( ! function_exists( 'is_shop' ) ) {
+			return false;
+		}
+		if ( is_cart() || is_checkout() || is_account_page() ) {
+			return false;
+		}
+		return is_shop() || is_product_category() || is_product_tag();
+	}
+}
+
+/**
+ * Анонимный GET без WC action-параметров — единый SSR + публичные Cache-Control для CDN/прокси.
+ */
+if ( ! function_exists( 'ferma_is_public_catalog_cache_request' ) ) {
+	function ferma_is_public_catalog_cache_request() {
+		if ( ! ferma_is_catalog_cache_candidate() ) {
+			return false;
+		}
+		if ( is_user_logged_in() ) {
+			return false;
+		}
+		if ( isset( $_GET['add-to-cart'] ) || isset( $_GET['added-to-cart'] ) || isset( $_GET['remove_item'] ) ) {
+			return false;
+		}
+		if ( is_preview() || ( function_exists( 'is_customize_preview' ) && is_customize_preview() ) ) {
+			return false;
+		}
+		if ( wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+			return false;
+		}
+		if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'GET' !== $_SERVER['REQUEST_METHOD'] ) {
+			return false;
+		}
+		return true;
+	}
+}
+
+add_filter( 'wp_get_nocache_headers', 'ferma_strip_nocache_headers_for_public_catalog', 99, 1 );
+function ferma_strip_nocache_headers_for_public_catalog( $headers ) {
+	if ( ferma_is_public_catalog_cache_request() ) {
+		return array();
+	}
+	return $headers;
+}
+
+add_filter( 'woocommerce_enable_nocache_headers', 'ferma_wc_disable_nocache_headers_public_catalog', 99 );
+function ferma_wc_disable_nocache_headers_public_catalog( $enabled ) {
+	if ( ferma_is_public_catalog_cache_request() ) {
+		return false;
+	}
+	return $enabled;
+}
+
+add_action( 'send_headers', 'ferma_send_public_cache_headers_catalog', 999 );
+function ferma_send_public_cache_headers_catalog() {
+	if ( ! ferma_is_public_catalog_cache_request() || headers_sent() ) {
+		return;
+	}
+	header( 'Cache-Control: public, max-age=120, s-maxage=600, stale-while-revalidate=60', true );
+}
+
 // Include ferma functions
 if(file_exists(get_template_directory() . "/includes/sort/ferma_sort_products_by_balance.php")) {
 	require_once(get_template_directory() . "/includes/sort/ferma_sort_products_by_balance.php");
