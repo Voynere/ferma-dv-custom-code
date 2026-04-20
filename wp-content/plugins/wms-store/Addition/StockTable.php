@@ -164,7 +164,7 @@ class StockTable
 
         $cached_ids = get_transient($cache_key);
         if ($cached_ids !== false) {
-            wp_cache_set($cache_key, $cached_ids, self::CACHE_GROUP, 300);
+            wp_cache_set($cache_key, $cached_ids, self::CACHE_GROUP, 600);
             return $cached_ids;
         }
 
@@ -180,10 +180,76 @@ class StockTable
         $prepared_sql = $wpdb->prepare($sql, $store_ids);
         $product_ids = array_map('intval', (array) $wpdb->get_col($prepared_sql));
 
-        set_transient($cache_key, $product_ids, 300);
-        wp_cache_set($cache_key, $product_ids, self::CACHE_GROUP, 300);
+        set_transient($cache_key, $product_ids, 600);
+        wp_cache_set($cache_key, $product_ids, self::CACHE_GROUP, 600);
 
         return $product_ids;
+    }
+
+    /**
+     * Быстрая проверка: есть ли хоть одна положительная запись по выбранным складам.
+     *
+     * @param array $store_ids
+     * @return bool
+     */
+    public static function has_positive_stock_for_stores($store_ids)
+    {
+        global $wpdb;
+
+        if (!self::table_exists() || !self::is_ready_for_reads()) {
+            return true;
+        }
+
+        $store_ids = self::normalize_store_ids($store_ids);
+        if (empty($store_ids)) {
+            return false;
+        }
+
+        $table_name = self::get_table_name();
+        $placeholders = implode(', ', array_fill(0, count($store_ids), '%s'));
+        $sql = "SELECT 1 FROM {$table_name} WHERE store_id IN ({$placeholders}) AND quantity > 0 LIMIT 1";
+
+        $found = $wpdb->get_var($wpdb->prepare($sql, $store_ids));
+
+        return (bool) $found;
+    }
+
+    /**
+     * Фрагмент SQL для основного запроса товаров: остаток на самом товаре или на вариации (без огромного IN (...)).
+     *
+     * @param array $store_ids
+     * @return string Подготовленное выражение для AND ( ... )
+     */
+    public static function get_exists_clause_for_wc_parent_product_rows($store_ids)
+    {
+        global $wpdb;
+
+        $store_ids = self::normalize_store_ids($store_ids);
+        if (empty($store_ids)) {
+            return '0';
+        }
+
+        $table_name = self::get_table_name();
+        $placeholders = implode(', ', array_fill(0, count($store_ids), '%s'));
+        $posts = $wpdb->posts;
+
+        $sql = "(
+			EXISTS (
+				SELECT 1 FROM {$table_name} s
+				WHERE s.product_id = {$posts}.ID
+				AND s.store_id IN ({$placeholders})
+				AND s.quantity > 0
+			)
+			OR EXISTS (
+				SELECT 1 FROM {$table_name} s
+				INNER JOIN {$posts} pv ON pv.ID = s.product_id AND pv.post_type = 'product_variation'
+				WHERE pv.post_parent = {$posts}.ID
+				AND s.store_id IN ({$placeholders})
+				AND s.quantity > 0
+			)
+		)";
+
+        return $wpdb->prepare($sql, array_merge($store_ids, $store_ids));
     }
 
     public static function upsert_stocks($product_id, $store_quantities)

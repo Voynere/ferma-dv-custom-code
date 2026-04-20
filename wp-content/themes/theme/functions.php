@@ -2096,10 +2096,55 @@ function products_price_html_with_discount( $price, $product )
 	return $price;
 }
 
-function pre_get_posts_product_actions( $q ) {
-	$cat_obj = $q->get_queried_object();
+/**
+ * Кешируемый список ID всех рубрик product_cat (для тяжёлых tax_query на акционных категориях).
+ *
+ * @return int[]
+ */
+function ferma_get_all_product_cat_term_ids() {
+	static $memo = null;
 
-	if($cat_obj->term_id == 355) {
+	if ( $memo !== null ) {
+		return $memo;
+	}
+
+	$cache_key = 'ferma_all_product_cat_ids_v1';
+	$ids         = get_transient( $cache_key );
+
+	if ( false === $ids || ! is_array( $ids ) ) {
+		$ids = get_terms(
+			array(
+				'taxonomy'   => 'product_cat',
+				'fields'     => 'ids',
+				'hide_empty' => false,
+			)
+		);
+		if ( is_wp_error( $ids ) ) {
+			$ids = array();
+		}
+		set_transient( $cache_key, $ids, HOUR_IN_SECONDS );
+	}
+
+	$memo = array_map( 'intval', (array) $ids );
+
+	return $memo;
+}
+
+function pre_get_posts_product_actions( $q ) {
+	if ( is_admin() || ! $q->is_main_query() ) {
+		return;
+	}
+
+	if ( ! $q->is_tax( 'product_cat' ) ) {
+		return;
+	}
+
+	$cat_obj = $q->get_queried_object();
+	if ( ! is_a( $cat_obj, 'WP_Term' ) || ! isset( $cat_obj->term_id ) ) {
+		return;
+	}
+
+	if ( (int) $cat_obj->term_id === 355 ) {
 		$price_date = get_field('pricedate', 'option');
 		//$price_date = date("Y-m-d 23:59:59", strtotime($price_date));
 		$discount = get_field('priceint', 'option');
@@ -2113,7 +2158,7 @@ function pre_get_posts_product_actions( $q ) {
 			$q->set( 'cat', '7815' );
 		}
 
-		$terms = get_terms( array( 'product_cat' ), array( 'fields' => 'ids' ) );
+		$terms = ferma_get_all_product_cat_term_ids();
 
 		$q->set( 'tax_query', array(
 			'relation' => 'AND',
@@ -2132,7 +2177,7 @@ function pre_get_posts_product_actions( $q ) {
 		));
 	}
 
-	if($cat_obj->term_id == 2626) {
+	if ( (int) $cat_obj->term_id === 2626 ) {
 		$zp_date_start = get_field('zp_date_start', 'option');
 		$zp_date_end = get_field('zp_date_end', 'option');
 		//$price_date = date("Y-m-d 23:59:59", strtotime($price_date));
@@ -2152,7 +2197,7 @@ function pre_get_posts_product_actions( $q ) {
 		$green_friday_products = get_green_friday_products();
 		$good_ids = $green_friday_products['good_ids'];
 
-		$terms = get_terms( array( 'product_cat' ), array( 'fields' => 'ids' ) );
+		$terms = ferma_get_all_product_cat_term_ids();
 
 		$q->set( 'tax_query', array(
 			'relation' => 'OR',

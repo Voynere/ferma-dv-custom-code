@@ -198,64 +198,64 @@ class WmsAddonStoreFilter
         return $shops;
     }
 
-    private function get_filtered_product_ids($shops)
+    /**
+     * Fallback: postmeta + EXISTS (без материализации списка ID в PHP).
+     *
+     * @param array $shops
+     * @return string
+     */
+    private function get_postmeta_stock_exists_sql($shops)
     {
-        if (class_exists('\Wdc\Addition\Stores\StockTable') && \Wdc\Addition\Stores\StockTable::is_ready_for_reads()) {
-            $product_ids = \Wdc\Addition\Stores\StockTable::get_product_ids_by_stores($shops);
-            if (is_array($product_ids)) {
-                return $product_ids;
-            }
-        }
+        global $wpdb;
 
-        return $this->get_filtered_product_ids_from_postmeta($shops);
-    }
-
-    private function get_filtered_product_ids_from_postmeta($shops)
-    {
         $shops = array_values(array_unique(array_filter((array) $shops)));
         sort($shops);
 
-        $cache_key = 'wms_store_filter_ids_' . md5(wp_json_encode($shops));
-        $cached_ids = wp_cache_get($cache_key, 'wms_store');
-        if ($cached_ids !== false) {
-            return $cached_ids;
+        if (empty($shops)) {
+            return '0';
         }
-
-        $cached_ids = get_transient($cache_key);
-        if ($cached_ids !== false) {
-            wp_cache_set($cache_key, $cached_ids, 'wms_store', 300);
-            return $cached_ids;
-        }
-
-        global $wpdb;
 
         $placeholders = implode(', ', array_fill(0, count($shops), '%s'));
-        $sql = "
-            SELECT DISTINCT filtered.parent_id
-            FROM (
-                SELECT pm.post_id AS parent_id
-                FROM $wpdb->postmeta pm
-                WHERE pm.meta_key IN ($placeholders)
-                  AND pm.meta_value > '0'
+        $pt = $wpdb->posts;
 
-                UNION
+        $sql = "(
+			EXISTS (
+				SELECT 1 FROM {$wpdb->postmeta} pm
+				WHERE pm.post_id = {$pt}.ID
+				AND pm.meta_key IN ({$placeholders})
+				AND pm.meta_value > '0'
+			)
+			OR EXISTS (
+				SELECT 1 FROM {$wpdb->postmeta} pm
+				INNER JOIN {$pt} pv ON pv.ID = pm.post_id AND pv.post_type = 'product_variation'
+				WHERE pv.post_parent = {$pt}.ID
+				AND pm.meta_key IN ({$placeholders})
+				AND pm.meta_value > '0'
+			)
+		)";
 
-                SELECT p.post_parent AS parent_id
-                FROM $wpdb->posts p
-                INNER JOIN $wpdb->postmeta pm ON pm.post_id = p.ID
-                WHERE p.post_type = 'product_variation'
-                  AND pm.meta_key IN ($placeholders)
-                  AND pm.meta_value > '0'
-            ) filtered
-        ";
+        return $wpdb->prepare($sql, array_merge($shops, $shops));
+    }
 
-        $prepared_sql = $wpdb->prepare($sql, array_merge($shops, $shops));
-        $product_ids = array_map('intval', $wpdb->get_col($prepared_sql));
+    /**
+     * @param array $shops
+     * @return bool
+     */
+    private function postmeta_has_any_positive_stock($shops)
+    {
+        global $wpdb;
 
-        set_transient($cache_key, $product_ids, 300);
-        wp_cache_set($cache_key, $product_ids, 'wms_store', 300);
+        $shops = array_values(array_unique(array_filter((array) $shops)));
+        sort($shops);
 
-        return $product_ids;
+        if (empty($shops)) {
+            return false;
+        }
+
+        $placeholders = implode(', ', array_fill(0, count($shops), '%s'));
+        $sql = "SELECT 1 FROM {$wpdb->postmeta} WHERE meta_key IN ({$placeholders}) AND meta_value > '0' LIMIT 1";
+
+        return (bool) $wpdb->get_var($wpdb->prepare($sql, $shops));
     }
 
     function wms_addon_store_filter_where($where = '', $query = null)
@@ -271,33 +271,41 @@ class WmsAddonStoreFilter
 
         global $wpdb;
 
-		$product_is_kulich = false;
-		$uri = explode("/", $_SERVER['REQUEST_URI']);
-
-		if(isset($uri[2]) && $uri[2] != '') {
-			$product_obj = get_page_by_path( $uri[2], OBJECT, 'product' );
-			if($product_obj) {
-				$terms = get_the_terms( $product_obj->ID, 'product_cat' );
-				
-				if(isset($terms[0]) && $terms[0]->term_id == 301) {
-					$product_is_kulich = true;
-				}
-			}
-		}
-		
-		//echo $where;
-
-        if (!is_product_category('kulichi') && !$product_is_kulich) {
-            $product_ids = $this->get_filtered_product_ids($shops);
-            if (empty($product_ids)) {
-                return $where . " AND 1 = 0";
+        $product_is_kulich = false;
+        if (is_singular('product')) {
+            $pid = get_queried_object_id();
+            if ($pid) {
+                $terms = get_the_terms($pid, 'product_cat');
+                if ($terms && !is_wp_error($terms)) {
+                    foreach ($terms as $t) {
+                        if ((int) $t->term_id === 301) {
+                            $product_is_kulich = true;
+                            break;
+                        }
+                    }
+                }
             }
+        }
 
-            $where .= " AND $wpdb->posts.ID IN (" . implode(',', $product_ids) . ")";
+        if (is_product_category('kulichi') || $product_is_kulich) {
+            return $where;
+        }
+
+        if (class_exists('\Wdc\Addition\Stores\StockTable') && \Wdc\Addition\Stores\StockTable::is_ready_for_reads()) {
+            if (!\Wdc\Addition\Stores\StockTable::has_positive_stock_for_stores($shops)) {
+                return $where . ' AND 1 = 0';
+            }
+            $exists_sql = \Wdc\Addition\Stores\StockTable::get_exists_clause_for_wc_parent_product_rows($shops);
+            $where .= ' AND ( ' . $exists_sql . ' )';
 
             return $where;
-
         }
+
+        if (!$this->postmeta_has_any_positive_stock($shops)) {
+            return $where . ' AND 1 = 0';
+        }
+
+        $where .= ' AND ( ' . $this->get_postmeta_stock_exists_sql($shops) . ' )';
 
         return $where;
     }
