@@ -147,6 +147,31 @@
                 <?php
                     $shops_content = apply_filters('the_content', get_the_content());
                     $shops_content = preg_replace(
+                        '#<a[^>]*class="dg-widget-link"[^>]*>.*?Посмотреть на карте Владивостока.*?</a>#uis',
+                        '',
+                        $shops_content
+                    );
+                    $shops_content = preg_replace(
+                        '#<script[^>]*src="https://widgets\.2gis\.com/js/DGWidgetLoader\.js"[^>]*></script>#uis',
+                        '',
+                        $shops_content
+                    );
+                    $shops_content = preg_replace(
+                        '#<script[^>]*>.*?DGWidgetLoader\(.*?</script>#uis',
+                        '',
+                        $shops_content
+                    );
+                    $shops_content = preg_replace(
+                        '#<noscript[^>]*>.*?Виджет карты использует JavaScript.*?</noscript>#uis',
+                        '',
+                        $shops_content
+                    );
+                    $shops_content = preg_replace(
+                        '#<h[1-6][^>]*>\s*НАШИ АДРЕСА\s*</h[1-6]>\s*(<ul[^>]*>.*?</ul>)?#uis',
+                        '',
+                        $shops_content
+                    );
+                    $shops_content = preg_replace(
                         '#<li[^>]*>.*?Верхнепортовая,\s*68а.*?</li>#uis',
                         '<li>ул. Верхнепортовая, 41в</li>',
                         $shops_content
@@ -156,6 +181,7 @@
                         '',
                         $shops_content
                     );
+                    $shops_content = trim($shops_content);
 
                     echo $shops_content;
                 ?>

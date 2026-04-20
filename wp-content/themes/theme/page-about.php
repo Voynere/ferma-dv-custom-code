@@ -237,10 +237,23 @@
                             </ul>
                         </div-->
                     </div>
-                    <div class="about__map" style="margin-top: 32px; overflow-x: auto;">
+                    <div class="about__map" style="margin-top: 32px; width: 100%; overflow: hidden;">
                         <a class="dg-widget-link" href="http://2gis.ru/vladivostok/profiles/70000001046565331,70000001063451663,70000001032443811/center/131.97724917903545,43.178743669386414/zoom/11?utm_medium=widget-source&utm_campaign=firmsonmap&utm_source=bigMap">Посмотреть на карте Владивостока</a>
                         <script charset="utf-8" src="https://widgets.2gis.com/js/DGWidgetLoader.js"></script>
-                        <script charset="utf-8">new DGWidgetLoader({"width":640,"height":600,"borderColor":"#a3a3a3","pos":{"lat":43.178743669386414,"lon":131.97724917903545,"zoom":11},"opt":{"city":"vladivostok"},"org":[{"id":"70000001046565331"},{"id":"70000001063451663"},{"id":"70000001032443811"}]});</script>
+                        <script charset="utf-8">
+                            (function () {
+                                var mapWidth = Math.max(320, Math.floor(document.currentScript.parentElement.clientWidth));
+
+                                new DGWidgetLoader({
+                                    "width": mapWidth,
+                                    "height": 600,
+                                    "borderColor": "#a3a3a3",
+                                    "pos": {"lat": 43.178743669386414, "lon": 131.97724917903545, "zoom": 11},
+                                    "opt": {"city": "vladivostok"},
+                                    "org": [{"id": "70000001046565331"}, {"id": "70000001063451663"}, {"id": "70000001032443811"}]
+                                });
+                            })();
+                        </script>
                         <noscript style="color:#c00;font-size:16px;font-weight:bold;">Виджет карты использует JavaScript. Включите его в настройках вашего браузера.</noscript>
                     </div>
                 </div>
