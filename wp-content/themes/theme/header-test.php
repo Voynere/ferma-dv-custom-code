@@ -159,35 +159,9 @@
             $check1 = $query['post_type'];
             $term_id = get_queried_object_id();
             $term_link = get_term_link( $term_id );
-            if($_COOKIE['delivery'] == 0) {
-                if($check != null) {
-                    header('Location: '.$term_link);
-                }
-            } else {
-                if($check != null and empty($check1)) {
-                    $term_id = get_queried_object_id();
-                    $term_link = get_term_link( $term_id );
-                        if ($check != $_COOKIE['key_market']) {
-                            header('Location: '.$term_link . '?wms-addon-store-filter-form%5B0%5D=' . $_COOKIE['key_market']);
-                        }
-                }   
-                if ($check == null) {
-                    header('Location: '.$term_link . '?wms-addon-store-filter-form%5B0%5D=' . $_COOKIE['key_market']);
-                }
-                if(!empty($check1)) {
-                    $term_id = get_queried_object_id();
-                    $term_link = get_term_link( $term_id );
-                    if ( is_user_logged_in() && get_user_meta( get_current_user_id(), 'delivery', true ) == '0') {
-                        header('Location: '.$term_link);
-                    } 
-                    elseif (!is_user_logged_in() && $_COOKIE['delivery'] == 0) {
-                        header('Location: '.$term_link);
-                    } else {
-                        if ($check != $_COOKIE['key_market']) {
-                            header('Location: '.$term_link . '?post_type=page&wms-addon-store-filter-form%5B0%5D=' . $_COOKIE['key_market']);
-                        }
-                    }
-                }
+            if($check != null || !empty($check1)) {
+                header('Location: '.$term_link);
+                exit;
             }
 
     }

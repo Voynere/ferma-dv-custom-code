@@ -523,55 +523,17 @@ if (is_product_category()) {
     parse_str(isset($parts['query']) ? $parts['query'] : '', $query);
     $check = isset($query['wms-addon-store-filter-form'][0]) ? $query['wms-addon-store-filter-form'][0] : null;
     $check1 = isset($query['post_type']) ? $query['post_type'] : null;
-    $term_id = get_queried_object_id();
-    $term_link = get_term_link($term_id);
-    $delivery_cookie = isset($_COOKIE['delivery']) ? $_COOKIE['delivery'] : null;
-    $key_market_cookie = isset($_COOKIE['key_market']) ? $_COOKIE['key_market'] : '';
 
-    if ($delivery_cookie == 0) {
-        if ($check != null) {
-            header('Location: ' . $term_link);
-            exit;
-        }
-    } else {
-        if ($check != null && empty($check1)) {
-            if ($check != $key_market_cookie) {
-                header('Location: ' . $term_link . '?wms-addon-store-filter-form%5B0%5D=' . $key_market_cookie);
-                exit;
-            }
-        }
-        if ($check == null && $key_market_cookie) {
-            header('Location: ' . $term_link . '?wms-addon-store-filter-form%5B0%5D=' . $key_market_cookie);
-            exit;
-        }
-        if (!empty($check1)) {
-            if ((is_user_logged_in() && get_user_meta(get_current_user_id(), 'delivery', true) == '0') ||
-                (!is_user_logged_in() && $delivery_cookie == 0)) {
-                header('Location: ' . $term_link);
-                exit;
-            } else {
-                if ($check != $key_market_cookie) {
-                    header('Location: ' . $term_link . '?post_type=page&wms-addon-store-filter-form%5B0%5D=' . $key_market_cookie);
-                    exit;
-                }
-            }
-        }
+    if ($check !== null || !empty($check1)) {
+        $term_id = get_queried_object_id();
+        $term_link = get_term_link($term_id);
+        header('Location: ' . $term_link);
+        exit;
     }
 }
 
 // Helper: generate store filter URL suffix
 function fdv_store_filter_suffix($args_check) {
-    $map = [
-        'ГринМаркет ТЦ Море' => 'cab1caa9-da10-11eb-0a80-07410026c356',
-        'Жигура'              => '8cc659e5-4bfb-11ec-0a80-075000080e54',
-        'Реми-Сити'           => 'b24e4c35-9609-11eb-0a80-0d0d008550c2',
-        'Эгершельд'           => '7c0dc9ce-ce1e-11ea-0a80-09ca000e5e93',
-        'Космос'              => 'a99d6fdf-0970-11ed-0a80-0ed600075845',
-        'Уссурийск'           => '9c9dfcc4-733f-11ec-0a80-0da1013a560d',
-    ];
-    if (isset($map[$args_check])) {
-        return '?wms-addon-store-filter-form%5B0%5D=' . $map[$args_check];
-    }
     return '';
 }
 $store_suffix = fdv_store_filter_suffix($args_check);
