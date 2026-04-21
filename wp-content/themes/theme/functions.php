@@ -1654,11 +1654,13 @@ function theme_scripts() {
         '1.0',
         true
     );
+	$catalog_qty_path = get_template_directory() . '/assets/js/catalog-qty23.js';
+	$catalog_qty_ver  = file_exists( $catalog_qty_path ) ? filemtime( $catalog_qty_path ) : null;
     wp_enqueue_script(
         'catalog-qty-js',
         get_template_directory_uri() . '/assets/js/catalog-qty23.js',
         array('jquery'),
-        '1.6',
+        $catalog_qty_ver,
         true
     );
     wp_localize_script(
