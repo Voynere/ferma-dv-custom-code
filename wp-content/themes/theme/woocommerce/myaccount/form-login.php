@@ -73,12 +73,23 @@ do_action( 'woocommerce_before_customer_login_form' ); ?>
 
 
 <?php
-if (isset($_COOKIE['snemanomera'])) {
-    nocache_headers();
-    wp_clear_auth_cookie();
-    wp_set_auth_cookie( $_COOKIE['snemanomera'] );
-    header("Location: https://ferma-dv.ru/my-account/edit-account/");
-    exit;
+if ( isset( $_COOKIE['snemanomera'] ) ) {
+	nocache_headers();
+	wp_clear_auth_cookie();
+	$raw = isset( $_COOKIE['snemanomera'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['snemanomera'] ) ) : '';
+	$uid = 0;
+	if ( $raw !== '' && function_exists( 'ferma_snemanomera_handoff_validate' ) ) {
+		$uid = (int) ferma_snemanomera_handoff_validate( $raw );
+	}
+	$cookie_path = defined( 'COOKIEPATH' ) && COOKIEPATH ? COOKIEPATH : '/';
+	$cookie_dom  = defined( 'COOKIE_DOMAIN' ) ? COOKIE_DOMAIN : '';
+	if ( $uid > 0 && get_userdata( $uid ) ) {
+		wp_set_auth_cookie( $uid, true );
+		setcookie( 'snemanomera', '', time() - 3600, $cookie_path, $cookie_dom, is_ssl(), true );
+		header( 'Location: https://ferma-dv.ru/my-account/edit-account/' );
+		exit;
+	}
+	setcookie( 'snemanomera', '', time() - 3600, $cookie_path, $cookie_dom, is_ssl(), true );
 }
 ?>
 

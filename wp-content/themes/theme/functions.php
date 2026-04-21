@@ -115,6 +115,93 @@ function ferma_send_public_cache_headers_catalog() {
 }
 
 /**
+ * ID рубрики «Фермерский блог» для выборок в шаблонах.
+ * Раньше везде использовался slug `fermerskij-blog`; при смене ярлыка в админке WP_Query по category_name переставал находить посты.
+ * В category.php для той же рубрики задано cat=200 — используем как запасной вариант.
+ *
+ * Фильтры: `ferma_farmer_blog_category_slug`, `ferma_farmer_blog_category_id_fallback`.
+ */
+function ferma_get_farmer_blog_category_id() {
+	$slug = apply_filters( 'ferma_farmer_blog_category_slug', 'fermerskij-blog' );
+	if ( is_string( $slug ) && $slug !== '' ) {
+		$term = get_term_by( 'slug', $slug, 'category' );
+		if ( $term && ! is_wp_error( $term ) ) {
+			return (int) $term->term_id;
+		}
+	}
+	return (int) apply_filters( 'ferma_farmer_blog_category_id_fallback', 200 );
+}
+
+/**
+ * Одноразовый подписанный токен для сценария «смена телефона → snemanomera cookie → повторная установка сессии».
+ * Заменяет небезопасную передачу сырого user ID в cookie (подделка ID).
+ */
+function ferma_snemanomera_handoff_secret_key() {
+	return apply_filters(
+		'ferma_snemanomera_handoff_secret_key',
+		( function_exists( 'wp_salt' ) ? wp_salt( 'secure_auth' ) : '' ) . 'ferma_snemanomera_v1'
+	);
+}
+
+/**
+ * @param int $user_id ID пользователя, уже прошедшего проверку на сервере.
+ * @return string Токен (base64url) или пустая строка.
+ */
+function ferma_snemanomera_handoff_issue( $user_id ) {
+	$user_id = (int) $user_id;
+	if ( $user_id < 1 ) {
+		return '';
+	}
+	$expiry = time() + 120;
+	$data   = $user_id . '|' . $expiry;
+	$sig    = hash_hmac( 'sha256', $data, ferma_snemanomera_handoff_secret_key() );
+	$payload = $data . '|' . $sig;
+	return rtrim( strtr( base64_encode( $payload ), '+/', '-_' ), '=' );
+}
+
+/**
+ * @param string $token Значение из cookie (возможно url-encoded).
+ * @return int user_id или 0.
+ */
+function ferma_snemanomera_handoff_validate( $token ) {
+	if ( ! is_string( $token ) || $token === '' ) {
+		return 0;
+	}
+	$token = rawurldecode( $token );
+	$b64   = strtr( $token, '-_', '+/' );
+	$pad   = strlen( $b64 ) % 4;
+	if ( $pad ) {
+		$b64 .= str_repeat( '=', 4 - $pad );
+	}
+	$decoded = base64_decode( $b64, true );
+	if ( ! $decoded || substr_count( $decoded, '|' ) !== 2 ) {
+		return 0;
+	}
+	$parts = explode( '|', $decoded, 3 );
+	if ( count( $parts ) !== 3 ) {
+		return 0;
+	}
+	list( $uid, $expiry, $sig ) = $parts;
+	$uid    = (int) $uid;
+	$expiry = (int) $expiry;
+	if ( $uid < 1 || $expiry < time() ) {
+		return 0;
+	}
+	$data     = $uid . '|' . $expiry;
+	$expected = hash_hmac( 'sha256', $data, ferma_snemanomera_handoff_secret_key() );
+	if ( ! hash_equals( $expected, $sig ) ) {
+		return 0;
+	}
+	// Одноразовое использование (защита от повторной подстановки cookie).
+	$use_key = 'ferma_snem_' . md5( $sig );
+	if ( get_transient( $use_key ) ) {
+		return 0;
+	}
+	set_transient( $use_key, 1, 5 * MINUTE_IN_SECONDS );
+	return $uid;
+}
+
+/**
  * Каталог: серверная пагинация (основной WC-запрос).
  * Снижает TTFB и размер HTML на «тяжёлых» категориях; совместимо с фильтром складов WMS и сортировкой.
  *
@@ -157,17 +244,14 @@ function ferma_catalog_apply_posts_per_page_limit( $q ) {
 
 /**
  * Основной хук WooCommerce для списка товаров — срабатывает надёжнее, чем один только pre_get_posts.
+ * PHP_INT_MAX: после плагинов (WMS и др.), чтобы не перезаписали posts_per_page после нас.
  */
-add_action( 'woocommerce_product_query', 'ferma_catalog_woocommerce_product_query_limit', 99999, 2 );
+add_action( 'woocommerce_product_query', 'ferma_catalog_woocommerce_product_query_limit', PHP_INT_MAX, 2 );
 function ferma_catalog_woocommerce_product_query_limit( $q, $wc_query_instance = null ) {
 	if ( is_admin() || ! apply_filters( 'ferma_catalog_force_posts_per_page_enabled', true ) ) {
 		return;
 	}
-	if ( ! $q instanceof WP_Query ) {
-		return;
-	}
-	global $wp_query;
-	if ( $q !== $wp_query ) {
+	if ( ! $q instanceof WP_Query || ! $q->is_main_query() ) {
 		return;
 	}
 	ferma_catalog_apply_posts_per_page_limit( $q );
@@ -178,11 +262,7 @@ function ferma_catalog_woocommerce_product_query_limit( $q, $wc_query_instance =
  */
 add_action( 'pre_get_posts', 'ferma_catalog_force_main_query_posts_per_page', 999999 );
 function ferma_catalog_force_main_query_posts_per_page( $q ) {
-	if ( is_admin() || ! $q instanceof WP_Query ) {
-		return;
-	}
-	global $wp_query;
-	if ( $q !== $wp_query ) {
+	if ( is_admin() || ! $q instanceof WP_Query || ! $q->is_main_query() ) {
 		return;
 	}
 	if ( ! apply_filters( 'ferma_catalog_force_posts_per_page_enabled', true ) ) {
@@ -198,38 +278,61 @@ function ferma_catalog_force_main_query_posts_per_page( $q ) {
 }
 
 /**
+ * Самый поздний pre_get_posts: на части окружений другие плагины перезаписывают posts_per_page после приоритета 999999.
+ */
+add_action( 'pre_get_posts', 'ferma_catalog_force_main_query_posts_per_page_last', PHP_INT_MAX );
+function ferma_catalog_force_main_query_posts_per_page_last( $q ) {
+	ferma_catalog_force_main_query_posts_per_page( $q );
+}
+
+/**
  * Главный запрос списка товаров: магазин, категории/метки/атрибуты WooCommerce.
  *
  * @param WP_Query $q Query object.
  */
 function ferma_catalog_is_main_product_listing_query( $q ) {
+	if ( ! $q instanceof WP_Query ) {
+		return false;
+	}
 	if ( 'product_query' === $q->get( 'wc_query' ) ) {
 		return true;
 	}
-	if ( $q->is_post_type_archive( 'product' ) ) {
-		return true;
-	}
+
 	$taxonomies = get_object_taxonomies( 'product', 'names' );
 	if ( empty( $taxonomies ) ) {
 		return false;
 	}
-	return $q->is_tax( $taxonomies );
+
+	// Сначала таксономии: на части запросов post_type ещё не «product», а архив категории уже определён.
+	if ( $q->is_tax( $taxonomies ) ) {
+		return true;
+	}
+	$qv_tax = $q->get( 'taxonomy' );
+	if ( $qv_tax && taxonomy_exists( $qv_tax ) && in_array( $qv_tax, $taxonomies, true ) ) {
+		return true;
+	}
+
+	$pt = $q->get( 'post_type' );
+	if ( $pt !== 'product' && ! ( is_array( $pt ) && in_array( 'product', $pt, true ) ) ) {
+		return false;
+	}
+	if ( $q->is_post_type_archive( 'product' ) ) {
+		return true;
+	}
+
+	return false;
 }
 
 /**
  * Последний рубеж: подставляем LIMIT в SQL, если другие хуки/плагины оставили выдачу «всех» постов.
  * (Иначе при posts_per_page=-1 или nopaging фрагмент LIMIT в SQL пустой.)
  */
-add_filter( 'post_limits', 'ferma_catalog_post_limits_sql', 99999, 2 );
+add_filter( 'post_limits', 'ferma_catalog_post_limits_sql', PHP_INT_MAX - 10, 2 );
 function ferma_catalog_post_limits_sql( $limits, $query ) {
 	if ( is_admin() || ! apply_filters( 'ferma_catalog_force_posts_per_page_enabled', true ) ) {
 		return $limits;
 	}
-	if ( ! $query instanceof WP_Query ) {
-		return $limits;
-	}
-	global $wp_query;
-	if ( $query !== $wp_query ) {
+	if ( ! $query instanceof WP_Query || ! $query->is_main_query() ) {
 		return $limits;
 	}
 	if ( ! function_exists( 'WC' ) ) {
@@ -249,6 +352,33 @@ function ferma_catalog_post_limits_sql( $limits, $query ) {
 	$offset = ( $paged - 1 ) * $per;
 
 	return sprintf( 'LIMIT %d, %d', $offset, $per );
+}
+
+/**
+ * Если LIMIT в SQL всё равно не сработал — обрезаем массив постов после выборки (страховка для продакшена).
+ */
+add_filter( 'posts_results', 'ferma_catalog_posts_results_cap', PHP_INT_MAX - 9, 2 );
+function ferma_catalog_posts_results_cap( $posts, $query ) {
+	if ( is_admin() || ! $query instanceof WP_Query || ! $query->is_main_query() ) {
+		return $posts;
+	}
+	if ( ! apply_filters( 'ferma_catalog_force_posts_per_page_enabled', true ) || ! function_exists( 'WC' ) ) {
+		return $posts;
+	}
+	if ( ! ferma_catalog_is_main_product_listing_query( $query ) ) {
+		return $posts;
+	}
+	$per = (int) apply_filters( 'ferma_catalog_loop_posts_per_page', ferma_catalog_products_per_page_default(), (int) $query->get( 'posts_per_page' ) );
+	if ( $per < 1 ) {
+		return $posts;
+	}
+	$n = count( $posts );
+	if ( $n <= $per ) {
+		return $posts;
+	}
+	$paged  = max( 1, (int) $query->get( 'paged' ), (int) $query->get( 'page' ) );
+	$offset = ( $paged - 1 ) * $per;
+	return array_slice( $posts, $offset, $per );
 }
 
 /**
@@ -1663,10 +1793,14 @@ function add_billing_mobile_phone_to_edit_account_form() {
      					if (jsonData.success == 0) {
      						document.getElementById("ajaxresult").innerHTML +=
      							'<p>Вы ввели неверный код</p>';
-     					} else {
-     						var l = FindByAttributeValue("id", "id_user").value;
-     						document.cookie = "snemanomera=" + l + ";path=/;max-age=60;";
-     						var g = FindByAttributeValue("name", "billing_phone");
+					} else {
+						if (!jsonData.handoff) {
+							document.getElementById("ajaxresult").innerHTML +=
+								'<p>Не удалось выдать сессию. Обновите страницу и повторите ввод кода.</p>';
+							return;
+						}
+						document.cookie = "snemanomera=" + encodeURIComponent(jsonData.handoff) + ";path=/;max-age=120;SameSite=Lax";
+						var g = FindByAttributeValue("name", "billing_phone");
      						var m = FindByAttributeValue("id", "telephone").value;
      						g.value = m;
      						document.getElementById("ajaxresult").innerHTML +=

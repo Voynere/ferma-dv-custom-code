@@ -1295,10 +1295,14 @@ function add_billing_mobile_phone_to_edit_account_form() {
      					if (jsonData.success == 0) {
      						document.getElementById("ajaxresult").innerHTML +=
      							'<p>Вы ввели неверный код</p>';
-     					} else {
-     						var l = FindByAttributeValue("id", "id_user").value;
-     						document.cookie = "snemanomera=" + l + ";path=/;max-age=60;";
-     						var g = FindByAttributeValue("name", "billing_phone");
+					} else {
+						if (!jsonData.handoff) {
+							document.getElementById("ajaxresult").innerHTML +=
+								'<p>Не удалось выдать сессию. Обновите страницу и повторите ввод кода.</p>';
+							return;
+						}
+						document.cookie = "snemanomera=" + encodeURIComponent(jsonData.handoff) + ";path=/;max-age=120;SameSite=Lax";
+						var g = FindByAttributeValue("name", "billing_phone");
      						var m = FindByAttributeValue("id", "telephone").value;
      						g.value = m;
      						document.getElementById("ajaxresult").innerHTML +=

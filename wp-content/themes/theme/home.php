@@ -410,7 +410,7 @@
                 <?php
                 $args = array(
                     'post_type'      => 'post',
-                    'category_name'  => 'fermerskij-blog',
+                    'cat'            => function_exists( 'ferma_get_farmer_blog_category_id' ) ? ferma_get_farmer_blog_category_id() : 200,
                     'posts_per_page' => 12,
                 );
                 $blog_query = new WP_Query( $args );

@@ -146,11 +146,12 @@
 
                 <div class="blog__content">
                     <?php
-                    $paged = (get_query_var('paged')) ? get_query_var('paged') : 1;
+                    $paged = max( 1, (int) get_query_var( 'paged' ), (int) get_query_var( 'page' ) );
+                    $blog_cat = function_exists( 'ferma_get_farmer_blog_category_id' ) ? ferma_get_farmer_blog_category_id() : 200;
                     $blog_query = new WP_Query(array(
                         'post_type'      => 'post',
-                        'category_name'  => 'fermerskij-blog',
-                        'posts_per_page' => 6,
+                        'cat'            => $blog_cat,
+                        'posts_per_page' => 12,
                         'paged'          => $paged,
                         'orderby'        => 'date',
                         'order'          => 'DESC'
