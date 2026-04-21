@@ -493,7 +493,7 @@ if(!function_exists('ferma_check_min_amount')) {
 	add_action( 'woocommerce_check_cart_items', 'ferma_check_min_amount' );
 	
 	function ferma_check_min_amount() {
-		$minimum_amount = 600;
+		$minimum_amount = 1000;
 
 		$cart_subtotal = WC()->cart->subtotal;
 		$cart_total = (float) WC()->cart->total;
