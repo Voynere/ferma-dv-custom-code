@@ -21,6 +21,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 global $post, $product;
 
+if ( ! $product || ! is_a( $product, 'WC_Product' ) ) {
+	return;
+}
+
 ?>
 <?php if ( $product->is_on_sale() ) : ?>
 

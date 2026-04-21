@@ -1550,8 +1550,9 @@ function theme_scripts() {
 	if ( is_checkout() && ! is_order_received_page() ) {
 		wp_add_inline_style(
 			'new-style',
-			'.ferma-checkout-inline-notices{display:none;margin:0 0 16px;padding:14px 16px;border-radius:12px;border:1px solid #e74c3c;background:#fff6f6;color:#1a1a1a;font-size:15px;line-height:1.45;}' .
-			'.ferma-checkout-inline-notices.is-visible{display:block;}' .
+			'.ferma-checkout-submit-anchor{position:relative;display:block;width:100%;}' .
+			'.ferma-checkout-inline-notices{visibility:hidden;opacity:0;pointer-events:none;position:absolute;left:0;right:0;bottom:100%;margin-bottom:10px;padding:14px 16px;border-radius:12px;border:1px solid #e74c3c;background:#fff6f6;color:#1a1a1a;font-size:15px;line-height:1.45;box-shadow:0 6px 24px rgba(0,0,0,.12);z-index:30;max-height:min(40vh,280px);overflow:auto;}' .
+			'.ferma-checkout-inline-notices.is-visible{visibility:visible;opacity:1;pointer-events:auto;}' .
 			'.ferma-checkout-inline-notices ul{margin:0.35em 0 0;padding-left:1.2em;}' .
 			'.ferma-stock-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;}' .
 			'.ferma-stock-modal{background:#fff;border-radius:16px;max-width:440px;width:100%;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,.15);}' .
@@ -1582,7 +1583,7 @@ function theme_scripts() {
 			'custom-checkout-js',
 			get_stylesheet_directory_uri() . '/assets/js/checkout.js',
 			array( 'jquery' ),
-			'1.5',
+			'1.6',
 			true
 		);
 		wp_localize_script(
