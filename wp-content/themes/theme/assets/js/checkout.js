@@ -54,29 +54,7 @@
         // Возвращаем классические подписи полей снаружи:
         // no inline placeholders as labels.
         $('form.checkout .form-row.ferma-inline-label').removeClass('ferma-inline-label');
-        fermaApplyLabelBorderGap();
-    }
-
-    function fermaApplyLabelBorderGap() {
-        $('form.checkout .form-row').each(function () {
-            var $row = $(this);
-            var $label = $row.children('label').first();
-            var $field = $row.find('input, select, textarea').first();
-            if (!$label.length || !$field.length || $label.hasClass('checkbox')) {
-                return;
-            }
-            var rowRect = this.getBoundingClientRect();
-            var labelRect = $label.get(0).getBoundingClientRect();
-            var gapStart = Math.max(8, Math.round(labelRect.left - rowRect.left - 6));
-            var gapEnd = Math.round(gapStart + labelRect.width + 12);
-            gapEnd = Math.min(Math.round(rowRect.width - 8), gapEnd);
-            if (gapEnd <= gapStart) {
-                return;
-            }
-            $row.css('--ferma-label-gap-start', gapStart + 'px');
-            $row.css('--ferma-label-gap-end', gapEnd + 'px');
-            $row.addClass('ferma-label-gap');
-        });
+        $('form.checkout .form-row.ferma-label-gap').removeClass('ferma-label-gap');
     }
 
     function fermaShowInlineFromCheckoutNotices() {
@@ -149,9 +127,6 @@
 
     $(function () {
         fermaApplyCompactPlaceholders();
-        $(window).on('resize', function () {
-            fermaApplyLabelBorderGap();
-        });
     });
 
     function fermaEnsureStockModal() {
