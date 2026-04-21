@@ -50,6 +50,40 @@
         $body.html(fermaRenderMinOrderNotice());
     }
 
+    function fermaApplyCompactPlaceholders() {
+        var selector =
+            'form.checkout .woocommerce-billing-fields .form-row, ' +
+            'form.checkout .woocommerce-shipping-fields .form-row, ' +
+            'form.checkout .woocommerce-additional-fields .form-row';
+        $(selector).each(function () {
+            var $row = $(this);
+            var $field = $row.find('input, textarea').first();
+            if (!$field.length) {
+                return;
+            }
+            var tag = ($field.prop('tagName') || '').toLowerCase();
+            var type = ($field.attr('type') || '').toLowerCase();
+            if (tag !== 'input' && tag !== 'textarea') {
+                return;
+            }
+            if (type === 'hidden' || type === 'checkbox' || type === 'radio') {
+                return;
+            }
+            var $label = $row.children('label').first();
+            if (!$label.length) {
+                return;
+            }
+            var labelText = $label.text().replace(/\*/g, '').replace(/\s+/g, ' ').trim();
+            if (!labelText) {
+                return;
+            }
+            if (!$field.attr('placeholder')) {
+                $field.attr('placeholder', labelText);
+            }
+            $row.addClass('ferma-inline-label');
+        });
+    }
+
     function fermaShowInlineFromCheckoutNotices() {
         var $target = fermaInlineNotices();
         if (!$target.length) {
@@ -112,6 +146,11 @@
 
     $(document.body).on('updated_checkout', function () {
         fermaClearInlineNotices();
+        fermaApplyCompactPlaceholders();
+    });
+
+    $(function () {
+        fermaApplyCompactPlaceholders();
     });
 
     function fermaEnsureStockModal() {
