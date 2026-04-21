@@ -77,7 +77,26 @@ jQuery(document).ready(function($) {
     }
     var fermaAddToastTimer = null;
     function fermaGetCartAnchor() {
-        return $('.xoo-wsc-basket:visible').first();
+        var $anchors = $('.xoo-wsc-basket:visible');
+        if (!$anchors.length) {
+            return $();
+        }
+        var bestEl = null;
+        var bestScore = Infinity;
+        $anchors.each(function () {
+            var rect = this.getBoundingClientRect();
+            if (rect.width <= 0 || rect.height <= 0) {
+                return;
+            }
+            // Предпочитаем корзину, которая находится в видимой области (в т.ч. sticky-header).
+            var inViewport = rect.bottom > 0 && rect.top < window.innerHeight;
+            var score = inViewport ? Math.abs(rect.top) : (100000 + Math.abs(rect.top));
+            if (score < bestScore) {
+                bestScore = score;
+                bestEl = this;
+            }
+        });
+        return bestEl ? $(bestEl) : $anchors.first();
     }
     function fermaExtractAddedInfo($button) {
         var qty = Number($button.attr('data-quantity') || $button.data('quantity') || 1);
@@ -124,8 +143,9 @@ jQuery(document).ready(function($) {
         var left = window.innerWidth - $toast.outerWidth() - 20;
         if ($anchor.length) {
             var rect = $anchor[0].getBoundingClientRect();
-            top = Math.max(8, rect.bottom + 10);
-            left = rect.left + (rect.width / 2) - ($toast.outerWidth() / 2);
+            top = Math.max(8, rect.bottom + 8);
+            // Фиксируем попап рядом с корзиной (по правому краю иконки).
+            left = rect.right - $toast.outerWidth();
             left = Math.max(8, Math.min(left, window.innerWidth - $toast.outerWidth() - 8));
         }
         $toast.css({ top: top + 'px', left: left + 'px' }).addClass('is-visible');
@@ -134,7 +154,7 @@ jQuery(document).ready(function($) {
         }
         fermaAddToastTimer = setTimeout(function () {
             $toast.removeClass('is-visible');
-        }, 2000);
+        }, 3000);
     }
 
     // Пересчёт цены/веса для одной карточки товара
