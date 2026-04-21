@@ -3,7 +3,7 @@ var homeHeroSwiper = new Swiper(".homeSwiper", {
     slidesPerView: 1,
     spaceBetween: 16,
     loop: true,
-    speed: 3500,
+    speed: 350,
     autoplay: {
         delay: 4500,
         disableOnInteraction: false,
