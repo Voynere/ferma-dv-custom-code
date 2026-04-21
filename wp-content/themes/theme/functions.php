@@ -1547,6 +1547,12 @@ function theme_scripts() {
 	$version = file_exists($style_path) ? filemtime($style_path) : null;
 	wp_enqueue_style( 'new-style', $style_uri, [], $version );
 
+	// Checkout: keep WooCommerce validation notices visible.
+	wp_add_inline_style(
+		'new-style',
+		'.ferma-checkout__form .woocommerce-NoticeGroup.woocommerce-NoticeGroup-checkout{display:block !important;margin:0 0 16px;}'
+	);
+
 	wp_enqueue_script( 'slick', get_template_directory_uri() . '/js/slick.min.js', array(), '1.0', true );
 
 	wp_enqueue_script( 'buyoneclick', get_template_directory_uri() . '/js/buyoneclick.js', array(), '1.1', true );
