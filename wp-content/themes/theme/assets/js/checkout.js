@@ -57,6 +57,21 @@
         $('form.checkout .form-row.ferma-label-gap').removeClass('ferma-label-gap');
     }
 
+    function fermaBeautifyChangeAddressButton() {
+        var $field = $('#billing_delivery_field');
+        if (!$field.length) {
+            return;
+        }
+        var $link = $field.find('a').filter(function () {
+            return $(this).text().toLowerCase().indexOf('изменить адрес') !== -1;
+        }).first();
+        if (!$link.length) {
+            return;
+        }
+        $field.addClass('ferma-delivery-address-field');
+        $link.addClass('ferma-delivery-address-edit');
+    }
+
     function fermaShowInlineFromCheckoutNotices() {
         var $target = fermaInlineNotices();
         if (!$target.length) {
@@ -123,10 +138,12 @@
     $(document.body).on('updated_checkout', function () {
         fermaClearInlineNotices();
         fermaApplyCompactPlaceholders();
+        fermaBeautifyChangeAddressButton();
     });
 
     $(function () {
         fermaApplyCompactPlaceholders();
+        fermaBeautifyChangeAddressButton();
     });
 
     function fermaEnsureStockModal() {
