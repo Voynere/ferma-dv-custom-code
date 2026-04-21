@@ -1599,11 +1599,12 @@ function theme_scripts() {
 			'.ferma-checkout-min-order__link,.ferma-checkout-min-order__stay{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 12px;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;}' .
 			'.ferma-checkout-min-order__link{background:#4fbd01;color:#fff;border:1px solid transparent;}' .
 			'.ferma-checkout-min-order__stay{background:#fff;color:#333;border:1px solid rgba(21,21,21,.25);}' .
-			'form.checkout .form-row{margin-bottom:8px;}' .
-			'form.checkout .form-row>label{display:block;font-size:12px;line-height:1.25;font-weight:600;color:#4e4e4e;margin:0 0 4px;padding-bottom:3px;border-bottom:1px solid rgba(0,0,0,.08);}' .
-			'form.checkout .woocommerce-input-wrapper input,form.checkout .woocommerce-input-wrapper select,form.checkout .woocommerce-input-wrapper textarea{min-height:42px;padding:10px 12px;font-size:14px;line-height:1.25;}' .
+			'form.checkout .form-row{position:relative;margin-bottom:6px;}' .
+			'form.checkout .form-row>label{position:absolute;top:-9px;left:16px;z-index:2;display:inline-block;font-size:12px;line-height:1.2;font-weight:700;color:#4e4e4e;margin:0;padding:0 8px;background:#f5f5f5;}' .
+			'form.checkout .form-row label.checkbox{position:static;background:transparent;padding:0;font-weight:600;}' .
+			'form.checkout .woocommerce-input-wrapper input,form.checkout .woocommerce-input-wrapper select,form.checkout .woocommerce-input-wrapper textarea{min-height:40px;padding:9px 12px;font-size:14px;line-height:1.25;}' .
 			'form.checkout .woocommerce-input-wrapper textarea{min-height:72px;}' .
-			'form.checkout .form-row.ferma-inline-label>label{display:block;position:static!important;width:auto!important;height:auto!important;padding:0 0 3px!important;margin:0 0 4px!important;overflow:visible!important;clip:auto!important;white-space:normal!important;border-bottom:1px solid rgba(0,0,0,.08)!important;}' .
+			'form.checkout .form-row.ferma-inline-label>label{position:absolute!important;top:-9px!important;left:16px!important;display:inline-block!important;padding:0 8px!important;margin:0!important;background:#f5f5f5!important;border:0!important;}' .
 			'.ferma-stock-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;}' .
 			'.ferma-stock-modal{background:#fff;border-radius:16px;max-width:440px;width:100%;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,.15);}' .
 			'.ferma-stock-modal h3{margin:0 0 12px;font-size:18px;}' .
