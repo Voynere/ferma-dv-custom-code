@@ -1,3 +1,21 @@
+// Слайдер баннера на главной (в разметке: .homeSwiper + .homeSwiper-next/prev)
+var homeHeroSwiper = new Swiper(".homeSwiper", {
+    slidesPerView: 1,
+    spaceBetween: 16,
+    rewind: true,
+    speed: 450,
+    observer: true,
+    observeParents: true,
+    watchSlidesProgress: true,
+    navigation: {
+        nextEl: ".homeSwiper-next",
+        prevEl: ".homeSwiper-prev",
+    },
+    keyboard: {
+        enabled: true,
+    },
+});
+
 // Слайдер с подборками продукции
 var swiper = new Swiper(".selectionSwiper", {
     slidesPerView: 2,
@@ -49,13 +67,15 @@ var swiper = new Swiper(".supplierSwiper", {
     },
 });
 
-// Слайдер банер моб
-// var swiper = new Swiper(".bannerSwiper", {
-//     slidesPerView: 1,
-//     spaceBetween: 24,
-//     loop: true,
-//     navigation: {
-//         nextEl: ".bannerSwiper-next",
-//         prevEl: ".bannerSwiper-prev",
-//     },
-// });
+// Мобильный баннер в шапке (header-home): .bannerSwiper
+if (document.querySelector(".bannerSwiper")) {
+    var bannerHeaderSwiper = new Swiper(".bannerSwiper", {
+        slidesPerView: 1,
+        spaceBetween: 16,
+        loop: true,
+        navigation: {
+            nextEl: ".bannerSwiper-next",
+            prevEl: ".bannerSwiper-prev",
+        },
+    });
+}

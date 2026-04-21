@@ -907,6 +907,10 @@ body.no-scroll {
     &__inner {
         position: relative;
     }
+    .homeSwiper-next,
+    .homeSwiper-prev {
+        z-index: 3;
+    }
     & .homeSwiper {
         max-width: 1320px;
         margin: 0 114px;
@@ -915,17 +919,21 @@ body.no-scroll {
     &__item {
         display: flex;
         justify-content: center;
+        align-items: center;
         border-radius: 16px;
         overflow: hidden;
-        width: 100%;
-        max-height: 480px; 
+        max-height: 480px;
+        box-sizing: border-box;
+        /* Не задаём width: 100% на .swiper-slide — ломает расчёт ширины слайдов в Swiper */
         img {
             width: 100%;
-            height: 100%;
+            max-width: 100%;
+            height: auto;
+            display: block;
             object-fit: contain;
         }
         @media (max-width: 1250px) {
-            height: 308px;
+            max-height: 308px;
         }
     }
 }
