@@ -1638,7 +1638,7 @@ function theme_scripts() {
 			'custom-checkout-js',
 			get_stylesheet_directory_uri() . '/assets/js/checkout.js',
 			array( 'jquery' ),
-			'2.5',
+			'2.6',
 			true
 		);
 		wp_localize_script(

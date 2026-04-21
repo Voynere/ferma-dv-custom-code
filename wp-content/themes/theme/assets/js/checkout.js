@@ -1,6 +1,7 @@
 (function ($) {
     'use strict';
     var fermaCheckoutLastScrollY = 0;
+    var fermaOriginalScrollToNotices = null;
 
     function fermaInlineNotices() {
         return $('.ferma-checkout-inline-notices');
@@ -98,6 +99,20 @@
         $groups.hide();
     }
 
+    function fermaPatchWooNoticeScroll() {
+        if (typeof $.scroll_to_notices !== 'function') {
+            return;
+        }
+        if (fermaOriginalScrollToNotices) {
+            return;
+        }
+        fermaOriginalScrollToNotices = $.scroll_to_notices;
+        $.scroll_to_notices = function (scrollElement) {
+            // Отключаем авто-скролл WooCommerce: ошибки показываем в нашем попапе у кнопки.
+            return scrollElement;
+        };
+    }
+
     function fermaClearInlineNotices() {
         var $target = fermaInlineNotices();
         if ($target.length) {
@@ -142,6 +157,7 @@
     });
 
     $(function () {
+        fermaPatchWooNoticeScroll();
         fermaApplyCompactPlaceholders();
         fermaBeautifyChangeAddressButton();
     });
