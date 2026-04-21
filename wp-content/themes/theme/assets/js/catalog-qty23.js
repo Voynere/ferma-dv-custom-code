@@ -77,23 +77,40 @@ jQuery(document).ready(function($) {
     }
     var fermaAddToastTimer = null;
     function fermaGetCartAnchor() {
-        var $anchors = $('.xoo-wsc-basket:visible');
+        var $anchors = $(
+            '.xoo-wsc-basket:visible, .xoo-wsc-icon-basket:visible, .xoo-wsc-items-count:visible, [href*="/cart"]:visible'
+        );
         if (!$anchors.length) {
             return $();
         }
         var bestEl = null;
         var bestScore = Infinity;
         $anchors.each(function () {
-            var rect = this.getBoundingClientRect();
+            var el = this;
+            var $el = $(el);
+            // Если нашли внутренний элемент корзины, якоримся к его контейнеру.
+            if ($el.hasClass('xoo-wsc-items-count') || $el.hasClass('xoo-wsc-icon-basket')) {
+                var $basketWrap = $el.closest('.xoo-wsc-basket');
+                if ($basketWrap.length) {
+                    el = $basketWrap.get(0);
+                }
+            }
+            var rect = el.getBoundingClientRect();
             if (rect.width <= 0 || rect.height <= 0) {
+                return;
+            }
+            // Отсекаем элементы, которые визуально "съехали" за правую/левую границу.
+            if (rect.right > window.innerWidth - 2 || rect.left < 2) {
                 return;
             }
             // Предпочитаем корзину, которая находится в видимой области (в т.ч. sticky-header).
             var inViewport = rect.bottom > 0 && rect.top < window.innerHeight;
-            var score = inViewport ? Math.abs(rect.top) : (100000 + Math.abs(rect.top));
+            // Приоритет: корзина в верхней зоне хедера + ближе к верху.
+            var inHeaderBand = rect.top >= 0 && rect.top <= 180;
+            var score = (inViewport ? 0 : 100000) + (inHeaderBand ? 0 : 50000) + Math.abs(rect.top);
             if (score < bestScore) {
                 bestScore = score;
-                bestEl = this;
+                bestEl = el;
             }
         });
         return bestEl ? $(bestEl) : $anchors.first();
@@ -144,8 +161,8 @@ jQuery(document).ready(function($) {
         if ($anchor.length) {
             var rect = $anchor[0].getBoundingClientRect();
             top = Math.max(8, rect.bottom + 8);
-            // Фиксируем попап рядом с корзиной (по правому краю иконки).
-            left = rect.right - $toast.outerWidth();
+            // Ставим pop-up строго под иконкой корзины.
+            left = rect.left + (rect.width / 2) - ($toast.outerWidth() / 2);
             left = Math.max(8, Math.min(left, window.innerWidth - $toast.outerWidth() - 8));
         }
         $toast.css({ top: top + 'px', left: left + 'px' }).addClass('is-visible');
