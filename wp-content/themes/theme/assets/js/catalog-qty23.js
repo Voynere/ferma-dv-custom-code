@@ -77,8 +77,12 @@ jQuery(document).ready(function($) {
     }
     var fermaAddToastTimer = null;
     function fermaGetCartAnchor() {
+        // Якоримся к "иконке" (или счетчику на ней), а не к широкому контейнеру корзины.
         var $anchors = $(
-            '.xoo-wsc-basket:visible, .xoo-wsc-icon-basket:visible, .xoo-wsc-items-count:visible, [href*="/cart"]:visible'
+            '.xoo-wsc-basket .xoo-wsc-icon-basket:visible,' +
+            '.xoo-wsc-basket .xoo-wsc-items-count:visible,' +
+            '.xoo-wsc-basket .xoo-wsc-bki:visible,' +
+            '.xoo-wsc-basket:visible'
         );
         if (!$anchors.length) {
             return $();
@@ -87,27 +91,26 @@ jQuery(document).ready(function($) {
         var bestScore = Infinity;
         $anchors.each(function () {
             var el = this;
-            var $el = $(el);
-            // Если нашли внутренний элемент корзины, якоримся к его контейнеру.
-            if ($el.hasClass('xoo-wsc-items-count') || $el.hasClass('xoo-wsc-icon-basket')) {
-                var $basketWrap = $el.closest('.xoo-wsc-basket');
-                if ($basketWrap.length) {
-                    el = $basketWrap.get(0);
-                }
-            }
             var rect = el.getBoundingClientRect();
             if (rect.width <= 0 || rect.height <= 0) {
                 return;
             }
-            // Отсекаем элементы, которые визуально "съехали" за правую/левую границу.
-            if (rect.right > window.innerWidth - 2 || rect.left < 2) {
+            // Отсекаем элементы, вышедшие за экран.
+            if (rect.right < 0 || rect.left > window.innerWidth || rect.bottom < 0 || rect.top > window.innerHeight) {
                 return;
             }
             // Предпочитаем корзину, которая находится в видимой области (в т.ч. sticky-header).
             var inViewport = rect.bottom > 0 && rect.top < window.innerHeight;
-            // Приоритет: корзина в верхней зоне хедера + ближе к верху.
+            // Приоритет: элемент в верхней части хедера + компактный (иконка/бейдж) + ближе к правому краю.
             var inHeaderBand = rect.top >= 0 && rect.top <= 180;
-            var score = (inViewport ? 0 : 100000) + (inHeaderBand ? 0 : 50000) + Math.abs(rect.top);
+            var compactPenalty = (rect.width * rect.height) / 10; // большие контейнеры получают худший score
+            var rightBias = Math.abs(window.innerWidth - rect.right);
+            var score =
+                (inViewport ? 0 : 100000) +
+                (inHeaderBand ? 0 : 50000) +
+                compactPenalty +
+                rightBias +
+                Math.abs(rect.top);
             if (score < bestScore) {
                 bestScore = score;
                 bestEl = el;
