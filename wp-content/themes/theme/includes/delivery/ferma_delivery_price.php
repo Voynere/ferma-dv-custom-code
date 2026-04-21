@@ -489,6 +489,7 @@ if(!function_exists('ferma_check_min_amount')) {
 		$cart_subtotal = WC()->cart->subtotal;
 		$cart_total = (float) WC()->cart->total;
 
+		// Минимальная сумма только для доставки; самовывоз (cookie/user meta = 1) — без ограничения.
 		if( $cart_subtotal < $minimum_amount && ferma_is_delivery() ) {
 			
 			$text_notice = sprintf(
@@ -523,5 +524,25 @@ if(!function_exists('ferma_is_delivery')) {
 		}
 		
 		return $delivery;
+	}
+}
+
+/**
+ * Бонусы на checkout: только доставка и только аккаунт с телефоном в логине (как в интеграции kilbil).
+ */
+if ( ! function_exists( 'ferma_checkout_bonuses_allowed' ) ) {
+	function ferma_checkout_bonuses_allowed() {
+		if ( ! is_user_logged_in() ) {
+			return false;
+		}
+		if ( ! ferma_is_delivery() ) {
+			return false;
+		}
+		$user = wp_get_current_user();
+		if ( ! $user || ! $user->ID ) {
+			return false;
+		}
+		$digits = preg_replace( '/[^0-9]/', '', (string) $user->user_login );
+		return strlen( $digits ) >= 10;
 	}
 }

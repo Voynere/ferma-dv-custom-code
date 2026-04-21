@@ -17,6 +17,35 @@
 
 defined( 'ABSPATH' ) || exit;
 
+$ferma_bonus_checkout_allowed = function_exists( 'ferma_checkout_bonuses_allowed' ) && ferma_checkout_bonuses_allowed();
+$userbonus                      = 0;
+
+if ( $ferma_bonus_checkout_allowed && is_user_logged_in() ) {
+	$user_info = get_userdata( get_current_user_id() );
+	if ( $user_info ) {
+		$result = preg_replace( '/[^0-9]/', '', (string) $user_info->user_login );
+		if ( strlen( $result ) >= 10 ) {
+			$arr = array(
+				'search_mode'  => 0,
+				'search_value' => $result,
+			);
+			$url  = 'https://bonus.kilbil.ru/load/searchclient?h=666c13d171b01d80b04e590794a968b7';
+			$curl = curl_init( $url );
+			curl_setopt( $curl, CURLOPT_HEADER, false );
+			curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
+			curl_setopt( $curl, CURLOPT_HTTPHEADER, array( 'Content-type: application/json' ) );
+			curl_setopt( $curl, CURLOPT_POST, true );
+			curl_setopt( $curl, CURLOPT_POSTFIELDS, wp_json_encode( $arr ) );
+			$json_response = curl_exec( $curl );
+			curl_close( $curl );
+			$obj = json_decode( $json_response );
+			if ( $obj && isset( $obj->balance ) ) {
+				$userbonus = (int) $obj->balance;
+			}
+		}
+	}
+}
+
 if ( ! wp_doing_ajax() ) {
 	do_action( 'woocommerce_review_order_before_payment' );
 }
@@ -37,38 +66,7 @@ if ( ! wp_doing_ajax() ) {
 	<?php endif; ?>
 
 
-	<input type="text" style="display:none" id="textbonuses" value="<?
-	$user_info = get_userdata(get_current_user_id());
-	$user_login = $user_info->user_login;
-	$result = preg_replace('/[^0-9]/', '', $user_login);
-	if(strlen($result) < 10) {
-	   $userbonus = 0;
-	} else {
-		$arr = array('search_mode' => 0, 'search_value' => $result);
-
-        $url = "https://bonus.kilbil.ru/load/searchclient?h=666c13d171b01d80b04e590794a968b7";
-		$content = json_encode($arr);
-		$curl = curl_init($url);
-		curl_setopt($curl, CURLOPT_HEADER, false);
-		curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl, CURLOPT_HTTPHEADER,
-				array("Content-type: application/json"));
-		curl_setopt($curl, CURLOPT_POST, true);
-		curl_setopt($curl, CURLOPT_POSTFIELDS, $content);
-		$json_response = curl_exec($curl);
-		$status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-		$obj = json_decode($json_response);
-		$userbonus = $obj->{'balance'};
-		curl_close($curl);
-	}
-	print($userbonus);
-	?>
-	<?
-	if (!empty($_POST["ball"])) {
-
-	}
-
-	?>">
+	<input type="text" style="display:none" id="textbonuses" value="<?php echo esc_attr( (string) $userbonus ); ?>">
 
 	
 
@@ -80,7 +78,7 @@ if ( ! wp_doing_ajax() ) {
 					value="<?php echo (isset($_COOKIE['ferma_promo_code']) && $_COOKIE['ferma_promo_code'] != '') ? $_COOKIE['ferma_promo_code'] : ''; ?>"
 					id="promo_code"
 					<?php echo (isset($_COOKIE['ferma_promo_code']) && $_COOKIE['ferma_promo_code'] != '') ? 'disabled' : ''; ?>>
-				<? if(isset($_COOKIE['ferma_promo_code']) && $_COOKIE['ferma_promo_code'] != '') : ?>
+				<?php if ( isset( $_COOKIE['ferma_promo_code'] ) && $_COOKIE['ferma_promo_code'] != '' ) : ?>
 				<button id="promo_code_remove" type="button">Удалить</button>
 				<?php else : ?>
 				<button id="promo_code_add" type="button">Применить</button>
@@ -104,11 +102,11 @@ if ( ! wp_doing_ajax() ) {
 		<?php if(1==2) : ?>
 		<button id="registeronbonussystem" class="button" type="button">Зарегистрироваться по бонусной системе</button>
 		<?php endif; ?>
+		<?php if ( $ferma_bonus_checkout_allowed ) : ?>
 		<p class="ferma-checkout__form-bonus">У вас бонусов:
-			<?
-				print($userbonus);
-			?>
+			<?php echo (int) $userbonus; ?>
 		</p>
+		<?php endif; ?>
 		<?php
 		$cart_fees = WC()->cart->get_fees();
 		foreach($cart_fees as $cart_fee) :
@@ -135,133 +133,112 @@ if ( ! wp_doing_ajax() ) {
 				<span>руб.</span>
 			</p>
 		</div>
-		<?
-			if (!empty($_POST["ball"])) { 
-
-			}
-			$a = $_POST["ball"];
-
-			setcookie("ball", $a);
-			setcookie("ballcount", $_POST["ball"]);
+		<?php
+		if ( ! empty( $_POST['ball'] ) ) {
+			$a = sanitize_text_field( wp_unslash( $_POST['ball'] ) );
+			setcookie( 'ball', $a, time() + 3600, '/' );
+			setcookie( 'ballcount', $a, time() + 3600, '/' );
+		}
 		?>
-		<?
-			if($userbonus == 0) {
-
-			} else {
-		?>
-		<?if (isset($_COOKIE['balik'])) {?>
+		<?php if ( $ferma_bonus_checkout_allowed && $userbonus > 0 ) : ?>
+		<?php if ( isset( $_COOKIE['balik'] ) ) : ?>
 			<style>
-				#ok {
-					display: none !important;
-				}
-
+				#ok { display: none !important; }
 				#can1 {
 					display: block !important;
 					background: #fff !important;
 					color: #000 !important;
 				}
 			</style>
-		<?}?>
-		<?if (isset($_COOKIE['vibo1r'])) {?>
+		<?php endif; ?>
+		<?php if ( isset( $_COOKIE['vibo1r'] ) ) : ?>
 			<style>
-				#ok2 {
-					display: none !important;
-				}
-
-				#ok23 {
-					display: block !important;
-				}
-
+				#ok2 { display: none !important; }
 				#ok23 {
 					display: block !important;
 					background: #fff !important;
 					color: #000 !important;
 				}
 			</style>
-		<?}?>
+		<?php endif; ?>
 		<style>
-		.order-total.ferma-checkout__form-order {
-			margin-bottom: 20px; /* или сколько нужно */
-		}
-
+		.order-total.ferma-checkout__form-order { margin-bottom: 20px; }
 		#payment #ok,
 		#payment #can1,
 		#payment #ok2,
 		#payment #ok23 {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-
-		border: 1px solid var(--color-green) !important;
-		border-radius: 12px;
-		background-color: var(--color-green) !important;
-
-		padding: 13px 40px;
-		font-size: 18px !important;
-		font-weight: var(--font-w-bold);
-		color: var(--color-white) !important;
-		text-transform: uppercase;
-
-		transition: ease-in-out .3s;
-		cursor: pointer;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			border: 1px solid var(--color-green) !important;
+			border-radius: 12px;
+			background-color: var(--color-green) !important;
+			padding: 13px 40px;
+			font-size: 18px !important;
+			font-weight: var(--font-w-bold);
+			color: var(--color-white) !important;
+			text-transform: uppercase;
+			transition: ease-in-out .3s;
+			cursor: pointer;
 		}
-
-		/* отступ между «ПОТРАТИТЬ/СПИСАТЬ» и «КОПИТЬ» */
 		#payment #ok2,
-		#payment #ok23 {
-		margin-left: 1em;
-		}
-
-		/* ховер — как у кнопки "Подтвердить заказ" */
+		#payment #ok23 { margin-left: 1em; }
 		#payment #ok:hover,
 		#payment #can1:hover,
 		#payment #ok2:hover,
 		#payment #ok23:hover {
-		background-color: #fff !important;
-		color: var(--color-green) !important;
+			background-color: #fff !important;
+			color: var(--color-green) !important;
 		}
-			
 		</style>
 		<script>
-			document.querySelector("#ok").onclick = function () {
-				document.cookie = "balik=" + document.getElementById("ballcount").value + ";path=/";
-				jQuery(document.body).trigger("update_checkout");
-			}
-			document.querySelector("#ok2").onclick = function () {
-				document.cookie = "vibo1r=" + 1 + ";path=/";
-				jQuery(document.body).trigger("update_checkout");
-			}
-			document.querySelector("#can1").onclick = function () {
-				document.cookie = "balik=" + 0 + ";path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT";
-				jQuery(document.body).trigger("update_checkout");
-			}
-			document.querySelector("#ok23").onclick = function () {
-				document.cookie = "vibo1r=" + 1 + ";path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT";
-				jQuery(document.body).trigger("update_checkout");
-			}
+			(function () {
+				var ok = document.querySelector("#ok");
+				var ok2 = document.querySelector("#ok2");
+				var can1 = document.querySelector("#can1");
+				var ok23 = document.querySelector("#ok23");
+				if (ok) {
+					ok.onclick = function () {
+						document.cookie = "balik=" + document.getElementById("ballcount").value + ";path=/";
+						jQuery(document.body).trigger("update_checkout");
+					};
+				}
+				if (ok2) {
+					ok2.onclick = function () {
+						document.cookie = "vibo1r=" + 1 + ";path=/";
+						jQuery(document.body).trigger("update_checkout");
+					};
+				}
+				if (can1) {
+					can1.onclick = function () {
+						document.cookie = "balik=" + 0 + ";path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT";
+						jQuery(document.body).trigger("update_checkout");
+					};
+				}
+				if (ok23) {
+					ok23.onclick = function () {
+						document.cookie = "vibo1r=" + 1 + ";path=/;expires=Thu, 01 Jan 1970 00:00:01 GMT";
+						jQuery(document.body).trigger("update_checkout");
+					};
+				}
+			})();
 		</script>
 		<div style="display:flex;margin-left:1em;">
 			<input type="hidden" name="option" value="1">
-			<?php 
-				function calc_percent($price, $percent)
-				{
-					return $price * ($percent / 100); 
-				}
-			?>
 			<input type="hidden" id="ballcount" name="ball" value="<?php
 				global $woocommerce;
-				if($userbonus < calc_percent($woocommerce->cart->total, 30)) {
-					echo $userbonus;
+				if ( $userbonus < ferma_calc_percent( $woocommerce->cart->total, 30 ) ) {
+					echo esc_attr( (string) $userbonus );
 				} else {
-					echo calc_percent($woocommerce->cart->total, 30);
+					echo esc_attr( (string) ferma_calc_percent( $woocommerce->cart->total, 30 ) );
 				}
 			?>">
 			<button type="button" id="ok" class="buttonbonus">ПОТРАТИТЬ <?php
 				global $woocommerce;
-				if($userbonus < calc_percent($woocommerce->cart->total, 30)) {
-					echo $userbonus;
+				if ( $userbonus < ferma_calc_percent( $woocommerce->cart->total, 30 ) ) {
+					echo (int) $userbonus;
 				} else {
-					echo calc_percent($woocommerce->cart->total, 30);
+					echo (int) ferma_calc_percent( $woocommerce->cart->total, 30 );
 				}
 			?></button>
 			<button type="button" class="buttonbonus" id="can1" style="display:none;">СПИСАТЬ</button>
@@ -269,31 +246,26 @@ if ( ! wp_doing_ajax() ) {
 			<button type="button" class="buttonbonus" id="ok2" style="margin-left:1em;">КОПИТЬ</button>
 			<button type="button" class="buttonbonus" id="ok23" style="margin-left:1em;display:none">КОПИТЬ</button>
 		</div>
-		<?if (!empty($_COOKIE['balik'])) {
-		?>
-	</div>
-		<?}?>
-	<?}?>
+		<?php endif; ?>
 
 	<!--<div class="promocodes" style="display:flex;gap:5px;">
 	<input type="text" id="promo_count" placeholder="Промокод..">
 	<button id="promo_play" type="button" class="button">Применить</button>
 	</div> !-->
 
-
-
+	</div>
 
 	<div class="place-order ferma-checkout__form-place">
 
 
-		<?	
+		<?php
 		$user_id = get_current_user_id();
 		if ( is_user_logged_in() ) {
-		$args_check =  get_user_meta( $user_id, 'samovivoz', true );
+			$args_check = get_user_meta( $user_id, 'samovivoz', true );
+		} else {
+			$args_check = isset( $_COOKIE['market'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['market'] ) ) : '';
 		}
-		else {
-			$args_check =  $_COOKIE['market'];
-		}?>
+		?>
 
 		<noscript>
 			<?php
@@ -308,6 +280,7 @@ if ( ! wp_doing_ajax() ) {
 
 		<?php do_action( 'woocommerce_review_order_before_submit' ); ?>
 
+		<div class="ferma-checkout-inline-notices" role="alert" aria-live="polite"></div>
 
 		<p class="ferma-checkout__form-privacy">
 			Оформляя заказ, Вы соглашаетесь с условиями <a href="https://ferma-dv.ru/privacy/">политики конфиденциальности</a> 
@@ -315,12 +288,12 @@ if ( ! wp_doing_ajax() ) {
 		</p>
 
 
-		<?if ( is_user_logged_in() ) {?>
-		<?php echo apply_filters( 'woocommerce_order_button_html', '<button type="submit" class="ferma-checkout__form-submit" name="woocommerce_checkout_place_order" id="place_order" value="' . esc_attr( $order_button_text ) . '" data-value="' . esc_attr( $order_button_text ) . '">' . esc_html( $order_button_text ) . '</button>' ); // @codingStandardsIgnoreLine ?>
-		<?} else {?>
-		<?php echo apply_filters( 'woocommerce_order_button_html', '<button type="submit" class="ferma-checkout__form-submit" name="woocommerce_checkout_place_order" id="place_order" value="' . esc_attr( $order_button_text ) . '" data-value="' . esc_attr( $order_button_text ) . '">' . esc_html( $order_button_text ) . '</button>' ); // @codingStandardsIgnoreLine ?>
-
-		<?}?>
+		<?php
+		echo apply_filters(
+			'woocommerce_order_button_html',
+			'<button type="submit" class="ferma-checkout__form-submit" name="woocommerce_checkout_place_order" id="place_order" value="' . esc_attr( $order_button_text ) . '" data-value="' . esc_attr( $order_button_text ) . '">' . esc_html( $order_button_text ) . '</button>'
+		);
+		?>
 		<?php do_action( 'woocommerce_review_order_after_submit' ); ?>
 
 		<?php wp_nonce_field( 'woocommerce-process_checkout', 'woocommerce-process-checkout-nonce' ); ?>

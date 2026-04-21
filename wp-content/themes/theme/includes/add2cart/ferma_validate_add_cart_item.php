@@ -173,3 +173,94 @@ if(!function_exists('ferma_product_is_available')) {
 		return $is_available;
 	}
 }
+
+if ( ! function_exists( 'ferma_checkout_collect_stock_issues' ) ) {
+	function ferma_checkout_collect_stock_issues() {
+		$issues = array();
+		if ( ! function_exists( 'WC' ) || ! WC()->cart || WC()->cart->is_empty() ) {
+			return $issues;
+		}
+		$shops = ferma_get_current_shops();
+		if ( empty( $shops ) ) {
+			return $issues;
+		}
+		foreach ( WC()->cart->get_cart() as $cart_item_key => $cart_item ) {
+			if ( ! empty( $cart_item['q_promo_gift'] ) ) {
+				continue;
+			}
+			$product = isset( $cart_item['data'] ) ? $cart_item['data'] : null;
+			if ( ! $product || ! is_a( $product, 'WC_Product' ) ) {
+				continue;
+			}
+			$product_id = (int) $cart_item['product_id'];
+			$ratio      = function_exists( 'get_weight_ratio' ) ? (float) get_weight_ratio( $product_id ) : 1.0;
+			$qty        = (float) $cart_item['quantity'];
+			$qty_need   = $qty * $ratio;
+			$available  = 0.0;
+			foreach ( $shops as $shop ) {
+				if ( '' === (string) $shop ) {
+					continue;
+				}
+				$available += (float) $product->get_meta( $shop );
+			}
+			if ( $qty_need > $available + 0.0001 ) {
+				$max_steps = $ratio > 0 ? floor( $available / $ratio + 1e-6 ) : floor( $available );
+				$issues[]  = array(
+					'cart_item_key' => $cart_item_key,
+					'name'          => $product->get_name(),
+					'in_cart'       => $qty,
+					'available'     => $available,
+					'ratio'         => $ratio,
+					'max_steps'     => max( 0, (int) $max_steps ),
+				);
+			}
+		}
+		return $issues;
+	}
+}
+
+if ( ! function_exists( 'ferma_ajax_checkout_stock_check' ) ) {
+	function ferma_ajax_checkout_stock_check() {
+		check_ajax_referer( 'ferma_checkout_stock', 'nonce' );
+		if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+			wp_send_json_error( array( 'message' => 'Cart unavailable' ), 400 );
+		}
+		wp_send_json_success(
+			array(
+				'issues' => ferma_checkout_collect_stock_issues(),
+			)
+		);
+	}
+	add_action( 'wp_ajax_ferma_checkout_stock_check', 'ferma_ajax_checkout_stock_check' );
+	add_action( 'wp_ajax_nopriv_ferma_checkout_stock_check', 'ferma_ajax_checkout_stock_check' );
+}
+
+if ( ! function_exists( 'ferma_ajax_checkout_stock_apply' ) ) {
+	function ferma_ajax_checkout_stock_apply() {
+		check_ajax_referer( 'ferma_checkout_stock', 'nonce' );
+		if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+			wp_send_json_error( array( 'message' => 'Cart unavailable' ), 400 );
+		}
+		$issues = ferma_checkout_collect_stock_issues();
+		foreach ( $issues as $row ) {
+			$key = isset( $row['cart_item_key'] ) ? $row['cart_item_key'] : '';
+			$max = isset( $row['max_steps'] ) ? (int) $row['max_steps'] : 0;
+			if ( $key === '' ) {
+				continue;
+			}
+			if ( $max <= 0 ) {
+				WC()->cart->remove_cart_item( $key );
+			} else {
+				WC()->cart->set_quantity( $key, $max, true );
+			}
+		}
+		WC()->cart->calculate_totals();
+		wp_send_json_success(
+			array(
+				'issues' => ferma_checkout_collect_stock_issues(),
+			)
+		);
+	}
+	add_action( 'wp_ajax_ferma_checkout_stock_apply', 'ferma_ajax_checkout_stock_apply' );
+	add_action( 'wp_ajax_nopriv_ferma_checkout_stock_apply', 'ferma_ajax_checkout_stock_apply' );
+}

@@ -1547,11 +1547,21 @@ function theme_scripts() {
 	$version = file_exists($style_path) ? filemtime($style_path) : null;
 	wp_enqueue_style( 'new-style', $style_uri, [], $version );
 
-	// Checkout: keep WooCommerce validation notices visible.
-	wp_add_inline_style(
-		'new-style',
-		'.ferma-checkout__form .woocommerce-NoticeGroup.woocommerce-NoticeGroup-checkout{display:block !important;margin:0 0 16px;}'
-	);
+	if ( is_checkout() && ! is_order_received_page() ) {
+		wp_add_inline_style(
+			'new-style',
+			'.ferma-checkout-inline-notices{display:none;margin:0 0 16px;padding:14px 16px;border-radius:12px;border:1px solid #e74c3c;background:#fff6f6;color:#1a1a1a;font-size:15px;line-height:1.45;}' .
+			'.ferma-checkout-inline-notices.is-visible{display:block;}' .
+			'.ferma-checkout-inline-notices ul{margin:0.35em 0 0;padding-left:1.2em;}' .
+			'.ferma-stock-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;}' .
+			'.ferma-stock-modal{background:#fff;border-radius:16px;max-width:440px;width:100%;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,.15);}' .
+			'.ferma-stock-modal h3{margin:0 0 12px;font-size:18px;}' .
+			'.ferma-stock-modal p{margin:0 0 16px;font-size:15px;line-height:1.45;}' .
+			'.ferma-stock-modal-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;}' .
+			'.ferma-stock-modal-actions button{border-radius:12px;padding:12px 18px;font-weight:600;cursor:pointer;border:1px solid rgba(21,21,21,.25);background:#f5f5f5;}' .
+			'.ferma-stock-modal-actions .ferma-stock-confirm{background:#4fbd01;color:#fff;border-color:transparent;}'
+		);
+	}
 
 	wp_enqueue_script( 'slick', get_template_directory_uri() . '/js/slick.min.js', array(), '1.0', true );
 
@@ -1567,15 +1577,23 @@ function theme_scripts() {
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
 	}
-	if (is_checkout() && !is_order_received_page()) {
-        wp_enqueue_script(
-            'custom-checkout-js',
-            get_stylesheet_directory_uri() . '/assets/js/checkout.js',
-            array('jquery'),
-            '1.4',
-            true
-        );
-    }
+	if ( is_checkout() && ! is_order_received_page() ) {
+		wp_enqueue_script(
+			'custom-checkout-js',
+			get_stylesheet_directory_uri() . '/assets/js/checkout.js',
+			array( 'jquery' ),
+			'1.5',
+			true
+		);
+		wp_localize_script(
+			'custom-checkout-js',
+			'fermaCheckout',
+			array(
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'nonce'   => wp_create_nonce( 'ferma_checkout_stock' ),
+			)
+		);
+	}
 
 
     wp_enqueue_script(
@@ -2273,6 +2291,9 @@ function fdv_default_qty_from_cart( $args, $product ) {
 add_action( 'woocommerce_cart_calculate_fees', 'truemisha_add_fee_paypal', 15);
 
 function truemisha_add_fee_paypal($cart) {
+	if ( function_exists( 'ferma_checkout_bonuses_allowed' ) && ! ferma_checkout_bonuses_allowed() ) {
+		return;
+	}
 	if(isset($_COOKIE["balik"])) {
 		$userbonus = 0;
 
@@ -2679,6 +2700,12 @@ function get_weight_ratio($product_id)
     return 1;
 }
 
+if ( ! function_exists( 'ferma_calc_percent' ) ) {
+	function ferma_calc_percent( $price, $percent ) {
+		return (float) $price * ( (float) $percent / 100 );
+	}
+}
+
 add_action( 'woocommerce_after_checkout_validation', 'ferma_validate_delivery_address', 10, 2 );
 function fdv_format_weight( $kg ) {
     $kg = (float) $kg;
@@ -2697,6 +2724,42 @@ function ferma_validate_delivery_address( $fields, $errors ){
     if ( isset($_COOKIE['delivery']) && $_COOKIE['delivery'] == 0 && (!isset($_COOKIE['coords']) || $_COOKIE['coords'] == '') ) {
         $errors->add( 'validation', 'Введите корректный адрес и выберите время для доставки' );
     }
+}
+
+add_action( 'woocommerce_after_checkout_validation', 'ferma_checkout_require_delivery_house_and_flat', 25, 2 );
+function ferma_checkout_require_delivery_house_and_flat( $data, $errors ) {
+	if ( ! function_exists( 'ferma_is_delivery' ) || ! ferma_is_delivery() ) {
+		return;
+	}
+	$apt = isset( $_POST['billing_dev_1'] ) ? trim( wp_unslash( $_POST['billing_dev_1'] ) ) : '';
+	if ( $apt === '' ) {
+		$errors->add( 'billing_dev_1', __( 'Укажите номер квартиры или офиса.', 'woocommerce' ) );
+	}
+	$street = '';
+	if ( ! empty( $_POST['billing_delivery'] ) ) {
+		$street = (string) wp_unslash( $_POST['billing_delivery'] );
+	} elseif ( ! empty( $_POST['billing_address_1'] ) ) {
+		$street = (string) wp_unslash( $_POST['billing_address_1'] );
+	}
+	$street = trim( $street );
+	if ( $street !== '' && ! preg_match( '/\d/u', $street ) ) {
+		$errors->add( 'billing_delivery', __( 'В адресе доставки укажите номер дома (нужна хотя бы одна цифра).', 'woocommerce' ) );
+	}
+}
+
+add_action( 'woocommerce_cart_calculate_fees', 'ferma_checkout_clear_bonus_cookies_when_disabled', 1 );
+function ferma_checkout_clear_bonus_cookies_when_disabled() {
+	if ( ! function_exists( 'ferma_checkout_bonuses_allowed' ) || ferma_checkout_bonuses_allowed() ) {
+		return;
+	}
+	if ( isset( $_COOKIE['balik'] ) ) {
+		setcookie( 'balik', '', time() - YEAR_IN_SECONDS, '/' );
+		unset( $_COOKIE['balik'] );
+	}
+	if ( isset( $_COOKIE['vibo1r'] ) ) {
+		setcookie( 'vibo1r', '', time() - YEAR_IN_SECONDS, '/' );
+		unset( $_COOKIE['vibo1r'] );
+	}
 }
 
 
