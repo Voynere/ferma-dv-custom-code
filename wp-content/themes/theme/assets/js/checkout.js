@@ -1,5 +1,6 @@
 (function ($) {
     'use strict';
+    var fermaCheckoutLastScrollY = 0;
 
     function fermaInlineNotices() {
         return $('.ferma-checkout-inline-notices');
@@ -95,8 +96,12 @@
     });
 
     $(document).on('checkout_error', function () {
+        var keepY = fermaCheckoutLastScrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
         setTimeout(function () {
             fermaShowInlineFromCheckoutNotices();
+            // WooCommerce по умолчанию скроллит к notice-блоку; возвращаем позицию,
+            // чтобы пользователь оставался у кнопки оформления и видел наш попап.
+            window.scrollTo(0, keepY);
 
             $('.checkout-inline-error-message').each(function () {
                 var errorText = $(this).text();
@@ -199,6 +204,7 @@
             if (!form) {
                 return;
             }
+            fermaCheckoutLastScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
             if (window.__fermaStockGateOk) {
                 window.__fermaStockGateOk = false;
                 return;
