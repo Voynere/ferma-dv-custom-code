@@ -2927,7 +2927,6 @@ function fix_kulichi_category( $hide ) {
 
 function ferma_woocommerce_email_recipient( $recipient, $order, $email ) {
     if ( ! $order || ! is_a( $order, 'WC_Order' ) ) return $recipient;
-
     $recipient = '';
     return $recipient;
 }
@@ -2951,6 +2950,11 @@ add_filter( 'woocommerce_email_recipient_customer_otmenen_order', 'ferma_woocomm
 add_filter( 'woocommerce_email_recipient_customer_vozvrat_order', 'ferma_woocommerce_email_recipient', 10, 3 );
 add_filter( 'woocommerce_email_recipient_customer_otmena-otkaz_order', 'ferma_woocommerce_email_recipient', 10, 3 );
 add_filter( 'woocommerce_email_recipient_customer_otmena-otkaz2_order', 'ferma_woocommerce_email_recipient', 10, 3 );
+
+function ferma_admin_new_order_recipient( $recipient, $order, $email ) {
+	return 'zakaz@ferma-dv.ru';
+}
+add_filter( 'woocommerce_email_recipient_new_order', 'ferma_admin_new_order_recipient', 10, 3 );
 
 //Moysklad
 

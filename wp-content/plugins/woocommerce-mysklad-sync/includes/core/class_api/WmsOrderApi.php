@@ -67,6 +67,9 @@ class WmsOrderApi extends WmsData
      */
     public function create_order_ms($order_id)
     {
+        if ($this->order_wc->get_meta('_ms_order_id')) {
+            return 'Заказ уже выгружен в Мой склад';
+        }
 
         $this->set_name($this->order_wc);
         $this->set_organization($this->settings['wms_organization']);

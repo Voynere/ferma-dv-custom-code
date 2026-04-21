@@ -79,7 +79,8 @@ class OrderController extends SyncController {
 				[
 					'orderId' => $orderId
 				],
-				'moysklad' );
+				'moysklad',
+				true );
 
 		} elseif ( isset( $this->settings['wms_order_type_send'] ) && $this->settings['wms_order_type_send'] == 'auto' ) {
 
@@ -89,7 +90,7 @@ class OrderController extends SyncController {
 					'orderId' => $orderId
 				],
 				'moysklad',
-				false,
+				true,
 				0
 			);
 
@@ -154,6 +155,11 @@ class OrderController extends SyncController {
 	 * @throws Exception
 	 */
 	public function createAnOrderInMoysklad( $orderId ) {
+		$order = wc_get_order( $orderId );
+		if ( $order && $order->get_meta( '_ms_order_id' ) ) {
+			return 'Заказ уже выгружен в Мой склад';
+		}
+
 		$OrderApi = new WmsOrderApi( $orderId );
 
 		return $OrderApi->create_order_ms( $orderId );
