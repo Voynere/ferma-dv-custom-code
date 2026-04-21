@@ -77,60 +77,67 @@ jQuery(document).ready(function($) {
     }
     var fermaAddToastTimer = null;
     function fermaGetCartAnchor() {
-        // Якоримся к "иконке" (или счетчику на ней), а не к широкому контейнеру корзины.
-        var $anchors = $(
-            '.xoo-wsc-basket .xoo-wsc-icon-basket:visible,' +
-            '.xoo-wsc-basket .xoo-wsc-items-count:visible,' +
-            '.xoo-wsc-basket .xoo-wsc-bki:visible,' +
-            '.xoo-wsc-basket:visible'
-        );
-        if (!$anchors.length) {
-            return $();
+        function pickBest(selector) {
+            var list = [];
+            $(selector).each(function () {
+                var rect = this.getBoundingClientRect();
+                if (rect.width <= 0 || rect.height <= 0) return;
+                if (rect.right < 0 || rect.left > window.innerWidth || rect.bottom < 0 || rect.top > window.innerHeight) return;
+                var inHeaderBand = rect.top >= 0 && rect.top <= 180;
+                var score = (inHeaderBand ? 0 : 50000) + Math.abs(rect.top) + Math.abs(window.innerWidth - rect.right);
+                list.push({ el: this, score: score });
+            });
+            if (!list.length) return $();
+            list.sort(function (a, b) { return a.score - b.score; });
+            return $(list[0].el);
         }
-        var bestEl = null;
-        var bestScore = Infinity;
-        $anchors.each(function () {
-            var el = this;
-            var rect = el.getBoundingClientRect();
-            if (rect.width <= 0 || rect.height <= 0) {
-                return;
-            }
-            // Отсекаем элементы, вышедшие за экран.
-            if (rect.right < 0 || rect.left > window.innerWidth || rect.bottom < 0 || rect.top > window.innerHeight) {
-                return;
-            }
-            // Предпочитаем корзину, которая находится в видимой области (в т.ч. sticky-header).
-            var inViewport = rect.bottom > 0 && rect.top < window.innerHeight;
-            // Приоритет: элемент в верхней части хедера + компактный (иконка/бейдж) + ближе к правому краю.
-            var inHeaderBand = rect.top >= 0 && rect.top <= 180;
-            var compactPenalty = (rect.width * rect.height) / 10; // большие контейнеры получают худший score
-            var rightBias = Math.abs(window.innerWidth - rect.right);
-            var score =
-                (inViewport ? 0 : 100000) +
-                (inHeaderBand ? 0 : 50000) +
-                compactPenalty +
-                rightBias +
-                Math.abs(rect.top);
-            if (score < bestScore) {
-                bestScore = score;
-                bestEl = el;
-            }
-        });
-        return bestEl ? $(bestEl) : $anchors.first();
+        // Жесткий приоритет: иконка корзины -> счетчик -> контейнер корзины.
+        var $anchor = pickBest('.xoo-wsc-basket .xoo-wsc-bki, .xoo-wsc-container .xoo-wsc-bki');
+        if ($anchor.length) return $anchor;
+        $anchor = pickBest('.xoo-wsc-basket .xoo-wsc-items-count, .xoo-wsc-container .xoo-wsc-items-count');
+        if ($anchor.length) return $anchor;
+        $anchor = pickBest('.xoo-wsc-basket, .xoo-wsc-container .xoo-wsc-basket');
+        return $anchor.length ? $anchor : $();
+    }
+    function fermaFindProductName($button) {
+        var rootSelectors = '.woocommerce-loop-product__title, .product_title, h1, h2, h3, .product-name a, .product-name';
+        var $root = $button.closest('li.ferma-product-card, li.product, .ferma-product-card, .product, .shop-ferma__cart, form.cart, .product-card');
+        var name = $.trim($root.find(rootSelectors).first().text());
+        if (name) return name;
+
+        var pid = $button.data('product_id') || $button.attr('data-product_id') || $root.find('[data-product_id]').first().data('product_id');
+        if (pid) {
+            name = $.trim($('.post-' + pid + ' ' + rootSelectors).first().text());
+            if (name) return name;
+        }
+
+        var aria = String($button.attr('aria-label') || '');
+        if (aria) {
+            aria = aria
+                .replace(/^Добавить\s+/i, '')
+                .replace(/^Add\s+/i, '')
+                .replace(/\s+в корзину.*$/i, '')
+                .replace(/\s+to your cart.*$/i, '');
+            if (aria) return $.trim(aria);
+        }
+        return 'Товар';
+    }
+    function fermaGetUnitPriceFromButton($button) {
+        var $root = $button.closest('li.ferma-product-card, li.product, .ferma-product-card, .product, .shop-ferma__cart, form.cart, .product-card');
+        var $priceEl = $root.find('.discount-offset').first();
+        var priceBase = Number($priceEl.data('price-base') || 0);
+        if (isFinite(priceBase) && priceBase > 0) {
+            return priceBase;
+        }
+        var txt = $.trim($root.find('.price .amount, .woocommerce-Price-amount').first().text()).replace(/[^\d,\.]/g, '').replace(',', '.');
+        var parsed = Number(txt);
+        return isFinite(parsed) && parsed > 0 ? parsed : 0;
     }
     function fermaExtractAddedInfo($button) {
         var qty = Number($button.attr('data-quantity') || $button.data('quantity') || 1);
         if (!isFinite(qty) || qty <= 0) qty = 1;
         var $root = $button.closest('li.ferma-product-card, li.product, .ferma-product-card, .product, .shop-ferma__cart, form.cart, .product-card');
-        var name = $.trim(
-            $root.find('.woocommerce-loop-product__title, h1.product_title, .product_title, .product-name a, .product-name').first().text()
-        );
-        if (!name) {
-            var aria = String($button.attr('aria-label') || '');
-            var m = aria.match(/["«](.+?)["»]/);
-            if (m && m[1]) name = m[1];
-        }
-        if (!name) name = 'Товар';
+        var name = fermaFindProductName($button);
         var $price = $root.find('.discount-offset, .price .amount, .woocommerce-Price-amount').first();
         var priceText = $.trim($price.text().replace(/\s+/g, ' '));
         if (!priceText) priceText = '';
@@ -144,8 +151,9 @@ jQuery(document).ready(function($) {
             priceText: priceText
         };
     }
-    function fermaShowAddToast($button) {
+    function fermaShowAddToast($button, opts) {
         if (!$button || !$button.length) return;
+        opts = opts || {};
         var info = fermaExtractAddedInfo($button);
         var $toast = $('.ferma-addcart-toast');
         if (!$toast.length) {
@@ -155,9 +163,9 @@ jQuery(document).ready(function($) {
                 '</div>');
             $('body').append($toast);
         }
-        var meta = 'Вы добавили ' + info.qtyText + (info.priceText ? (', ' + info.priceText) : '');
+        var metaText = opts.metaText ? opts.metaText : ('Вы добавили ' + info.qtyText + (info.priceText ? (', ' + info.priceText) : ''));
         $toast.find('.ferma-addcart-toast__title').text(info.name);
-        $toast.find('.ferma-addcart-toast__meta').text(meta);
+        $toast.find('.ferma-addcart-toast__meta').text(metaText);
         var $anchor = fermaGetCartAnchor();
         var top = 20;
         var left = window.innerWidth - $toast.outerWidth() - 20;
@@ -387,6 +395,17 @@ jQuery(document).ready(function($) {
         if (updateCart && $addToCartBtn.hasClass('product-in-cart')) {
             var productId = $qtyBlock.data('product_id');
             updateCartQuantity(productId, realQuantity, $qtyBlock);
+            if (change > 0) {
+                var weighted = String($qtyBlock.data('is_weighted')) === '1';
+                var ratio = Number($qtyBlock.data('ratio') || 1);
+                if (!isFinite(ratio) || ratio <= 0) ratio = 1;
+                var unitPrice = fermaGetUnitPriceFromButton($addToCartBtn);
+                var deltaPrice = unitPrice * (weighted ? ratio : 1);
+                var plusText = weighted
+                    ? ('Вы добавили +' + formatKg(ratio) + (deltaPrice > 0 ? (', ' + formatPriceRub(deltaPrice)) : ''))
+                    : ('Вы добавили +1 шт.' + (deltaPrice > 0 ? (', ' + formatPriceRub(deltaPrice)) : ''));
+                fermaShowAddToast($addToCartBtn, { metaText: plusText });
+            }
         }
     }
 
