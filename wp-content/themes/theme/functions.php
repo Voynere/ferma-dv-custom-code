@@ -252,6 +252,38 @@ function ferma_catalog_post_limits_sql( $limits, $query ) {
 }
 
 /**
+ * На проде для витрины иногда подставляется не woocommerce/archive-product.php (например разметка как в page.php),
+ * из‑за этого ломается основной цикл WC и отдаются все товары. Принудительно используем шаблон архива из темы.
+ */
+add_filter( 'template_include', 'ferma_force_wc_archive_product_template', 999 );
+function ferma_force_wc_archive_product_template( $template ) {
+	if ( is_admin() || ! apply_filters( 'ferma_force_wc_archive_product_template_enabled', true ) ) {
+		return $template;
+	}
+	if ( ! function_exists( 'WC' ) ) {
+		return $template;
+	}
+
+	$is_product_archive = false;
+	if ( function_exists( 'is_product_taxonomy' ) && is_product_taxonomy() ) {
+		$is_product_archive = true;
+	} elseif ( function_exists( 'is_shop' ) && is_shop() ) {
+		$is_product_archive = true;
+	}
+
+	if ( ! $is_product_archive ) {
+		return $template;
+	}
+
+	$path = locate_template( array( 'woocommerce/archive-product.php' ), false, false );
+	if ( $path && is_readable( $path ) ) {
+		return $path;
+	}
+
+	return $template;
+}
+
+/**
  * GET-параметры, которые нужно сохранять в ссылках пагинации и при подгрузке каталога (WMS, сортировка и т.д.).
  *
  * @return array<string, string|array>
