@@ -780,6 +780,14 @@ add_filter( 'woocommerce_checkout_fields', function( $fields ) {
     return $fields;
 } );
 
+add_filter( 'woocommerce_checkout_fields', 'ferma_make_billing_email_optional', 20 );
+function ferma_make_billing_email_optional( $fields ) {
+	if ( isset( $fields['billing']['billing_email'] ) ) {
+		$fields['billing']['billing_email']['required'] = false;
+	}
+	return $fields;
+}
+
 function change_delivery_remove_items($points)
 {
 	if ( ! is_array( $points ) || empty( $points ) ) {
