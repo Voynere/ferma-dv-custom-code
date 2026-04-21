@@ -217,6 +217,41 @@ function ferma_catalog_is_main_product_listing_query( $q ) {
 }
 
 /**
+ * Последний рубеж: подставляем LIMIT в SQL, если другие хуки/плагины оставили выдачу «всех» постов.
+ * (Иначе при posts_per_page=-1 или nopaging фрагмент LIMIT в SQL пустой.)
+ */
+add_filter( 'post_limits', 'ferma_catalog_post_limits_sql', 99999, 2 );
+function ferma_catalog_post_limits_sql( $limits, $query ) {
+	if ( is_admin() || ! apply_filters( 'ferma_catalog_force_posts_per_page_enabled', true ) ) {
+		return $limits;
+	}
+	if ( ! $query instanceof WP_Query ) {
+		return $limits;
+	}
+	global $wp_query;
+	if ( $query !== $wp_query ) {
+		return $limits;
+	}
+	if ( ! function_exists( 'WC' ) ) {
+		return $limits;
+	}
+	if ( ! ferma_catalog_is_main_product_listing_query( $query ) ) {
+		return $limits;
+	}
+
+	$default = ferma_catalog_products_per_page_default();
+	$per     = (int) apply_filters( 'ferma_catalog_loop_posts_per_page', $default, (int) $query->get( 'posts_per_page' ) );
+	if ( $per < 1 ) {
+		return $limits;
+	}
+
+	$paged  = max( 1, (int) $query->get( 'paged' ), (int) $query->get( 'page' ) );
+	$offset = ( $paged - 1 ) * $per;
+
+	return sprintf( 'LIMIT %d, %d', $offset, $per );
+}
+
+/**
  * GET-параметры, которые нужно сохранять в ссылках пагинации и при подгрузке каталога (WMS, сортировка и т.д.).
  *
  * @return array<string, string|array>
