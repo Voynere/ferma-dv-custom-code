@@ -9,6 +9,37 @@ jQuery(document).ready(function($) {
         cursor: default !important;
         pointer-events: none !important;
     }
+    .ferma-addcart-toast {
+        position: fixed;
+        z-index: 2147483000;
+        min-width: 260px;
+        max-width: min(90vw, 380px);
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid #dbe8cf;
+        background: #ffffff;
+        box-shadow: 0 10px 28px rgba(0,0,0,.16);
+        color: #1f2d18;
+        opacity: 0;
+        transform: translateY(-4px);
+        transition: opacity .18s ease, transform .18s ease;
+        pointer-events: none;
+    }
+    .ferma-addcart-toast.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .ferma-addcart-toast__title {
+        margin: 0 0 4px;
+        font-size: 14px;
+        line-height: 1.3;
+        font-weight: 700;
+    }
+    .ferma-addcart-toast__meta {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.35;
+    }
 `;
     document.head.appendChild(style);
 
@@ -37,6 +68,73 @@ jQuery(document).ready(function($) {
     }
     function formatPriceRub(value) {
         return Math.round(Number(value) || 0).toLocaleString('ru-RU') + ' ₽';
+    }
+    function formatQty(value) {
+        var v = Number(value);
+        if (!isFinite(v) || v <= 0) return '1';
+        if (Math.abs(v - Math.round(v)) < 1e-4) return String(Math.round(v));
+        return v.toFixed(1).replace('.', ',');
+    }
+    var fermaAddToastTimer = null;
+    function fermaGetCartAnchor() {
+        return $('.xoo-wsc-basket:visible').first();
+    }
+    function fermaExtractAddedInfo($button) {
+        var qty = Number($button.attr('data-quantity') || $button.data('quantity') || 1);
+        if (!isFinite(qty) || qty <= 0) qty = 1;
+        var $root = $button.closest('li.ferma-product-card, li.product, .ferma-product-card, .product, .shop-ferma__cart, form.cart, .product-card');
+        var name = $.trim(
+            $root.find('.woocommerce-loop-product__title, h1.product_title, .product_title, .product-name a, .product-name').first().text()
+        );
+        if (!name) {
+            var aria = String($button.attr('aria-label') || '');
+            var m = aria.match(/["«](.+?)["»]/);
+            if (m && m[1]) name = m[1];
+        }
+        if (!name) name = 'Товар';
+        var $price = $root.find('.discount-offset, .price .amount, .woocommerce-Price-amount').first();
+        var priceText = $.trim($price.text().replace(/\s+/g, ' '));
+        if (!priceText) priceText = '';
+        var isWeighted = String($price.data('is-weighted')) === '1';
+        var ratio = Number($price.data('ratio') || 1);
+        if (!isFinite(ratio) || ratio <= 0) ratio = 1;
+        var qtyText = isWeighted ? ('весом ' + formatKg(qty * ratio)) : ('в количестве ' + formatQty(qty) + ' шт.');
+        return {
+            name: name,
+            qtyText: qtyText,
+            priceText: priceText
+        };
+    }
+    function fermaShowAddToast($button) {
+        if (!$button || !$button.length) return;
+        var info = fermaExtractAddedInfo($button);
+        var $toast = $('.ferma-addcart-toast');
+        if (!$toast.length) {
+            $toast = $('<div class="ferma-addcart-toast" role="status" aria-live="polite">' +
+                '<p class="ferma-addcart-toast__title"></p>' +
+                '<p class="ferma-addcart-toast__meta"></p>' +
+                '</div>');
+            $('body').append($toast);
+        }
+        var meta = 'Вы добавили ' + info.qtyText + (info.priceText ? (', ' + info.priceText) : '');
+        $toast.find('.ferma-addcart-toast__title').text(info.name);
+        $toast.find('.ferma-addcart-toast__meta').text(meta);
+        var $anchor = fermaGetCartAnchor();
+        var top = 20;
+        var left = window.innerWidth - $toast.outerWidth() - 20;
+        if ($anchor.length) {
+            var rect = $anchor[0].getBoundingClientRect();
+            top = Math.max(8, rect.bottom + 10);
+            left = rect.left + (rect.width / 2) - ($toast.outerWidth() / 2);
+            left = Math.max(8, Math.min(left, window.innerWidth - $toast.outerWidth() - 8));
+        }
+        $toast.css({ top: top + 'px', left: left + 'px' }).addClass('is-visible');
+        if (fermaAddToastTimer) {
+            clearTimeout(fermaAddToastTimer);
+        }
+        fermaAddToastTimer = setTimeout(function () {
+            $toast.removeClass('is-visible');
+        }, 2000);
     }
 
     // Пересчёт цены/веса для одной карточки товара
@@ -358,6 +456,7 @@ jQuery(document).ready(function($) {
         if (!$button || !$button.length) return;
 
         $button.addClass('product-in-cart').text('В корзине');
+        fermaShowAddToast($button);
 
     });
 
