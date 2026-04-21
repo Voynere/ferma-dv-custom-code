@@ -27,7 +27,7 @@
                 : '/shop/';
         return (
             '<div class="ferma-checkout-min-order">' +
-            '<p>Минимальный заказ на доставку от 1000 руб, добавьте в корзине количество или перейдите в каталог и добавьте еще что-то в корзину.</p>' +
+            '<p>Минимальный заказ на доставку от 1000 руб, добавьте в корзине количество или перейдите в каталог и добавьте еще что-то.</p>' +
             '<div class="ferma-checkout-min-order__actions">' +
             '<a class="ferma-checkout-min-order__link" href="' +
             shopUrl +
@@ -108,6 +108,9 @@
             // WooCommerce по умолчанию скроллит к notice-блоку; возвращаем позицию,
             // чтобы пользователь оставался у кнопки оформления и видел наш попап.
             window.scrollTo(0, keepY);
+            setTimeout(function () {
+                window.scrollTo(0, keepY);
+            }, 80);
 
             $('.checkout-inline-error-message').each(function () {
                 var errorText = $(this).text();
