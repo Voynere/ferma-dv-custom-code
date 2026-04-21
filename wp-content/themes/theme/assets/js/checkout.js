@@ -19,6 +19,36 @@
             });
     }
 
+    function fermaRenderMinOrderNotice() {
+        var shopUrl =
+            typeof fermaCheckout !== 'undefined' && fermaCheckout.shopUrl
+                ? fermaCheckout.shopUrl
+                : '/shop/';
+        return (
+            '<div class="ferma-checkout-min-order">' +
+            '<p>Минимальный заказ на доставку от 1000 руб, добавьте в корзине количество или перейдите в каталог и добавьте еще что-то в корзину.</p>' +
+            '<div class="ferma-checkout-min-order__actions">' +
+            '<a class="ferma-checkout-min-order__link" href="' +
+            shopUrl +
+            '">Продолжить покупки</a>' +
+            '<button type="button" class="ferma-checkout-min-order__stay">Остаться в корзине</button>' +
+            '</div>' +
+            '</div>'
+        );
+    }
+
+    function fermaMaybeReplaceMinOrderNotice() {
+        var $body = fermaInlineNoticesBody();
+        if (!$body.length) {
+            return;
+        }
+        var text = $body.text().toLowerCase();
+        if (text.indexOf('минимальная сумма корзины') === -1 && text.indexOf('минимальный заказ') === -1) {
+            return;
+        }
+        $body.html(fermaRenderMinOrderNotice());
+    }
+
     function fermaShowInlineFromCheckoutNotices() {
         var $target = fermaInlineNotices();
         if (!$target.length) {
@@ -40,6 +70,7 @@
             return;
         }
         fermaInlineNoticesBody().html(html);
+        fermaMaybeReplaceMinOrderNotice();
         $target.addClass('is-visible');
         $groups.hide();
     }
@@ -54,6 +85,11 @@
     }
 
     $(document).on('click', '.ferma-checkout-inline-notices__close', function (e) {
+        e.preventDefault();
+        fermaClearInlineNotices();
+    });
+
+    $(document).on('click', '.ferma-checkout-min-order__stay', function (e) {
         e.preventDefault();
         fermaClearInlineNotices();
     });
