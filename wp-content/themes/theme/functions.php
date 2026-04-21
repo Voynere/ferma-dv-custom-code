@@ -1658,7 +1658,7 @@ function theme_scripts() {
         'catalog-qty-js',
         get_template_directory_uri() . '/assets/js/catalog-qty23.js',
         array('jquery'),
-        '1.5',
+        '1.6',
         true
     );
     wp_localize_script(

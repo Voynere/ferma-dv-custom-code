@@ -83,6 +83,12 @@ jQuery(document).ready(function($) {
                 var rect = this.getBoundingClientRect();
                 if (rect.width <= 0 || rect.height <= 0) return;
                 if (rect.right < 0 || rect.left > window.innerWidth || rect.bottom < 0 || rect.top > window.innerHeight) return;
+                var cx = Math.max(0, Math.min(window.innerWidth - 1, Math.round(rect.left + rect.width / 2)));
+                var cy = Math.max(0, Math.min(window.innerHeight - 1, Math.round(rect.top + rect.height / 2)));
+                var topEl = document.elementFromPoint(cx, cy);
+                // Берем только реально "верхний" элемент в точке, чтобы не цепляться за скрытые дубликаты корзины.
+                if (!topEl) return;
+                if (topEl !== this && !$.contains(this, topEl) && !$.contains(topEl, this)) return;
                 var inHeaderBand = rect.top >= 0 && rect.top <= 180;
                 var score = (inHeaderBand ? 0 : 50000) + Math.abs(rect.top) + Math.abs(window.innerWidth - rect.right);
                 list.push({ el: this, score: score });
@@ -110,6 +116,9 @@ jQuery(document).ready(function($) {
             name = $.trim($('.post-' + pid + ' ' + rootSelectors).first().text());
             if (name) return name;
         }
+
+        name = $.trim($root.find('a.woocommerce-LoopProduct-link, a[href*="/product/"], a').first().text());
+        if (name) return name;
 
         var aria = String($button.attr('aria-label') || '');
         if (aria) {
