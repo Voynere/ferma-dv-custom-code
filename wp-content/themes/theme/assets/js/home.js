@@ -4,6 +4,11 @@ var homeHeroSwiper = new Swiper(".homeSwiper", {
     spaceBetween: 16,
     rewind: true,
     speed: 450,
+    autoplay: {
+        delay: 4500,
+        disableOnInteraction: false,
+        pauseOnMouseEnter: true,
+    },
     observer: true,
     observeParents: true,
     watchSlidesProgress: true,
