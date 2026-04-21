@@ -1,6 +1,4 @@
 (function () {
-    console.log('Catalog  апрпарапрпарапрапрпscrd');
-
     document.addEventListener('click', function (e) {
         // 1) работаем и в мини-корзине, и в оформлении заказа
         const scope = e.target.closest('.cart__container, .ferma-checkout__form-table');
@@ -88,7 +86,16 @@
                         }
                     });
 
-                    // 3) просим Woo пересчитать checkout (если мы на странице оформления)
+                    // 3) просим Woo пересчитать checkout; удерживаем скролл (WC иначе тянет к notice сверху).
+                    var scrollY =
+                        window.pageYOffset ||
+                        document.documentElement.scrollTop ||
+                        0;
+                    jQuery(document.body).one('updated_checkout', function () {
+                        window.requestAnimationFrame(function () {
+                            window.scrollTo(0, scrollY);
+                        });
+                    });
                     jQuery(document.body).trigger('update_checkout');
                 }
             })

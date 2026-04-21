@@ -1593,6 +1593,7 @@ function theme_scripts() {
 			'.ferma-checkout-inline-notices__close{position:absolute;top:6px;right:6px;width:36px;height:36px;margin:0;padding:0;border:0;background:transparent;color:#333;font-size:26px;line-height:1;cursor:pointer;border-radius:8px;}' .
 			'.ferma-checkout-inline-notices__close:hover{background:rgba(0,0,0,.06);}' .
 			'.ferma-checkout-inline-notices__body:empty{display:none;}' .
+			'form.checkout .woocommerce-NoticeGroup-checkout,#order_review .woocommerce-NoticeGroup-checkout{position:absolute!important;left:-9999px!important;top:0!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;}' .
 			'.ferma-checkout-inline-notices ul{margin:0.35em 0 0;padding-left:1.2em;}' .
 			'.ferma-checkout-min-order p{margin:0 0 10px;}' .
 			'.ferma-checkout-min-order__actions{display:flex;gap:8px;flex-wrap:wrap;}' .
@@ -1637,8 +1638,8 @@ function theme_scripts() {
 		wp_enqueue_script(
 			'custom-checkout-js',
 			get_stylesheet_directory_uri() . '/assets/js/checkout.js',
-			array( 'jquery' ),
-			'2.6',
+			array( 'jquery', 'wc-checkout' ),
+			'2.7',
 			true
 		);
 		wp_localize_script(
@@ -1657,7 +1658,7 @@ function theme_scripts() {
         'mini-cart-qty',
         get_template_directory_uri() . '/assets/js/mini-cart-qty.js',
         array( 'jquery', 'wc-cart-fragments' ),
-        '1.0',
+        '1.1',
         true
     );
 	$catalog_qty_path = get_template_directory() . '/assets/js/catalog-qty23.js';

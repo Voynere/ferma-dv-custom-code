@@ -101,16 +101,17 @@
 
     function fermaPatchWooNoticeScroll() {
         if (typeof $.scroll_to_notices !== 'function') {
-            return;
+            return false;
         }
         if (fermaOriginalScrollToNotices) {
-            return;
+            return true;
         }
         fermaOriginalScrollToNotices = $.scroll_to_notices;
         $.scroll_to_notices = function (scrollElement) {
             // Отключаем авто-скролл WooCommerce: ошибки показываем в нашем попапе у кнопки.
             return scrollElement;
         };
+        return true;
     }
 
     function fermaClearInlineNotices() {
@@ -133,7 +134,12 @@
     });
 
     $(document).on('checkout_error', function () {
-        var keepY = fermaCheckoutLastScrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
+        // После рабочего патча scroll_to_notices позиция ещё не сброшена; иначе берём запас с place_order.
+        var keepY =
+            window.pageYOffset ||
+            document.documentElement.scrollTop ||
+            fermaCheckoutLastScrollY ||
+            0;
         setTimeout(function () {
             fermaShowInlineFromCheckoutNotices();
             // WooCommerce по умолчанию скроллит к notice-блоку; возвращаем позицию,
@@ -157,7 +163,15 @@
     });
 
     $(function () {
-        fermaPatchWooNoticeScroll();
+        var patchTries = 0;
+        var patchTimer = setInterval(function () {
+            if (fermaPatchWooNoticeScroll() || ++patchTries > 40) {
+                clearInterval(patchTimer);
+            }
+        }, 50);
+        $(document.body).on('init_checkout', function () {
+            fermaPatchWooNoticeScroll();
+        });
         fermaApplyCompactPlaceholders();
         fermaBeautifyChangeAddressButton();
     });
