@@ -51,7 +51,19 @@ if(!function_exists('ferma_get_current_shops')) {
 				}
 			}
 		}
-		
+
+		if ( ! is_array( $shops ) ) {
+			$shops = array();
+		}
+		$shops = array_values(
+			array_filter(
+				$shops,
+				static function ( $s ) {
+					return $s !== '' && $s !== null && $s !== false;
+				}
+			)
+		);
+
 		$shops_cache = $shops;
 
 		return $shops_cache;
@@ -64,8 +76,7 @@ if(!function_exists('ferma_validate_add_cart_item')) {
 	function ferma_validate_add_cart_item( $passed, $product_id, $quantity, $variation_id = '', $variations= '' ) {
 		
 		$shops = ferma_get_current_shops();
-		
-		if(count($shops) == 0) {
+		if ( ! is_array( $shops ) || count( $shops ) === 0 ) {
 			return $passed;
 		}
 		
@@ -97,16 +108,19 @@ if(!function_exists('limit_cart_item_quantity')) {
 		//$woocommerce->session->set( 'reload_checkout ', 'true' );
 		
 		$shops = ferma_get_current_shops();
-		
+		if ( ! is_array( $shops ) || count( $shops ) === 0 ) {
+			return;
+		}
+
 		$is_possible = false;
-		
+
 		$product = wc_get_product( $cart->cart_contents[ $cart_item_key ]['product_id'] );
 		$ratio = get_weight_ratio( $cart->cart_contents[ $cart_item_key ]['product_id'] );
 		$quantity_with_ratio = $quantity * $ratio;
-		
+
 		$available = 0;
-		
-		foreach($shops as $shop) {
+
+		foreach ( $shops as $shop ) {
 			$available = $available + $product->get_meta($shop);
 		}
 		

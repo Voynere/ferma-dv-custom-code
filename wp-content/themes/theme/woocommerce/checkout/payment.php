@@ -286,13 +286,16 @@ if ( ! wp_doing_ajax() ) {
 		</p>
 
 		<div class="ferma-checkout-submit-anchor">
-			<div class="ferma-checkout-inline-notices" role="alert" aria-live="assertive"></div>
 			<?php
 			echo apply_filters(
 				'woocommerce_order_button_html',
 				'<button type="submit" class="ferma-checkout__form-submit" name="woocommerce_checkout_place_order" id="place_order" value="' . esc_attr( $order_button_text ) . '" data-value="' . esc_attr( $order_button_text ) . '">' . esc_html( $order_button_text ) . '</button>'
 			);
 			?>
+			<div class="ferma-checkout-inline-notices" role="alert" aria-live="assertive">
+				<button type="button" class="ferma-checkout-inline-notices__close" aria-label="<?php echo esc_attr__( 'Close', 'woocommerce' ); ?>">&times;</button>
+				<div class="ferma-checkout-inline-notices__body"></div>
+			</div>
 		</div>
 		<?php do_action( 'woocommerce_review_order_after_submit' ); ?>
 

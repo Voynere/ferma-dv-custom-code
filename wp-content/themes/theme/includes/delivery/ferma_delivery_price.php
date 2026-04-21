@@ -63,8 +63,13 @@ if(!function_exists('ferma_get_shops_by_coords')) {
 	function ferma_get_shops_by_coords($coords) {
 		static $shops_cache = [];
 
+		if ( ! is_string( $coords ) || $coords === '' ) {
+			return array();
+		}
+
 		if (isset($shops_cache[$coords])) {
-			return $shops_cache[$coords];
+			$cached = $shops_cache[ $coords ];
+			return is_array( $cached ) ? $cached : array();
 		}
 
 		$coords = explode(",", $coords);
@@ -91,7 +96,11 @@ if(!function_exists('ferma_get_shops_by_coords')) {
 				}
 			}
 		}
-		
+
+		if ( ! is_array( $shops ) ) {
+			$shops = array();
+		}
+
 		$shops_cache[implode(",", $coords)] = $shops;
 
 		return $shops;

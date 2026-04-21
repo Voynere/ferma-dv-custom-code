@@ -706,12 +706,41 @@ function truemisha_log_history_link( $menu_links ){
 
 }
 
+if ( ! function_exists( 'ferma_theme_kilbil_debug_log' ) ) {
+	function ferma_theme_kilbil_debug_log( $chunk ) {
+		if ( ! is_string( $chunk ) ) {
+			$chunk = (string) $chunk;
+		}
+		$paths = array();
+		if ( function_exists( 'get_stylesheet_directory' ) ) {
+			$paths[] = trailingslashit( get_stylesheet_directory() ) . 'kilbil.txt';
+		}
+		if ( function_exists( 'wp_upload_dir' ) ) {
+			$upload = wp_upload_dir();
+			if ( empty( $upload['error'] ) && ! empty( $upload['basedir'] ) ) {
+				$paths[] = trailingslashit( $upload['basedir'] ) . 'ferma-kilbil-debug.log';
+			}
+		}
+		foreach ( $paths as $path ) {
+			$fp = @fopen( $path, 'ab' );
+			if ( $fp !== false && is_resource( $fp ) ) {
+				@fwrite( $fp, $chunk );
+				@fclose( $fp );
+				return;
+			}
+		}
+	}
+}
+
 add_action( 'woocommerce_order_status_on-hold', 'callback_check_bonus' );
 function callback_check_bonus($order_id) {
 	date_default_timezone_set('Asia/Vladivostok');
 
 	$bonus = get_post_meta( $order_id, 'billing_bonus', true );
 	$order = wc_get_order( $order_id );
+	if ( ! $order ) {
+		return;
+	}
 	$total = $order->get_total();
 
 	$percent = $total / 100 * 30;
@@ -721,11 +750,9 @@ function callback_check_bonus($order_id) {
 		$bonus = $percent;
 	}
 
-	$fp = fopen(dirname(__FILE__) . '/kilbil.txt', 'a+');
-	fwrite($fp, "\n---INPUT DATA---\n");
-	fwrite($fp, date("Y-m-d H:i:s\n"));
-	fwrite($fp, $order_id . " - " . $percent . " - " . $total . "\n");
-	fclose($fp);
+	ferma_theme_kilbil_debug_log(
+		"\n---INPUT DATA---\n" . date( 'Y-m-d H:i:s' ) . "\n" . $order_id . ' - ' . $percent . ' - ' . $total . "\n"
+	);
 
 	if((int) $bonus > 0) {
 		$real_bonus = get_real_kilbil_bonus();
@@ -802,11 +829,9 @@ function callback_order_bonus($order_id) {
 		$data  = $order->get_data();
 		$bonus = get_post_meta( $order->get_id(), 'billing_bonus', true );
 		if($bonus > 0) {
-			$fp = fopen(dirname(__FILE__) . '/kilbil.txt', 'a+');
-			fwrite($fp, "\n---INPUT DATA---\n");
-			fwrite($fp, date("Y-m-d H:i:s\n"));
-			fwrite($fp, "Начисление бонуса: " . $bonus . "\n");
-			fclose($fp);
+			ferma_theme_kilbil_debug_log(
+				"\n---INPUT DATA---\n" . date( 'Y-m-d H:i:s' ) . "\n" . 'Начисление бонуса: ' . $bonus . "\n"
+			);
 			$arr = array('client_id' => $userbonus, 'bonus_out' => $bonus);
 
 			$url = "https://bonus.kilbil.ru/load/manualadd?h=666c13d171b01d80b04e590794a968b7";

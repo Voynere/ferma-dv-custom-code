@@ -5,6 +5,12 @@
         return $('.ferma-checkout-inline-notices');
     }
 
+    function fermaInlineNoticesBody() {
+        var $w = fermaInlineNotices();
+        var $b = $w.find('.ferma-checkout-inline-notices__body');
+        return $b.length ? $b : $w;
+    }
+
     function fermaCheckoutNoticeSources() {
         return $('#order_review, form.checkout')
             .find('.woocommerce-NoticeGroup.woocommerce-NoticeGroup-checkout, .woocommerce-NoticeGroup-checkout')
@@ -33,17 +39,24 @@
         if (!html || !html.trim()) {
             return;
         }
-        $target.html(html).addClass('is-visible');
+        fermaInlineNoticesBody().html(html);
+        $target.addClass('is-visible');
         $groups.hide();
     }
 
     function fermaClearInlineNotices() {
         var $target = fermaInlineNotices();
         if ($target.length) {
-            $target.empty().removeClass('is-visible');
+            $target.find('.ferma-checkout-inline-notices__body').empty();
+            $target.removeClass('is-visible');
         }
         fermaCheckoutNoticeSources().show();
     }
+
+    $(document).on('click', '.ferma-checkout-inline-notices__close', function (e) {
+        e.preventDefault();
+        fermaClearInlineNotices();
+    });
 
     $(document).on('checkout_error', function () {
         setTimeout(function () {

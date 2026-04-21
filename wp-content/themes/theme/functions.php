@@ -782,6 +782,9 @@ add_filter( 'woocommerce_checkout_fields', function( $fields ) {
 
 function change_delivery_remove_items($points)
 {
+	if ( ! is_array( $points ) || empty( $points ) ) {
+		return true;
+	}
 	foreach(WC()->cart->get_cart() as $cart_item) {
 		$product = $cart_item['data'];
 		//$meta = $product->get_meta_data();
@@ -1244,12 +1247,42 @@ function truemisha_log_history_link( $menu_links ){
 
 }
 
+if ( ! function_exists( 'ferma_theme_kilbil_debug_log' ) ) {
+	/**
+	 * Пишет отладочную строку в файл; не вызывает fwrite при недоступном пути (без фатала).
+	 * Сначала тема/kilbil.txt, при ошибке — wp-uploads/ferma-kilbil-debug.log.
+	 */
+	function ferma_theme_kilbil_debug_log( $chunk ) {
+		if ( ! is_string( $chunk ) ) {
+			$chunk = (string) $chunk;
+		}
+		$paths = array( trailingslashit( get_stylesheet_directory() ) . 'kilbil.txt' );
+		if ( function_exists( 'wp_upload_dir' ) ) {
+			$upload = wp_upload_dir();
+			if ( empty( $upload['error'] ) && ! empty( $upload['basedir'] ) ) {
+				$paths[] = trailingslashit( $upload['basedir'] ) . 'ferma-kilbil-debug.log';
+			}
+		}
+		foreach ( $paths as $path ) {
+			$fp = @fopen( $path, 'ab' );
+			if ( $fp !== false && is_resource( $fp ) ) {
+				@fwrite( $fp, $chunk );
+				@fclose( $fp );
+				return;
+			}
+		}
+	}
+}
+
 add_action( 'woocommerce_order_status_on-hold', 'callback_check_bonus' );
 function callback_check_bonus($order_id) {
 	date_default_timezone_set('Asia/Vladivostok');
 
 	$bonus = get_post_meta( $order_id, 'billing_bonus', true );
 	$order = wc_get_order( $order_id );
+	if ( ! $order ) {
+		return;
+	}
 	$total = $order->get_total();
 
 	$percent = $total / 100 * 30;
@@ -1259,11 +1292,9 @@ function callback_check_bonus($order_id) {
 		$bonus = $percent;
 	}
 
-	$fp = fopen(dirname(__FILE__) . '/kilbil.txt', 'a+');
-	fwrite($fp, "\n---INPUT DATA---\n");
-	fwrite($fp, date("Y-m-d H:i:s\n"));
-	fwrite($fp, $order_id . " - " . $percent . " - " . $total . "\n");
-	fclose($fp);
+	ferma_theme_kilbil_debug_log(
+		"\n---INPUT DATA---\n" . date( 'Y-m-d H:i:s' ) . "\n" . $order_id . ' - ' . $percent . ' - ' . $total . "\n"
+	);
 
 	if((int) $bonus > 0) {
 		$real_bonus = get_real_kilbil_bonus();
@@ -1340,11 +1371,9 @@ function callback_order_bonus($order_id) {
 		$data  = $order->get_data();
 		$bonus = get_post_meta( $order->get_id(), 'billing_bonus', true );
 		if($bonus > 0) {
-			$fp = fopen(dirname(__FILE__) . '/kilbil.txt', 'a+');
-			fwrite($fp, "\n---INPUT DATA---\n");
-			fwrite($fp, date("Y-m-d H:i:s\n"));
-			fwrite($fp, "Начисление бонуса: " . $bonus . "\n");
-			fclose($fp);
+			ferma_theme_kilbil_debug_log(
+				"\n---INPUT DATA---\n" . date( 'Y-m-d H:i:s' ) . "\n" . 'Начисление бонуса: ' . $bonus . "\n"
+			);
 			$arr = array('client_id' => $userbonus, 'bonus_out' => $bonus);
 
 			$url = "https://bonus.kilbil.ru/load/manualadd?h=666c13d171b01d80b04e590794a968b7";
@@ -1551,8 +1580,11 @@ function theme_scripts() {
 		wp_add_inline_style(
 			'new-style',
 			'.ferma-checkout-submit-anchor{position:relative;display:block;width:100%;}' .
-			'.ferma-checkout-inline-notices{visibility:hidden;opacity:0;pointer-events:none;position:absolute;left:0;right:0;bottom:100%;margin-bottom:10px;padding:14px 16px;border-radius:12px;border:1px solid #e74c3c;background:#fff6f6;color:#1a1a1a;font-size:15px;line-height:1.45;box-shadow:0 6px 24px rgba(0,0,0,.12);z-index:30;max-height:min(40vh,280px);overflow:auto;}' .
+			'.ferma-checkout-inline-notices{visibility:hidden;opacity:0;pointer-events:none;position:absolute;left:0;right:0;top:100%;margin-top:10px;padding:14px 40px 14px 16px;border-radius:12px;border:1px solid #e74c3c;background:#fff6f6;color:#1a1a1a;font-size:15px;line-height:1.45;box-shadow:0 6px 24px rgba(0,0,0,.12);z-index:5;max-height:min(40vh,280px);overflow:auto;}' .
 			'.ferma-checkout-inline-notices.is-visible{visibility:visible;opacity:1;pointer-events:auto;}' .
+			'.ferma-checkout-inline-notices__close{position:absolute;top:6px;right:6px;width:36px;height:36px;margin:0;padding:0;border:0;background:transparent;color:#333;font-size:26px;line-height:1;cursor:pointer;border-radius:8px;}' .
+			'.ferma-checkout-inline-notices__close:hover{background:rgba(0,0,0,.06);}' .
+			'.ferma-checkout-inline-notices__body:empty{display:none;}' .
 			'.ferma-checkout-inline-notices ul{margin:0.35em 0 0;padding-left:1.2em;}' .
 			'.ferma-stock-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;}' .
 			'.ferma-stock-modal{background:#fff;border-radius:16px;max-width:440px;width:100%;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,.15);}' .
@@ -1583,7 +1615,7 @@ function theme_scripts() {
 			'custom-checkout-js',
 			get_stylesheet_directory_uri() . '/assets/js/checkout.js',
 			array( 'jquery' ),
-			'1.6',
+			'1.7',
 			true
 		);
 		wp_localize_script(

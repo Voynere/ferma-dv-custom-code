@@ -22,6 +22,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 global $post, $product;
 
 if ( ! $product || ! is_a( $product, 'WC_Product' ) ) {
+	$product = ( $post && isset( $post->ID ) ) ? wc_get_product( $post->ID ) : null;
+}
+if ( ! $product || ! is_a( $product, 'WC_Product' ) ) {
 	return;
 }
 
