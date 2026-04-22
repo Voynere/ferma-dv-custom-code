@@ -266,7 +266,22 @@ a.xoo-wsc-ft-btn.button.btn.xoo-wsc-ft-btn-checkout { background: #4caf50; color
         }
     } else { echo 'Доставка или самовывоз'; $resultArray = 'Выберите способ получения'; }
 } else {
-    $row = $_COOKIE['delivery'];
+    $row = isset($_COOKIE['delivery']) ? $_COOKIE['delivery'] : null;
+    if (!isset($row) || $row === '') {
+        $hasPickup = isset($_COOKIE['billing_samoviziv']) && $_COOKIE['billing_samoviziv'] !== '';
+        $hasDelivery = (isset($_COOKIE['billing_delivery']) && $_COOKIE['billing_delivery'] !== '') ||
+            (isset($_COOKIE['coords']) && $_COOKIE['coords'] !== '') ||
+            (isset($_COOKIE['billing_coords']) && $_COOKIE['billing_coords'] !== '');
+        if ($hasPickup) {
+            $row = '1';
+            setcookie('delivery', '1', time() + 3600 * 24 * 7, '/');
+            $_COOKIE['delivery'] = '1';
+        } elseif ($hasDelivery) {
+            $row = '0';
+            setcookie('delivery', '0', time() + 3600 * 24 * 7, '/');
+            $_COOKIE['delivery'] = '0';
+        }
+    }
     if (isset($row)) {
         if ($row == 1) { echo 'Самовывоз'; $resultArray = $_COOKIE['billing_samoviziv']; }
         if ($row == 0) {
@@ -867,7 +882,22 @@ ob_start();
             }
         } else { $resultArray = 'Выберите способ получения'; }
     } else {
-        $row = $_COOKIE['delivery'];
+        $row = isset($_COOKIE['delivery']) ? $_COOKIE['delivery'] : null;
+        if (!isset($row) || $row === '') {
+            $hasPickup = isset($_COOKIE['billing_samoviziv']) && $_COOKIE['billing_samoviziv'] !== '';
+            $hasDelivery = (isset($_COOKIE['billing_delivery']) && $_COOKIE['billing_delivery'] !== '') ||
+                (isset($_COOKIE['coords']) && $_COOKIE['coords'] !== '') ||
+                (isset($_COOKIE['billing_coords']) && $_COOKIE['billing_coords'] !== '');
+            if ($hasPickup) {
+                $row = '1';
+                setcookie('delivery', '1', time() + 3600 * 24 * 7, '/');
+                $_COOKIE['delivery'] = '1';
+            } elseif ($hasDelivery) {
+                $row = '0';
+                setcookie('delivery', '0', time() + 3600 * 24 * 7, '/');
+                $_COOKIE['delivery'] = '0';
+            }
+        }
         if (isset($row)) {
             if ($row == 1) { echo 'Самовывоз:'; $resultArray = $_COOKIE['billing_samoviziv']; }
             if ($row == 0) {
