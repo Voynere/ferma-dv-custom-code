@@ -32,23 +32,30 @@ add_action( 'wp_enqueue_scripts', function() {
 } );
 // Фильтр фрагментов мини‑корзины — отдаём только содержимое контейнера
 add_filter( 'woocommerce_add_to_cart_fragments', function( $fragments ) {
-    // генерируем полный HTML мини‑корзины
-    ob_start();
-        wc_get_template( 'cart/mini-cart.php' );
-    $mini_cart_html = ob_get_clean();
+	if ( ! is_array( $fragments ) ) {
+		$fragments = array();
+	}
+	// До полной инициализации корзины WC()->cart может быть null — иначе фатал на get_cart() / mini-cart.
+	if ( ! function_exists( 'WC' ) || ! WC() || ! WC()->cart ) {
+		$fragments['span.cart-count'] = '<span class="cart-count">0</span>';
+		return $fragments;
+	}
+	// генерируем полный HTML мини‑корзины
+	ob_start();
+	wc_get_template( 'cart/mini-cart.php' );
+	$mini_cart_html = ob_get_clean();
 
-    $wrapper_html  = '<div class="cart__container">';
-    $wrapper_html .= $mini_cart_html;
-    $wrapper_html .= '</div>';
+	$wrapper_html  = '<div class="cart__container">';
+	$wrapper_html .= $mini_cart_html;
+	$wrapper_html .= '</div>';
 
-    $fragments['.cart__container'] = $wrapper_html;
+	$fragments['.cart__container'] = $wrapper_html;
 
+	ob_start();
+	echo '<span class="cart-count">' . count( WC()->cart->get_cart() ) . '</span>';
+	$fragments['span.cart-count'] = ob_get_clean();
 
-    ob_start();
-        echo '<span class="cart-count">' . count( WC()->cart->get_cart() ) . '</span>';
-    $fragments['span.cart-count'] = ob_get_clean();
-
-    return $fragments;
+	return $fragments;
 } );
 
 // Добавляется класс add_to_cart_button к кнопке «В корзину» в лупе
@@ -82,7 +89,7 @@ function custom_related_products_args($args) {
 add_filter('woocommerce_loop_add_to_cart_args', 'add_custom_class_to_add_to_cart_button', 10, 2);
 function add_custom_class_to_add_to_cart_button($args, $product) {
     // Проверка
-    if ( is_product() || is_product_category() || is_search() ) {
+	if ( ( function_exists( 'is_product' ) && is_product() ) || ( function_exists( 'is_product_category' ) && is_product_category() ) || is_search() ) {
         // Удаление класса button и добавление shop-ferma__rel-add
         $args['class'] = str_replace('button', '', $args['class']);
         $args['class'] .= ' shop-ferma__rel-add';
@@ -114,7 +121,7 @@ function custom_breadcrumb_separator( $defaults ) {
 }
 add_filter( 'woocommerce_get_breadcrumb', 'custom_product_category_breadcrumbs', 10, 2 );
 function custom_product_category_breadcrumbs( $crumbs, $breadcrumb ) {
-    if ( is_product_category() ) {
+	if ( function_exists( 'is_product_category' ) && is_product_category() ) {
         $current_term = get_queried_object();
 
         if ( is_a( $current_term, 'WP_Term' ) ) {

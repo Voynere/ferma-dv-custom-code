@@ -9,7 +9,7 @@
 add_action('init', 'force_no_cache_for_checkout');
 
 function force_no_cache_for_checkout() {
-    if ( function_exists( 'is_checkout' ) && is_checkout() && ! is_order_received_page() ) {
+	if ( function_exists( 'is_checkout' ) && is_checkout() && function_exists( 'is_order_received_page' ) && ! is_order_received_page() ) {
         // Заголовки для отключения кэширования
         header('Cache-Control: no-cache, no-store, must-revalidate');
         header('Pragma: no-cache');
@@ -46,10 +46,17 @@ if ( ! function_exists( 'ferma_is_catalog_cache_candidate' ) ) {
 		if ( ! function_exists( 'is_shop' ) ) {
 			return false;
 		}
-		if ( is_cart() || is_checkout() || is_account_page() ) {
+		if (
+			( function_exists( 'is_cart' ) && is_cart() )
+			|| ( function_exists( 'is_checkout' ) && is_checkout() )
+			|| ( function_exists( 'is_account_page' ) && is_account_page() )
+		) {
 			return false;
 		}
-		return is_front_page() || is_home() || is_shop() || is_product_category() || is_product_tag();
+		return is_front_page() || is_home()
+			|| ( function_exists( 'is_shop' ) && is_shop() )
+			|| ( function_exists( 'is_product_category' ) && is_product_category() )
+			|| ( function_exists( 'is_product_tag' ) && is_product_tag() );
 	}
 }
 
@@ -117,7 +124,11 @@ if ( ! function_exists( 'ferma_is_guest_cacheable_page' ) ) {
 		if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
 			return false;
 		}
-		if ( function_exists( 'is_cart' ) && ( is_cart() || is_checkout() || is_account_page() ) ) {
+		if (
+			( function_exists( 'is_cart' ) && is_cart() )
+			|| ( function_exists( 'is_checkout' ) && is_checkout() )
+			|| ( function_exists( 'is_account_page' ) && is_account_page() )
+		) {
 			return false;
 		}
 		if ( isset( $_SERVER['REQUEST_METHOD'] ) && $_SERVER['REQUEST_METHOD'] !== 'GET' ) {
@@ -491,7 +502,11 @@ function ferma_catalog_infinite_remove_pagination() {
 	if ( ! apply_filters( 'ferma_catalog_infinite_scroll_enabled', true ) ) {
 		return;
 	}
-	if ( ! is_shop() && ! is_product_category() && ! is_product_tag() ) {
+	if (
+		! ( function_exists( 'is_shop' ) && is_shop() )
+		&& ! ( function_exists( 'is_product_category' ) && is_product_category() )
+		&& ! ( function_exists( 'is_product_tag' ) && is_product_tag() )
+	) {
 		return;
 	}
 	$paged = max( 1, (int) get_query_var( 'paged' ), (int) get_query_var( 'page' ) );
@@ -1600,9 +1615,9 @@ add_action( 'widgets_init', 'theme_widgets_init' );
  * Enqueue scripts and styles.
  */
 function theme_scripts() {
-	if ( ! is_page(2 & 18120) & ! is_product() ) {
+	if ( ! is_page( 2 ) && ! is_page( 18120 ) && ! ( function_exists( 'is_product' ) && is_product() ) ) {
 		wp_enqueue_style( 'theme-style', get_stylesheet_uri(), '', '2.9.9' );
-    }
+	}
 
 	wp_enqueue_style( 'complect-style', get_template_directory_uri() . '/css/complect.css', '', '1.0' );
 
@@ -1617,7 +1632,7 @@ function theme_scripts() {
 	$version = file_exists($style_path) ? filemtime($style_path) : null;
 	wp_enqueue_style( 'new-style', $style_uri, [], $version );
 
-	if ( is_checkout() && ! is_order_received_page() ) {
+	if ( function_exists( 'is_checkout' ) && is_checkout() && function_exists( 'is_order_received_page' ) && ! is_order_received_page() ) {
 		wp_add_inline_style(
 			'new-style',
 			'.ferma-checkout-submit-anchor{position:relative;display:block;width:100%;}' .
@@ -1666,7 +1681,7 @@ function theme_scripts() {
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
 		wp_enqueue_script( 'comment-reply' );
 	}
-	if ( is_checkout() && ! is_order_received_page() ) {
+	if ( function_exists( 'is_checkout' ) && is_checkout() && function_exists( 'is_order_received_page' ) && ! is_order_received_page() ) {
 		wp_enqueue_script(
 			'custom-checkout-js',
 			get_stylesheet_directory_uri() . '/assets/js/checkout.js',
@@ -3031,9 +3046,9 @@ function custom_display_product_attributes_in_summary() {
 
 
 function redirect_child_category() {
-    if ( ! is_product_category() ) {
-        return;
-    }
+	if ( ! function_exists( 'is_product_category' ) || ! is_product_category() ) {
+		return;
+	}
     if ( ! isset( $_SERVER['REMOTE_ADDR'] ) || $_SERVER['REMOTE_ADDR'] !== '217.150.75.124' ) {
         return;
     }
@@ -3286,7 +3301,10 @@ add_action( 'save_post_q_promocode', function ( $post_id ) {
 
 
 function q_get_active_promocode() {
-    return WC()->session->get( 'q_active_promo' );
+	if ( ! function_exists( 'WC' ) || ! WC() || ! WC()->session ) {
+		return null;
+	}
+	return WC()->session->get( 'q_active_promo' );
 }
 add_action( 'wp_ajax_check_active_promo', 'handle_check_active_promo' );
 add_action( 'wp_ajax_nopriv_check_active_promo', 'handle_check_active_promo' );
@@ -3384,12 +3402,12 @@ function ferma_apply_q_promo_from_cookie( $posted_data ) {
     $active = q_get_active_promocode();
 
     // 1) Куки НЕТ – промо считаем выключенным, чистим сессию и выходим
-    if ( ! $code ) {
-        if ( $active ) {
-            WC()->session->__unset( 'q_active_promo' );
-        }
-        return;
-    }
+	if ( ! $code ) {
+		if ( $active && function_exists( 'WC' ) && WC() && WC()->session ) {
+			WC()->session->__unset( 'q_active_promo' );
+		}
+		return;
+	}
 
     // 2) Кука есть, но этот же код уже активен – ничего не делаем,
     // чтобы не дублировать скидку/подарок
@@ -3400,9 +3418,10 @@ function ferma_apply_q_promo_from_cookie( $posted_data ) {
     // 3) Пытаемся применить промо
     $result = q_apply_promocode_with_gift( $code );
 
-    if ( is_wp_error( $result ) ) {
-        // Чистим сессию
-        WC()->session->__unset( 'q_active_promo' );
+	if ( is_wp_error( $result ) ) {
+		if ( function_exists( 'WC' ) && WC() && WC()->session ) {
+			WC()->session->__unset( 'q_active_promo' );
+		}
 
         // Чистим куку
         setcookie( 'ferma_promo_code', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN );
@@ -3418,10 +3437,10 @@ function ferma_apply_q_promo_from_cookie( $posted_data ) {
 }
 
 add_action( 'woocommerce_before_checkout_form', function() {
-    // Только на checkout и только не в AJAX
-    if ( ! is_checkout() || wp_doing_ajax() ) {
-        return;
-    }
+	// Только на checkout и только не в AJAX
+	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() || wp_doing_ajax() ) {
+		return;
+	}
 
     // posted_data внутри не используется, можно передать пустую строку
     ferma_apply_q_promo_from_cookie( '' );
@@ -3718,10 +3737,10 @@ function ferma_cart_gift_label_under_name( $name, $cart_item, $cart_item_key ) {
 add_filter( 'woocommerce_cart_item_subtotal', 'ferma_gift_subtotal_replace', 10, 3 );
 function ferma_gift_subtotal_replace( $subtotal, $cart_item, $cart_item_key ) {
 
-    // В чекауте НИЧЕГО не меняем – пусть будет стандартный 0 ₽
-    if ( is_checkout() ) {
-        return $subtotal;
-    }
+	// В чекауте НИЧЕГО не меняем – пусть будет стандартный 0 ₽
+	if ( function_exists( 'is_checkout' ) && is_checkout() ) {
+		return $subtotal;
+	}
 
     // Не подарок — не трогаем
     if ( empty( $cart_item['q_promo_gift'] ) ) {
@@ -4196,10 +4215,16 @@ function ferma_allow_decimal_qty_for_weighted( $passed, $product_id, $quantity, 
 add_action( 'wp_enqueue_scripts', 'ferma_enqueue_catalog_price_script' );
 function ferma_enqueue_catalog_price_script() {
 
-    // Если нужно только в каталоге:
-    if ( ! ( is_shop() || is_product_category() || is_product_tag() ) ) {
-        return;
-    }
+	// Если нужно только в каталоге:
+	if (
+		! (
+			( function_exists( 'is_shop' ) && is_shop() )
+			|| ( function_exists( 'is_product_category' ) && is_product_category() )
+			|| ( function_exists( 'is_product_tag' ) && is_product_tag() )
+		)
+	) {
+		return;
+	}
 
     wp_enqueue_script(
         'ferma-catalog-price', // handle
@@ -4837,7 +4862,7 @@ add_action('wp', 'disable_caching_for_checkout');
 
 function disable_caching_for_checkout()
 {
-    if (is_checkout() && !is_wc_endpoint_url()) {
+	if ( function_exists( 'is_checkout' ) && is_checkout() && function_exists( 'is_wc_endpoint_url' ) && ! is_wc_endpoint_url() ) {
         // Для WP Super Cache
         if (!defined('DONOTCACHEPAGE')) {
             define('DONOTCACHEPAGE', true);
@@ -4872,9 +4897,9 @@ function add_checkout_cookies_to_cache_exception($cookies)
     return $cookies;
 }
 add_action('wp_enqueue_scripts', function () {
-    if ( ! is_checkout() || is_order_received_page() ) {
-        return;
-    }
+	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() || ( function_exists( 'is_order_received_page' ) && is_order_received_page() ) ) {
+		return;
+	}
 
     // Определяем самовывоз на сервере (это ключевое)
     $is_pickup = false;
