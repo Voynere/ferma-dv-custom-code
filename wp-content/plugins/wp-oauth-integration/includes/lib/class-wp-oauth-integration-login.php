@@ -66,15 +66,11 @@ if (!class_exists('WP_OAuth_Integration_Login')) {
             // Add shortcode for generating OAuth Login URL
             add_shortcode(WP_OAuth_Integration_Factory::get_prefix($this->provider) . '_login_link', array($this, 'get_login_link'));
 
-            // Start session
-            if (!session_id()) {
-                session_start();
-            }
-
         }
 
         // Returns OAuth authorization URL
         public function get_auth_url($redirect = false) {
+            $this->ensure_session_started();
 
             $state = wp_generate_password(12, false);
             $authorize_url = $this->oauth->authorizeUrl(array('scope' => 'basic',
@@ -108,6 +104,7 @@ if (!class_exists('WP_OAuth_Integration_Login')) {
             if (!$this->is_oauth_signin()) {
                 return;
             }
+            $this->ensure_session_started();
 
             // If this is a user sign-in request, but the user denied granting access, redirect to login URL
             if (isset($_REQUEST['error']) && $_REQUEST['error'] == 'access_denied') {
@@ -213,7 +210,8 @@ if (!class_exists('WP_OAuth_Integration_Login')) {
             wp_logout();
 
             // Set default redirect URL to the URL provided by shortcode and stored in session
-            $this->user_redirect = $_SESSION[WP_OAuth_Integration_Factory::get_prefix($this->provider) . '_api_redirect'];
+            $redirect_key = WP_OAuth_Integration_Factory::get_prefix($this->provider) . '_api_redirect';
+            $this->user_redirect = isset($_SESSION[$redirect_key]) ? $_SESSION[$redirect_key] : false;
 
             // See if a user with the above OAuth ID exists in our database
             $user_by_oauth_id = get_users(array('meta_key' => WP_OAuth_Integration_Factory::get_prefix($this->provider) . '_profile_id',
@@ -225,7 +223,7 @@ if (!class_exists('WP_OAuth_Integration_Login')) {
                 $user_id = $user_by_oauth_id[0]->ID;
 
                 // No custom redirect URL has been specified
-                if ($_SESSION[WP_OAuth_Integration_Factory::get_prefix($this->provider) . '_api_redirect'] === false) {
+                if (!isset($_SESSION[$redirect_key]) || $_SESSION[$redirect_key] === false) {
 
                     // User already exists in our database, redirect him to Login Redirect URL
                     $this->user_redirect = $this->plugin_options['redirect_url'];
@@ -385,6 +383,15 @@ if (!class_exists('WP_OAuth_Integration_Login')) {
             }
             
             return $username;
+        }
+
+        /**
+         * Starts PHP session only when OAuth flow actually needs it.
+         */
+        private function ensure_session_started() {
+            if (session_status() !== PHP_SESSION_ACTIVE && !headers_sent()) {
+                session_start();
+            }
         }
 
     }

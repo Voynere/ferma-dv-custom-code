@@ -13,8 +13,9 @@ class OAuthClientauthenticate
 
         $authorizationUrl = $auth_code_url . "?client_id=" . $client_id . "&scope=" . $scope . "&redirect_uri=" . home_url() . "&response_type=code&state=" . $state;
 
-        if (session_id() == '' || !isset($session) && !headers_sent())
+        if (session_status() !== PHP_SESSION_ACTIVE && !headers_sent()) {
             session_start();
+        }
 
         header('Location: ' . $authorizationUrl);
         exit;
