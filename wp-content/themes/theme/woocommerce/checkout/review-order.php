@@ -42,6 +42,9 @@ defined( 'ABSPATH' ) || exit;
                 }
 
                 $is_weight_product = ( $weight_ratio > 0 && $weight_ratio < 1 );
+                $qty_steps         = $is_weight_product
+                    ? max( 1, (int) round( (float) $quantity / (float) $weight_ratio ) )
+                    : max( 1, (int) round( (float) $quantity ) );
 
                 // сумма по позиции (как в mini-cart)
                 $line_total = $cart_item['line_total'] + $cart_item['line_tax'];
@@ -71,7 +74,7 @@ defined( 'ABSPATH' ) || exit;
                                          data-product_id="<?php echo esc_attr( $cart_item['product_id'] ); ?>"
                                          data-weight_ratio="<?php echo esc_attr( $weight_ratio ); ?>"
                                          data-current_qty="<?php echo esc_attr( $quantity ); ?>"
-                                         data-steps="<?php echo esc_attr( $quantity ); ?>">
+                                         data-steps="<?php echo esc_attr( $qty_steps ); ?>">
 
                                         <button type="button"
                                                 class="cart__qty-btn cart__qty-btn--minus"

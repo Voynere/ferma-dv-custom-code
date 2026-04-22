@@ -31,9 +31,15 @@
 
         const ratio = parseFloat(qtyWrap.dataset.weight_ratio || '1');
 
-        let steps = parseInt(qtyWrap.dataset.steps || '0', 10);
-        if (isNaN(steps) || steps < 1) {
-            steps = 1;
+        var rawSteps = parseFloat(qtyWrap.dataset.steps || '0');
+        var currentQty = parseFloat((qtyWrap.dataset.current_qty || '0').toString().replace(',', '.'));
+        let steps = Math.round(rawSteps);
+        if (!Number.isFinite(steps) || steps < 1) {
+            if (Number.isFinite(currentQty) && currentQty > 0) {
+                steps = ratio < 1 ? Math.max(1, Math.round(currentQty / ratio)) : Math.max(1, Math.round(currentQty));
+            } else {
+                steps = 1;
+            }
         }
 
         if (action === 'increase') {
@@ -45,8 +51,6 @@
             }
         }
 
-        qtyWrap.dataset.steps = String(steps);
-
         let displayQty;
         if (ratio < 1) {
             displayQty = steps * ratio;
@@ -54,6 +58,8 @@
         } else {
             displayQty = steps;
         }
+        qtyWrap.dataset.steps = String(steps);
+        qtyWrap.dataset.current_qty = String(displayQty);
 
         qtyElement.textContent = String(displayQty).replace('.', ',');
 
@@ -67,6 +73,11 @@
         data.append('cart_item_key', cartItemKey);
         data.append('qty', quantity);
         data.append('nonce', CartQtyData.nonce);
+
+        if (qtyWrapHasPending(cartItemKey)) {
+            return;
+        }
+        setQtyWrapPending(cartItemKey, true);
 
         fetch(CartQtyData.ajax_url, {
             method: 'POST',
@@ -97,10 +108,35 @@
                         });
                     });
                     jQuery(document.body).trigger('update_checkout');
+                } else {
+                    // Даже если фрагменты не пришли, просим Woo пересчитать итоги checkout.
+                    jQuery(document.body).trigger('update_checkout');
                 }
             })
             .catch(function (error) {
                 console.error('Mini/checkout cart qty AJAX error:', error);
+            })
+            .finally(function () {
+                setQtyWrapPending(cartItemKey, false);
             });
+    }
+
+    function qtyWrapHasPending(cartItemKey) {
+        if (!cartItemKey) {
+            return false;
+        }
+        var wrap = document.querySelector('.cart__qty[data-cart_item_key="' + cartItemKey + '"]');
+        return !!(wrap && wrap.dataset.pending === '1');
+    }
+
+    function setQtyWrapPending(cartItemKey, pending) {
+        if (!cartItemKey) {
+            return;
+        }
+        var wrap = document.querySelector('.cart__qty[data-cart_item_key="' + cartItemKey + '"]');
+        if (!wrap) {
+            return;
+        }
+        wrap.dataset.pending = pending ? '1' : '0';
     }
 })();
