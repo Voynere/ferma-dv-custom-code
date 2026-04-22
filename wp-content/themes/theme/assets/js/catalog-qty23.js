@@ -507,6 +507,10 @@ jQuery(document).ready(function($) {
     }
 
     $(document).on('click', '.cart__qty-btn--plus', function(e) {
+        // На checkout этими кнопками управляет mini-cart-qty.js
+        if ($(this).closest('.ferma-checkout__form-table').length) {
+            return;
+        }
         // если это кнопка внутри .shop-ferma__cart — выходим, ею занимается другой код
         if ($(this).closest('.shop-ferma__cart').length) {
             return;
@@ -524,6 +528,10 @@ jQuery(document).ready(function($) {
     });
 
     $(document).on('click', '.cart__qty-btn--minus', function(e) {
+        // На checkout этими кнопками управляет mini-cart-qty.js
+        if ($(this).closest('.ferma-checkout__form-table').length) {
+            return;
+        }
         // если это кнопка внутри .shop-ferma__cart — выходим
         if ($(this).closest('.shop-ferma__cart').length) {
             return;
