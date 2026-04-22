@@ -123,6 +123,7 @@
                         typeof window.wc_checkout_form.update_checkout === 'function') {
                         window.wc_checkout_form.update_checkout();
                     }
+                    refreshCheckoutPanels();
                 } else {
                     // Даже если фрагменты не пришли, просим Woo пересчитать итоги checkout.
                     jQuery(document.body).trigger('update_checkout');
@@ -130,6 +131,7 @@
                         typeof window.wc_checkout_form.update_checkout === 'function') {
                         window.wc_checkout_form.update_checkout();
                     }
+                    refreshCheckoutPanels();
                 }
             })
             .fail(function (error) {
@@ -138,6 +140,39 @@
             .always(function () {
                 setQtyWrapPending(cartItemKey, false);
             });
+    }
+
+    function refreshCheckoutPanels() {
+        var $checkoutForm = jQuery('form.checkout');
+        if (!$checkoutForm.length) {
+            return;
+        }
+        if (typeof wc_checkout_params === 'undefined' || !wc_checkout_params.wc_ajax_url) {
+            return;
+        }
+        var endpoint = wc_checkout_params.wc_ajax_url.toString().replace('%%endpoint%%', 'update_order_review');
+        var payload = {
+            security: wc_checkout_params.update_order_review_nonce || '',
+            post_data: $checkoutForm.serialize()
+        };
+        jQuery.ajax({
+            type: 'POST',
+            url: endpoint,
+            data: payload,
+            dataType: 'json'
+        }).done(function (res) {
+            if (!res || !res.fragments) {
+                return;
+            }
+            Object.keys(res.fragments).forEach(function (selector) {
+                var html = res.fragments[selector];
+                var $el = jQuery(selector);
+                if ($el.length) {
+                    $el.replaceWith(html);
+                }
+            });
+            jQuery(document.body).trigger('updated_checkout', [res]);
+        });
     }
 
     function qtyWrapHasPending(cartItemKey) {
