@@ -58,3 +58,15 @@ wp-content/themes/theme/includes/kuper/tmp/
 *.temp
 *.bak
 *.old
+# Plugins: ignore all by default, keep only managed ones
+wp-content/plugins/*
+!wp-content/plugins/index.php
+!wp-content/plugins/wp-oauth-integration/
+!wp-content/plugins/oauth-client-for-user-authentication/
+!wp-content/plugins/woocommerce-mysklad-sync/
+!wp-content/plugins/wms-store/
+!wp-content/plugins/wms-addon-groop/
+!wp-content/plugins/unisender-wordpress-plugin-nov-23/
+!wp-content/plugins/yml-for-yandex-market/
+!wp-content/plugins/woo-checkout-field-editor-pro/
+!wp-content/plugins/woocommerce-pdf-ips-templates/
