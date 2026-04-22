@@ -219,6 +219,13 @@ jQuery(document).ready(function() {
 		if(delivery_type != window.current_delivery_value) {
 			window.current_delivery_value = delivery_type;
 			$('#place_order').attr('disabled', true);
+			var deliveryArray = (delivery_type || '').split('_');
+			if (deliveryArray.length === 2) {
+				var d = new Date;
+				d.setTime(d.getTime() + 24*60*60*1000*30);
+				document.cookie = 'delivery_day=' + deliveryArray[0] + ';path=/;expires=' + d.toGMTString();
+				document.cookie = 'delivery_time=' + deliveryArray[1] + ';path=/;expires=' + d.toGMTString();
+			}
 			var data = {
 				action: 'update_delivery_type',
 				delivery_type: delivery_type
@@ -226,10 +233,18 @@ jQuery(document).ready(function() {
 			
 			jQuery.post( woocommerce_params.ajax_url, data, function( response )
 			{
+				// Обновляем order review после подтверждения сервера.
 				$('body').trigger( 'update_checkout' );
 				if (typeof window.wc_checkout_form !== 'undefined' && typeof window.wc_checkout_form.update_checkout === 'function') {
 					window.wc_checkout_form.update_checkout();
 				}
+				// Дополнительный догоняющий пересчёт на случай гонки cookie/update_order_review.
+				setTimeout(function() {
+					$('body').trigger( 'update_checkout' );
+					if (typeof window.wc_checkout_form !== 'undefined' && typeof window.wc_checkout_form.update_checkout === 'function') {
+						window.wc_checkout_form.update_checkout();
+					}
+				}, 120);
 				setTimeout(() => {
 				  $('#place_order').attr('disabled', false);
 				}, 2000);

@@ -449,13 +449,31 @@ if(!function_exists('ferma_update_delivery')) {
 	add_action( 'wp_ajax_update_delivery_type', 'ferma_update_delivery_type' );
 	function ferma_update_delivery_type()
 	{
-		$delivery = $_POST['delivery_type'];
-		$delivery = explode("_", $delivery);
+		$delivery_type = isset( $_POST['delivery_type'] ) ? sanitize_text_field( wp_unslash( $_POST['delivery_type'] ) ) : '';
+		$delivery = explode("_", $delivery_type);
 		
 		if(isset($delivery[1]) && $delivery[1] != '' && isset($delivery[0]) && $delivery[0] != '') {
-			setcookie( 'delivery_time', $delivery[1], time() + 3600 * 24 * 7, '/' );
-			setcookie( 'delivery_day', $delivery[0], time() + 3600 * 24 * 7, '/' );
+			$delivery_time = $delivery[1];
+			$delivery_day  = $delivery[0];
+			setcookie( 'delivery_time', $delivery_time, time() + 3600 * 24 * 7, '/' );
+			setcookie( 'delivery_day', $delivery_day, time() + 3600 * 24 * 7, '/' );
+			$_COOKIE['delivery_time'] = $delivery_time;
+			$_COOKIE['delivery_day']  = $delivery_day;
+
+			wp_send_json_success(
+				array(
+					'delivery_day'  => $delivery_day,
+					'delivery_time' => $delivery_time,
+				)
+			);
 		}
+
+		wp_send_json_error(
+			array(
+				'message' => 'Invalid delivery_type',
+			),
+			400
+		);
 	}
 }
 
