@@ -14,10 +14,27 @@
     }
 
     function fermaCheckoutNoticeSources() {
-        return $('#order_review, form.checkout')
-            .find('.woocommerce-NoticeGroup.woocommerce-NoticeGroup-checkout, .woocommerce-NoticeGroup-checkout')
+        var $scope = $('body.woocommerce-checkout');
+        if (!$scope.length) {
+            $scope = $('body');
+        }
+        return $scope
+            .find(
+                '.woocommerce-NoticeGroup.woocommerce-NoticeGroup-checkout, .woocommerce-NoticeGroup-checkout, .woocommerce-notices-wrapper'
+            )
             .filter(function () {
-                return !$(this).closest('.ferma-checkout-inline-notices').length;
+                var $el = $(this);
+                if ($el.closest('.ferma-checkout-inline-notices').length) {
+                    return false;
+                }
+                var html = $el.html();
+                if (!html || !$.trim(html)) {
+                    return false;
+                }
+                return (
+                    $el.find('.woocommerce-error, .woocommerce-message, .woocommerce-info, .woocommerce-notice').length > 0 ||
+                    $el.hasClass('woocommerce-NoticeGroup-checkout')
+                );
             });
     }
 
@@ -45,7 +62,11 @@
             return;
         }
         var text = $body.text().toLowerCase();
-        if (text.indexOf('минимальная сумма корзины') === -1 && text.indexOf('минимальный заказ') === -1) {
+        var looksMinOrder =
+            text.indexOf('минимальн') !== -1 ||
+            text.indexOf('сумма корзины') !== -1 ||
+            (text.indexOf('1000') !== -1 && (text.indexOf('корзин') !== -1 || text.indexOf('доставк') !== -1));
+        if (!looksMinOrder) {
             return;
         }
         $body.html(fermaRenderMinOrderNotice());
@@ -133,7 +154,20 @@
         fermaClearInlineNotices();
     });
 
-    $(document).on('checkout_error', function () {
+    function fermaSyncInlineNoticesAfterWcUpdate() {
+        fermaApplyCompactPlaceholders();
+        fermaBeautifyChangeAddressButton();
+        // updated_checkout часто идёт после checkout_error; нельзя всегда очищать — иначе пропадают ошибки и мин. сумма.
+        setTimeout(function () {
+            if (fermaCheckoutNoticeSources().length) {
+                fermaShowInlineFromCheckoutNotices();
+            } else {
+                fermaClearInlineNotices();
+            }
+        }, 0);
+    }
+
+    $(document.body).on('checkout_error', function () {
         // После рабочего патча scroll_to_notices позиция ещё не сброшена; иначе берём запас с place_order.
         var keepY =
             window.pageYOffset ||
@@ -157,9 +191,7 @@
     });
 
     $(document.body).on('updated_checkout', function () {
-        fermaClearInlineNotices();
-        fermaApplyCompactPlaceholders();
-        fermaBeautifyChangeAddressButton();
+        fermaSyncInlineNoticesAfterWcUpdate();
     });
 
     $(function () {
@@ -282,21 +314,27 @@
                 return;
             }
             ev.preventDefault();
-            ev.stopPropagation();
-            if (typeof ev.stopImmediatePropagation === 'function') {
-                ev.stopImmediatePropagation();
+            // Не вызываем stopImmediatePropagation — мешает цепочке WooCommerce (валидация полей).
+
+            function fermaResumePlaceOrder() {
+                window.__fermaStockGateOk = true;
+                if (typeof form.requestSubmit === 'function') {
+                    try {
+                        form.requestSubmit(placeBtn);
+                        return;
+                    } catch (err) {}
+                }
+                placeBtn.click();
             }
 
             fermaStockAjax('ferma_checkout_stock_check', function (res) {
                 if (!res || !res.success || !res.data) {
-                    window.__fermaStockGateOk = true;
-                    placeBtn.click();
+                    fermaResumePlaceOrder();
                     return;
                 }
                 var issues = res.data.issues || [];
                 if (!issues.length) {
-                    window.__fermaStockGateOk = true;
-                    placeBtn.click();
+                    fermaResumePlaceOrder();
                     return;
                 }
                 var first = issues[0];
@@ -318,8 +356,15 @@
                             if (applyRes && applyRes.success) {
                                 $(document.body).trigger('update_checkout');
                                 setTimeout(function () {
-                                    window.__fermaStockGateOk = true;
                                     var btn = document.getElementById('place_order');
+                                    var frm = btn ? btn.closest('form.checkout') : null;
+                                    window.__fermaStockGateOk = true;
+                                    if (frm && btn && typeof frm.requestSubmit === 'function') {
+                                        try {
+                                            frm.requestSubmit(btn);
+                                            return;
+                                        } catch (e) {}
+                                    }
                                     if (btn) {
                                         btn.click();
                                     }

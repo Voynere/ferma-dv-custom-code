@@ -1589,7 +1589,7 @@ function theme_scripts() {
 			'new-style',
 			'.ferma-checkout-submit-anchor{position:relative;display:block;width:100%;}' .
 			'.ferma-checkout-inline-notices{visibility:hidden;opacity:0;pointer-events:none;position:absolute;left:0;right:0;top:100%;margin-top:10px;padding:14px 40px 14px 16px;border-radius:12px;border:1px solid #e74c3c;background:#fff6f6;color:#1a1a1a;font-size:15px;line-height:1.45;box-shadow:0 6px 24px rgba(0,0,0,.12);z-index:5;max-height:min(40vh,280px);overflow:auto;}' .
-			'.ferma-checkout-inline-notices.is-visible{visibility:visible;opacity:1;pointer-events:auto;}' .
+			'.ferma-checkout-inline-notices.is-visible{visibility:visible;opacity:1;pointer-events:auto;z-index:10050;}' .
 			'.ferma-checkout-inline-notices__close{position:absolute;top:6px;right:6px;width:36px;height:36px;margin:0;padding:0;border:0;background:transparent;color:#333;font-size:26px;line-height:1;cursor:pointer;border-radius:8px;}' .
 			'.ferma-checkout-inline-notices__close:hover{background:rgba(0,0,0,.06);}' .
 			'.ferma-checkout-inline-notices__body:empty{display:none;}' .
@@ -1638,7 +1638,7 @@ function theme_scripts() {
 			'custom-checkout-js',
 			get_stylesheet_directory_uri() . '/assets/js/checkout.js',
 			array( 'jquery', 'wc-checkout' ),
-			'2.8',
+			'2.9',
 			true
 		);
 		wp_localize_script(
