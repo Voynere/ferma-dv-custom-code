@@ -12,15 +12,39 @@ if(!function_exists('ferma_get_current_shops')) {
 		$shops = [];
 		
 		if ( is_user_logged_in() ) {
-			$delivery = get_user_meta( get_current_user_id(), 'delivery' , true );
+			$user_id  = get_current_user_id();
+			$delivery = get_user_meta( $user_id, 'delivery' , true );
+			if ( $delivery === '' || $delivery === null ) {
+				$has_pickup   = (string) get_user_meta( $user_id, 'billing_samoviziv', true ) !== '' ||
+					( isset( $_COOKIE['key_market'] ) && $_COOKIE['key_market'] !== '' ) ||
+					( isset( $_COOKIE['market'] ) && $_COOKIE['market'] !== '' );
+				$has_delivery = (string) get_user_meta( $user_id, 'billing_delivery', true ) !== '' ||
+					(string) get_user_meta( $user_id, 'coords', true ) !== '' ||
+					( isset( $_COOKIE['coords'] ) && $_COOKIE['coords'] !== '' ) ||
+					( isset( $_COOKIE['billing_coords'] ) && $_COOKIE['billing_coords'] !== '' );
+				if ( $has_pickup ) {
+					$delivery = '1';
+				} elseif ( $has_delivery ) {
+					$delivery = '0';
+				}
+			}
 			
 			if($delivery == 1) {
 				if(isset($_COOKIE['key_market']) && $_COOKIE['key_market'] != '') {
 					$shops = [
 						$_COOKIE['key_market']
 					];
+				} elseif ( isset($_COOKIE['market']) && $_COOKIE['market'] !== '' ) {
+					$market_map = array(
+						'Эгершельд' => '7c0dc9ce-ce1e-11ea-0a80-09ca000e5e93',
+						'Реми-Сити' => 'b24e4c35-9609-11eb-0a80-0d0d008550c2',
+						'Космос' => 'a99d6fdf-0970-11ed-0a80-0ed600075845',
+					);
+					if ( isset( $market_map[ $_COOKIE['market'] ] ) ) {
+						$shops = array( $market_map[ $_COOKIE['market'] ] );
+					}
 				} else {
-					$point = get_user_meta( get_current_user_id(), 'billing_point' , true );
+					$point = get_user_meta( $user_id, 'billing_point' , true );
 					$shops = [
 						$point
 					];
@@ -28,25 +52,52 @@ if(!function_exists('ferma_get_current_shops')) {
 			} else {
 				if(isset($_COOKIE['coords']) && $_COOKIE['coords'] != '') {
 					$coords = $_COOKIE['coords'];
+				} else if ( isset($_COOKIE['billing_coords']) && $_COOKIE['billing_coords'] != '' ) {
+					$coords = $_COOKIE['billing_coords'];
 				} else {
-					$coords = get_user_meta( get_current_user_id(), 'coords' , true );
+					$coords = get_user_meta( $user_id, 'coords' , true );
 				}
 				
 				$shops = ferma_get_shops_by_coords($coords);
 			}
 		} else {
-			$delivery = $_COOKIE['delivery'];
+			$delivery = isset( $_COOKIE['delivery'] ) ? $_COOKIE['delivery'] : '';
+			if ( $delivery === '' ) {
+				$has_pickup   = ( isset( $_COOKIE['billing_samoviziv'] ) && $_COOKIE['billing_samoviziv'] !== '' ) ||
+					( isset( $_COOKIE['key_market'] ) && $_COOKIE['key_market'] !== '' ) ||
+					( isset( $_COOKIE['market'] ) && $_COOKIE['market'] !== '' );
+				$has_delivery = ( isset( $_COOKIE['billing_delivery'] ) && $_COOKIE['billing_delivery'] !== '' ) ||
+					( isset( $_COOKIE['coords'] ) && $_COOKIE['coords'] !== '' ) ||
+					( isset( $_COOKIE['billing_coords'] ) && $_COOKIE['billing_coords'] !== '' );
+				if ( $has_pickup ) {
+					$delivery = '1';
+				} elseif ( $has_delivery ) {
+					$delivery = '0';
+				}
+			}
 			
 			if($delivery == 1) {
 				if(isset($_COOKIE['key_market']) && $_COOKIE['key_market'] != '') {
 					$shops = [
 						$_COOKIE['key_market']
 					];
+				} else if ( isset($_COOKIE['market']) && $_COOKIE['market'] !== '' ) {
+					$market_map = array(
+						'Эгершельд' => '7c0dc9ce-ce1e-11ea-0a80-09ca000e5e93',
+						'Реми-Сити' => 'b24e4c35-9609-11eb-0a80-0d0d008550c2',
+						'Космос' => 'a99d6fdf-0970-11ed-0a80-0ed600075845',
+					);
+					if ( isset( $market_map[ $_COOKIE['market'] ] ) ) {
+						$shops = array( $market_map[ $_COOKIE['market'] ] );
+					}
 				}
 			} else {
 				if(isset($_COOKIE['coords']) && $_COOKIE['coords'] != '') {
 					$coords = $_COOKIE['coords'];
-					
+				} else if ( isset($_COOKIE['billing_coords']) && $_COOKIE['billing_coords'] != '' ) {
+					$coords = $_COOKIE['billing_coords'];
+				}
+				if ( isset( $coords ) && $coords !== '' ) {
 					$shops = ferma_get_shops_by_coords($coords);
 				}
 			}
