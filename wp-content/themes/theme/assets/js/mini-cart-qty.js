@@ -27,7 +27,14 @@
         if (!qtyWrap) return;
 
         const qtyElement  = qtyWrap.querySelector('.cart__qty-val');
-        const cartItemKey = qtyWrap.dataset.cart_item_key;
+        const cartItemKey =
+            qtyWrap.getAttribute('data-cart_item_key') ||
+            qtyWrap.getAttribute('data-cart-item-key') ||
+            '';
+        const productId =
+            qtyWrap.getAttribute('data-product_id') ||
+            qtyWrap.getAttribute('data-product-id') ||
+            '';
 
         const ratio = parseFloat(qtyWrap.dataset.weight_ratio || '1');
 
@@ -65,29 +72,32 @@
 
         // Для весовых в корзине храним "шаги" (3 => 0.3 кг при ratio=0.1), для остальных — фактическое количество.
         var qtyForCart = ratio < 1 ? steps : displayQty;
-        updateCartViaAjax(cartItemKey, qtyForCart);
+        updateCartViaAjax(cartItemKey, qtyForCart, productId);
     }
 
-    function updateCartViaAjax(cartItemKey, quantity) {
-        const data = new FormData();
-        data.append('action', 'update_cart_qty');
-        data.append('cart_item_key', cartItemKey);
-        data.append('qty', quantity);
-        data.append('nonce', CartQtyData.nonce);
+    function updateCartViaAjax(cartItemKey, quantity, productId) {
+        const payload = {
+            action: 'update_cart_qty',
+            cart_item_key: cartItemKey,
+            qty: quantity,
+            nonce: CartQtyData.nonce
+        };
+        if (productId) {
+            payload.product_id = productId;
+        }
 
         if (qtyWrapHasPending(cartItemKey)) {
             return;
         }
         setQtyWrapPending(cartItemKey, true);
 
-        fetch(CartQtyData.ajax_url, {
-            method: 'POST',
-            body: data
+        jQuery.ajax({
+            type: 'POST',
+            url: CartQtyData.ajax_url,
+            dataType: 'json',
+            data: payload
         })
-            .then(function (response) {
-                return response.json();
-            })
-            .then(function (data) {
+            .done(function (data) {
                 if (data && data.fragments) {
                     // 2) применяем ВСЕ фрагменты, которые вернул сервер
                     Object.keys(data.fragments).forEach(function (selector) {
@@ -122,10 +132,10 @@
                     }
                 }
             })
-            .catch(function (error) {
+            .fail(function (error) {
                 console.error('Mini/checkout cart qty AJAX error:', error);
             })
-            .finally(function () {
+            .always(function () {
                 setQtyWrapPending(cartItemKey, false);
             });
     }
