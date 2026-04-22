@@ -38,6 +38,37 @@
 </head>
 
 <body>
+<?php
+if ( ! function_exists( 'ferma_header_home_cart_ok' ) ) {
+	function ferma_header_home_cart_ok() {
+		return function_exists( 'WC' ) && WC() && WC()->cart;
+	}
+}
+if ( ! function_exists( 'ferma_header_home_cart_count' ) ) {
+	function ferma_header_home_cart_count() {
+		return ferma_header_home_cart_ok() ? count( WC()->cart->get_cart() ) : 0;
+	}
+}
+if ( ! function_exists( 'ferma_header_home_cart_total_display' ) ) {
+	function ferma_header_home_cart_total_display() {
+		return ferma_header_home_cart_ok() ? (string) WC()->cart->total : '0';
+	}
+}
+if ( ! function_exists( 'ferma_header_home_cart_product_ids_json' ) ) {
+	function ferma_header_home_cart_product_ids_json() {
+		if ( ! ferma_header_home_cart_ok() ) {
+			return '[]';
+		}
+		$array = array();
+		$i     = 0;
+		foreach ( WC()->cart->get_cart() as $item ) {
+			$array[ $i ] = $item['product_id'];
+			$i++;
+		}
+		return wp_json_encode( $array );
+	}
+}
+?>
 <!-- Старый код -->
 <?if ( is_user_logged_in() && get_user_meta( get_current_user_id(), 'delivery', true ) == '1' ) {?>
     <style>
@@ -55,7 +86,7 @@
         }
     </style>
 <?}?>
-<?if ( !is_user_logged_in() && $_COOKIE['delivery'] == '1' ) {?>
+<?if ( !is_user_logged_in() && isset( $_COOKIE['delivery'] ) && $_COOKIE['delivery'] == '1' ) {?>
     <style>
         #billing_delivery_field {
             display: none;
@@ -64,7 +95,7 @@
             display: none;
         }
     </style>
-<?} if ( !is_user_logged_in() && $_COOKIE['delivery'] == '0' ) {?>
+<?} if ( !is_user_logged_in() && isset( $_COOKIE['delivery'] ) && $_COOKIE['delivery'] == '0' ) {?>
     <style>
         #billing_samoviziv_field, h6#primer {
             display: none;
@@ -135,7 +166,7 @@
 <p style="display:none;">
     <?
     $user_id = get_current_user_id();
-    $args_check =  $_COOKIE['market'];?>
+    $args_check = $_COOKIE['market'] ?? null;?>
 
 </p>
 <?
@@ -144,7 +175,7 @@ if($url == "/my-account/user-market/") {
     header('Location: https://ferma-dv.ru/user-market/');
 } else {
 }
-if( is_product_category() ) {
+if ( function_exists( 'is_product_category' ) && is_product_category() ) {
     $url = $_SERVER['REQUEST_URI'];
     $parts = parse_url($url);
     parse_str($parts['query'], $query);
@@ -168,23 +199,10 @@ if (isset($_COOKIE["market"])) { ?>
         .menumobile {display: none !important;}
     </style>
 <?}?>
-<p id="postsumma" style="display:none">
-    <?
-    global $woocommerce;
-    echo $woocommerce->cart->total;
-    ?>
-</p>
-<p style="display:none" id="carttovar" class="carttovar"><?
-    global $woocommerce;
-    $age = 0;
-    foreach ($woocommerce->cart->get_cart() as $item):
-        $array[$age] = $item['product_id'];
-        $age++;
-    endforeach;
-    echo json_encode($array);
-    ?></p>
+<p id="postsumma" style="display:none"><?php echo esc_html( ferma_header_home_cart_total_display() ); ?></p>
+<p style="display:none" id="carttovar" class="carttovar"><?php echo ferma_header_home_cart_product_ids_json(); ?></p>
 <?
-if ($_COOKIE["vibor"] == 1 or $_POST["vib"] == 1 )  { ?>
+if ( ( isset( $_COOKIE['vibor'] ) && $_COOKIE['vibor'] == 1 ) || ( isset( $_POST['vib'] ) && $_POST['vib'] == 1 ) ) { ?>
     <style>
         .vibgoroda {display: none !important;}
         .viborgoroda_1 {display: block !important;}
@@ -192,7 +210,7 @@ if ($_COOKIE["vibor"] == 1 or $_POST["vib"] == 1 )  { ?>
     </style>
 <?}?>
 <?
-if ($_COOKIE["vibor"] == 2 or $_POST["vib"] == 2 or isset($_COOKIE["market"])) { ?>
+if ( ( isset( $_COOKIE['vibor'] ) && $_COOKIE['vibor'] == 2 ) || ( isset( $_POST['vib'] ) && $_POST['vib'] == 2 ) || isset( $_COOKIE['market'] ) ) { ?>
     <style>
         .vibgoroda {display: none !important;}
         .viborgoroda_1 {display: none !important;}
@@ -1767,7 +1785,7 @@ if (!empty($_POST["vib"])) {
                     <div class="header__follow-top">
                         <div class="header__follow-buttons">
                             <button class="header__cart cart-btn btn-grey btn-to-top">
-                                <span class="cart-count"><?php echo count( WC()->cart->get_cart() ); ?></span>
+                                <span class="cart-count"><?php echo (int) ferma_header_home_cart_count(); ?></span>
                                 <img src="<?php bloginfo('template_url') ?>/assets/img/cart.svg" alt="Корзина">
                             </button>
                             <a class="header__bonus btn-grey btn-to-top" href="<? echo get_home_url(); ?>/bonusnaya-programma/">
@@ -1896,7 +1914,7 @@ if (!empty($_POST["vib"])) {
                         </button>
 
                         <button class="header__cart cart-btn btn-grey btn-to-top header__follow-hidden">
-                            <span class="cart-count"><?php echo count( WC()->cart->get_cart() ); ?></span>
+                            <span class="cart-count"><?php echo (int) ferma_header_home_cart_count(); ?></span>
                             <img src="<?php bloginfo('template_url') ?>/assets/img/cart.svg" alt="Корзина">
                         </button>
                         <a class="header__bonus btn-grey btn-to-top header__follow-hidden" href="<? echo get_home_url(); ?>/bonusnaya-programma/">
@@ -1953,7 +1971,7 @@ if (!empty($_POST["vib"])) {
                         </a>
                         <div class="header__tablet-buttons">
                             <button class="header__cart cart-btn btn-grey mob_hidden">
-                                <span class="cart-count"><?php echo count( WC()->cart->get_cart() ); ?></span>
+                                <span class="cart-count"><?php echo (int) ferma_header_home_cart_count(); ?></span>
                                 <img src="<?php bloginfo('template_url') ?>/assets/img/cart.svg" alt="Корзина">
                             </button>
                             <a class="header__bonus btn-grey mob_hidden" href="<? echo get_home_url(); ?>/bonusnaya-programma/">
@@ -2285,7 +2303,7 @@ if (!empty($_POST["vib"])) {
                             </div>
                         </div>
                         <button class="header__cart cart-btn btn-grey mob_hidden">
-                            <span class="cart-count"><?php echo count( WC()->cart->get_cart() ); ?></span>
+                            <span class="cart-count"><?php echo (int) ferma_header_home_cart_count(); ?></span>
                             <img src="<?php bloginfo('template_url') ?>/assets/img/cart.svg" alt="Корзина">
                         </button>
                         <a class="header__bonus btn-grey mob_hidden" href="<? echo get_home_url(); ?>/bonusnaya-programma/">
@@ -2330,7 +2348,7 @@ if (!empty($_POST["vib"])) {
                         контакты
                     </button>
                     <button class="header__cart cart-btn">
-                        <span class="cart-count"><?php echo count( WC()->cart->get_cart() ); ?></span>
+                        <span class="cart-count"><?php echo (int) ferma_header_home_cart_count(); ?></span>
                         <img src="<?php bloginfo('template_url') ?>/assets/img/cart.svg"
                              alt="Корзина">
                         корзина

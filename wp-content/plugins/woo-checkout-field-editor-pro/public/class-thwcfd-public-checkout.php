@@ -19,7 +19,7 @@ class THWCFD_Public_Checkout {
 	}
 
 	public function enqueue_styles_and_scripts() {
-		if(is_checkout() || is_wc_endpoint_url('edit-address')){
+		if ( ( function_exists( 'is_checkout' ) && is_checkout() ) || ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'edit-address' ) ) ) {
 			$in_footer = apply_filters( 'thwcfd_enqueue_script_in_footer', true );
 			$deps = array('jquery', 'selectWoo');
 			
@@ -221,7 +221,7 @@ class THWCFD_Public_Checkout {
 	*/
 	public function modify_address_fields($locales) {
 		if (
-			! is_checkout() || 
+			! ( function_exists( 'is_checkout' ) && is_checkout() ) ||
 			! wc_string_to_bool(get_option('woocommerce_shipping_cost_requires_address', 'no')) || 
 			! $this->is_override_required_prop()
 		) {
@@ -260,7 +260,7 @@ class THWCFD_Public_Checkout {
 	 */
 	public function make_address_fields_default($locale) {
 		if (
-			! is_checkout() ||
+			! ( function_exists( 'is_checkout' ) && is_checkout() ) ||
 			! wc_string_to_bool(get_option('woocommerce_shipping_cost_requires_address', 'no')) ||
 			! $this->is_override_required_prop()
 		) {
@@ -285,7 +285,7 @@ class THWCFD_Public_Checkout {
 	}
 	
 	public function billing_fields($fields, $country){
-		if(is_wc_endpoint_url('edit-address')){
+		if ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'edit-address' ) ) {
 			$fields = $this->prepare_address_fields(get_option('wc_fields_billing'), $country, $fields, 'billing');
 			foreach ($fields as $key => $field) {
 				$value = get_user_meta(get_current_user_id(), $key , true);
@@ -339,7 +339,7 @@ class THWCFD_Public_Checkout {
 	// }
 
 	public function shipping_fields($fields, $country){
-		if(is_wc_endpoint_url('edit-address')){
+		if ( function_exists( 'is_wc_endpoint_url' ) && is_wc_endpoint_url( 'edit-address' ) ) {
 			$fields = $this->prepare_address_fields(get_option('wc_fields_shipping'), $country, $fields, 'shipping');
 			foreach ($fields as $key => $field) {
 				$value = get_user_meta(get_current_user_id(), $key , true);
@@ -739,7 +739,7 @@ class THWCFD_Public_Checkout {
 						if($f_type == 'textarea'){
 							$value =  nl2br($value);
 						}
-						if(is_account_page()){
+						if ( function_exists( 'is_account_page' ) && is_account_page() ) {
 							if(apply_filters( 'thwcfd_view_order_customer_details_table_view', true )){
 								$fields_html .= '<tr><th>'. $label .':</th><td>'. wptexturize($value) .'</td></tr>';
 							}else{
