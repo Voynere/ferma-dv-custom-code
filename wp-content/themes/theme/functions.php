@@ -2513,6 +2513,30 @@ add_filter( 'woocommerce_product_get_price', 'products_price_with_discount', 40,
 //add_filter( 'woocommerce_variation_prices_price', 'products_price_with_discount', 5, 2 );
 //add_filter( 'woocommerce_variation_prices_sale_price', 'products_price_with_discount', 5, 2 );
 
+function ferma_get_discount_runtime_context() {
+	static $ctx = null;
+	if ( $ctx !== null ) {
+		return $ctx;
+	}
+
+	$price_date_raw = (string) ferma_get_cached_option_field( 'pricedate' );
+	$zp_end_raw     = (string) ferma_get_cached_option_field( 'zp_date_end' );
+	$zp_start_raw   = (string) ferma_get_cached_option_field( 'zp_date_start' );
+
+	$price_end_ts = strtotime( date( 'Y-m-d 23:59:59', strtotime( $price_date_raw ) ) );
+	$zp_end_ts    = strtotime( date( 'Y-m-d 23:59:59', strtotime( $zp_end_raw ) ) );
+	$zp_start_ts  = strtotime( date( 'Y-m-d 23:59:59', strtotime( $zp_start_raw ) ) );
+
+	$ctx = array(
+		'now_ts'       => time(),
+		'price_end_ts' => $price_end_ts ?: 0,
+		'zp_end_ts'    => $zp_end_ts ?: 0,
+		'zp_start_ts'  => $zp_start_ts ?: 0,
+	);
+
+	return $ctx;
+}
+
 function products_price_with_discount( $price, $product )
 {
     $discount = ferma_get_cached_option_field('priceint');
@@ -2526,18 +2550,14 @@ function products_price_with_discount( $price, $product )
 
 	$is_action = $product->get_attribute( 'pa_akcziya' );
 
-	$price_date = ferma_get_cached_option_field('pricedate');
-
-	$price_date = date("Y-m-d 23:59:59", strtotime($price_date));
-
-	$end_date = strtotime($price_date);
-	$current_date = strtotime(date("Y-m-d H:i:s"));
+	$ctx          = ferma_get_discount_runtime_context();
+	$end_date     = (int) $ctx['price_end_ts'];
+	$current_date = (int) $ctx['now_ts'];
 
 	$green_friday_discount = ferma_get_green_friday_discount_for_product($product_id);
 	if ($green_friday_discount !== null) {
 		$is_action = 1;
-		$price_date = ferma_get_cached_option_field('zp_date_end');
-		$end_date = strtotime($price_date);
+		$end_date = (int) $ctx['zp_end_ts'];
 		$discount = $green_friday_discount;
 	}
 
@@ -2622,18 +2642,14 @@ function product_is_green_price($product) {
 	$is_action = $product->get_attribute( 'pa_akcziya' );
 
 	$discount = ferma_get_cached_option_field('priceint');
-	$price_date = ferma_get_cached_option_field('pricedate');
-
-	$price_date = date("Y-m-d 23:59:59", strtotime($price_date));
-
-	$end_date = strtotime($price_date);
-	$current_date = strtotime(date("Y-m-d H:i:s"));
+	$ctx          = ferma_get_discount_runtime_context();
+	$end_date     = (int) $ctx['price_end_ts'];
+	$current_date = (int) $ctx['now_ts'];
 
 	$green_friday_discount = ferma_get_green_friday_discount_for_product($product_id);
 	if ($green_friday_discount !== null) {
 		$is_action = 1;
-		$price_date = ferma_get_cached_option_field('zp_date_end');
-		$end_date = strtotime($price_date);
+		$end_date = (int) $ctx['zp_end_ts'];
 		$discount = $green_friday_discount;
 	}
 
@@ -2704,13 +2720,10 @@ function pre_get_posts_product_actions( $q ) {
 	}
 
 	if ( $term_id === 355 ) {
-		$price_date = ferma_get_cached_option_field('pricedate');
 		$discount   = (float) ferma_get_cached_option_field('priceint');
-
-		$price_date = date("Y-m-d 23:59:59", strtotime($price_date));
-
-		$end_date = strtotime($price_date);
-		$current_date = strtotime(date("Y-m-d H:i:s"));
+		$ctx       = ferma_get_discount_runtime_context();
+		$end_date  = (int) $ctx['price_end_ts'];
+		$current_date = (int) $ctx['now_ts'];
 
 		if($current_date > $end_date || $discount == 0) {
 			$q->set( 'cat', '7815' );
@@ -2727,13 +2740,10 @@ function pre_get_posts_product_actions( $q ) {
 	}
 
 	if ( $term_id === 2626 ) {
-		$zp_date_start = ferma_get_cached_option_field('zp_date_start');
-		$zp_date_end   = ferma_get_cached_option_field('zp_date_end');
-
-		$zp_date_start = date("Y-m-d 23:59:59", strtotime($zp_date_start));
-		$zp_date_end = date("Y-m-d 23:59:59", strtotime($zp_date_end));
-
-		$current_date = strtotime(date("Y-m-d H:i:s"));
+		$ctx          = ferma_get_discount_runtime_context();
+		$zp_date_start = (int) $ctx['zp_start_ts'];
+		$zp_date_end   = (int) $ctx['zp_end_ts'];
+		$current_date  = (int) $ctx['now_ts'];
 
 		if($current_date > $zp_date_end || $current_date < $zp_date_start) {
 			$q->set( 'cat', '7815' );
