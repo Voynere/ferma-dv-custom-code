@@ -63,8 +63,9 @@
 
         qtyElement.textContent = String(displayQty).replace('.', ',');
 
-        // В корзину отправляем фактическое количество (для весовых — дробное, напр. 0.3).
-        updateCartViaAjax(cartItemKey, displayQty);
+        // Для весовых в корзине храним "шаги" (3 => 0.3 кг при ratio=0.1), для остальных — фактическое количество.
+        var qtyForCart = ratio < 1 ? steps : displayQty;
+        updateCartViaAjax(cartItemKey, qtyForCart);
     }
 
     function updateCartViaAjax(cartItemKey, quantity) {

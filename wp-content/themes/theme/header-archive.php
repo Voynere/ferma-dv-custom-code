@@ -809,6 +809,7 @@ updateAddressButton1.addEventListener('click', () => {
         document.cookie = name + '=' + encodeURIComponent(value) + expires + '; path=/; SameSite=Lax';
     }
     function normalizeDeliveryState() {
+        var changed = false;
         var delivery = readCookie('delivery');
         var billingDelivery = readCookie('billing_delivery');
         var coords = readCookie('coords') || readCookie('billing_coords');
@@ -817,9 +818,11 @@ updateAddressButton1.addEventListener('click', () => {
 
         if (!readCookie('coords') && coords) {
             writeCookie('coords', coords, 7);
+            changed = true;
         }
         if (!readCookie('key_market') && keyMarket) {
             writeCookie('key_market', keyMarket, 7);
+            changed = true;
         }
         if (!delivery) {
             if (pickup || keyMarket) {
@@ -829,12 +832,14 @@ updateAddressButton1.addEventListener('click', () => {
             }
             if (delivery) {
                 writeCookie('delivery', delivery, 7);
+                changed = true;
             }
         }
-        return delivery;
+        return { delivery: delivery, changed: changed };
     }
     function syncArchiveDeliveryLabel() {
-        var delivery = normalizeDeliveryState();
+        var state = normalizeDeliveryState();
+        var delivery = state.delivery;
         var text = 'Выберите способ получения';
         if (delivery === '1') {
             text = readCookie('billing_samoviziv') || text;
@@ -848,6 +853,15 @@ updateAddressButton1.addEventListener('click', () => {
         document.querySelectorAll('.header__delivery-result, .js-delivery-address').forEach(function (el) {
             el.textContent = text;
         });
+
+        // Если мы только что восстановили ключевые cookie — перезагружаем 1 раз,
+        // чтобы серверный рендер каталога подхватил актуальный способ получения.
+        if (state.changed && !sessionStorage.getItem('fdv_delivery_cookie_reload_done')) {
+            sessionStorage.setItem('fdv_delivery_cookie_reload_done', '1');
+            window.location.reload();
+            return;
+        }
+        sessionStorage.removeItem('fdv_delivery_cookie_reload_done');
     }
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', syncArchiveDeliveryLabel);
