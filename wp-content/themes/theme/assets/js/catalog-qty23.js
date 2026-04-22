@@ -1,4 +1,55 @@
 jQuery(document).ready(function($) {
+    function readCookie(name) {
+        var prefix = name + '=';
+        var cookies = document.cookie ? document.cookie.split(';') : [];
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim();
+            if (cookie.indexOf(prefix) === 0) {
+                return decodeURIComponent(cookie.substring(prefix.length));
+            }
+        }
+        return '';
+    }
+    function writeCookie(name, value, days) {
+        var exp = '';
+        if (days && days > 0) {
+            var d = new Date();
+            d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+            exp = '; expires=' + d.toUTCString();
+        }
+        document.cookie = name + '=' + encodeURIComponent(value) + exp + '; path=/; SameSite=Lax';
+    }
+    function normalizeDeliveryCookies() {
+        var delivery = readCookie('delivery');
+        var coords = readCookie('coords');
+        var billingCoords = readCookie('billing_coords');
+        var billingDelivery = readCookie('billing_delivery');
+        var pickupAddress = readCookie('billing_samoviziv');
+        var keyMarket = readCookie('key_market');
+        var market = readCookie('market');
+
+        if (!coords && billingCoords) {
+            writeCookie('coords', billingCoords, 7);
+            coords = billingCoords;
+        }
+        if (!keyMarket && market) {
+            writeCookie('key_market', market, 7);
+            keyMarket = market;
+        }
+
+        if (!delivery) {
+            if (pickupAddress || keyMarket) {
+                writeCookie('delivery', '1', 7);
+                delivery = '1';
+            } else if (billingDelivery || coords) {
+                writeCookie('delivery', '0', 7);
+                delivery = '0';
+            }
+        }
+        return delivery;
+    }
+    normalizeDeliveryCookies();
+
     var style = document.createElement('style');
     style.innerHTML = `
     .product-card__cart .add_to_cart_button.product-in-cart,
@@ -43,7 +94,7 @@ jQuery(document).ready(function($) {
 `;
     document.head.appendChild(style);
 
-    console.log('Ca223232323lфцувцу');
+    
     var singleCartKey = $('#single_cart_item_key').val() || '';
 
     // если товар уже был в корзине, считаем, что кнопка "в корзине"
