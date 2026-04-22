@@ -1638,7 +1638,7 @@ function theme_scripts() {
 			'custom-checkout-js',
 			get_stylesheet_directory_uri() . '/assets/js/checkout.js',
 			array( 'jquery', 'wc-checkout' ),
-			'3.0',
+			'3.1',
 			true
 		);
 		wp_localize_script(
@@ -1657,7 +1657,7 @@ function theme_scripts() {
         'mini-cart-qty',
         get_template_directory_uri() . '/assets/js/mini-cart-qty.js',
         array( 'jquery', 'wc-cart-fragments' ),
-        '1.2',
+        '1.3',
         true
     );
 	$catalog_qty_path = get_template_directory() . '/assets/js/catalog-qty23.js';
