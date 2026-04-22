@@ -1657,7 +1657,7 @@ function theme_scripts() {
         'mini-cart-qty',
         get_template_directory_uri() . '/assets/js/mini-cart-qty.js',
         array( 'jquery', 'wc-cart-fragments' ),
-        '1.7',
+        '1.8',
         true
     );
 	$catalog_qty_path = get_template_directory() . '/assets/js/catalog-qty23.js';

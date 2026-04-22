@@ -67,17 +67,8 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
 var current_delivery_value = '',
 	updated_times = false;
 jQuery(document).ready(function() {
-	$( document.body ).on( 'update_checkout', function() {
-		if(!$('#billing_asdx1').attr('disabled')) {
-			$('#billing_asdx1').attr('disabled', true);
-		}
-	});
-	
-	$( document.body ).on( 'updated_checkout', function() {
-		if($('#billing_asdx1').attr('disabled')) {
-			$('#billing_asdx1').attr('disabled', false);
-		}
-	});
+	// Не блокируем select времени на update_checkout:
+	// disabled-поля не сериализуются и новое время доставки не уходит в Woo.
 	
 	$(document).on('change', 'select[name="billing_asdx1"]', function() {
 		let delivery_type = $(this).find(':selected').data('value');
@@ -228,7 +219,6 @@ jQuery(document).ready(function() {
 		if(delivery_type != window.current_delivery_value) {
 			window.current_delivery_value = delivery_type;
 			$('#place_order').attr('disabled', true);
-			$('#billing_asdx1').attr('disabled', true);
 			var data = {
 				action: 'update_delivery_type',
 				delivery_type: delivery_type
@@ -237,6 +227,9 @@ jQuery(document).ready(function() {
 			jQuery.post( woocommerce_params.ajax_url, data, function( response )
 			{
 				$('body').trigger( 'update_checkout' );
+				if (typeof window.wc_checkout_form !== 'undefined' && typeof window.wc_checkout_form.update_checkout === 'function') {
+					window.wc_checkout_form.update_checkout();
+				}
 				setTimeout(() => {
 				  $('#place_order').attr('disabled', false);
 				}, 2000);

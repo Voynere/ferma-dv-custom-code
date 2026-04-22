@@ -1,4 +1,5 @@
 (function () {
+    var qtyRequestState = {};
     document.addEventListener('click', function (e) {
         // 1) работаем и в мини-корзине, и в оформлении заказа
         const scope = e.target.closest('.cart__container, .ferma-checkout__form-table');
@@ -76,6 +77,7 @@
     }
 
     function updateCartViaAjax(cartItemKey, quantity, productId) {
+        var stateKey = getQtyStateKey(cartItemKey, productId);
         const payload = {
             action: 'update_cart_qty',
             cart_item_key: cartItemKey,
@@ -86,10 +88,11 @@
             payload.product_id = productId;
         }
 
-        if (qtyWrapHasPending(cartItemKey)) {
+        if (qtyWrapHasPending(stateKey)) {
+            setQueuedQty(stateKey, quantity, productId);
             return;
         }
-        setQtyWrapPending(cartItemKey, true);
+        setQtyWrapPending(stateKey, true);
 
         jQuery.ajax({
             type: 'POST',
@@ -138,7 +141,12 @@
                 console.error('Mini/checkout cart qty AJAX error:', error);
             })
             .always(function () {
-                setQtyWrapPending(cartItemKey, false);
+                setQtyWrapPending(stateKey, false);
+                var queued = getQueuedQty(stateKey);
+                if (queued) {
+                    clearQueuedQty(stateKey);
+                    updateCartViaAjax(cartItemKey, queued.quantity, queued.productId || productId);
+                }
             });
     }
 
@@ -175,22 +183,48 @@
         });
     }
 
-    function qtyWrapHasPending(cartItemKey) {
-        if (!cartItemKey) {
-            return false;
+    function getQtyStateKey(cartItemKey, productId) {
+        if (cartItemKey) {
+            return 'key:' + cartItemKey;
         }
-        var wrap = document.querySelector('.cart__qty[data-cart_item_key="' + cartItemKey + '"]');
-        return !!(wrap && wrap.dataset.pending === '1');
+        if (productId) {
+            return 'pid:' + productId;
+        }
+        return 'fallback';
     }
 
-    function setQtyWrapPending(cartItemKey, pending) {
-        if (!cartItemKey) {
+    function qtyWrapHasPending(stateKey) {
+        return !!(qtyRequestState[stateKey] && qtyRequestState[stateKey].pending);
+    }
+
+    function setQtyWrapPending(stateKey, pending) {
+        if (!qtyRequestState[stateKey]) {
+            qtyRequestState[stateKey] = { pending: false, queued: null };
+        }
+        qtyRequestState[stateKey].pending = !!pending;
+    }
+
+    function setQueuedQty(stateKey, quantity, productId) {
+        if (!qtyRequestState[stateKey]) {
+            qtyRequestState[stateKey] = { pending: false, queued: null };
+        }
+        qtyRequestState[stateKey].queued = {
+            quantity: quantity,
+            productId: productId || ''
+        };
+    }
+
+    function getQueuedQty(stateKey) {
+        if (!qtyRequestState[stateKey]) {
+            return null;
+        }
+        return qtyRequestState[stateKey].queued || null;
+    }
+
+    function clearQueuedQty(stateKey) {
+        if (!qtyRequestState[stateKey]) {
             return;
         }
-        var wrap = document.querySelector('.cart__qty[data-cart_item_key="' + cartItemKey + '"]');
-        if (!wrap) {
-            return;
-        }
-        wrap.dataset.pending = pending ? '1' : '0';
+        qtyRequestState[stateKey].queued = null;
     }
 })();
