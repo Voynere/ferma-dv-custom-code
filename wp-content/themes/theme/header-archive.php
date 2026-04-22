@@ -771,6 +771,76 @@ updateAddressButton1.addEventListener('click', () => {
     });
 });
 </script>
+<script>
+(function () {
+    function readCookie(name) {
+        var prefix = name + '=';
+        var cookies = document.cookie ? document.cookie.split(';') : [];
+        for (var i = 0; i < cookies.length; i++) {
+            var c = cookies[i].trim();
+            if (c.indexOf(prefix) === 0) {
+                return decodeURIComponent(c.substring(prefix.length));
+            }
+        }
+        return '';
+    }
+    function writeCookie(name, value, days) {
+        var expires = '';
+        if (days && days > 0) {
+            var d = new Date();
+            d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+            expires = '; expires=' + d.toUTCString();
+        }
+        document.cookie = name + '=' + encodeURIComponent(value) + expires + '; path=/; SameSite=Lax';
+    }
+    function normalizeDeliveryState() {
+        var delivery = readCookie('delivery');
+        var billingDelivery = readCookie('billing_delivery');
+        var coords = readCookie('coords') || readCookie('billing_coords');
+        var pickup = readCookie('billing_samoviziv');
+        var keyMarket = readCookie('key_market') || readCookie('market');
+
+        if (!readCookie('coords') && coords) {
+            writeCookie('coords', coords, 7);
+        }
+        if (!readCookie('key_market') && keyMarket) {
+            writeCookie('key_market', keyMarket, 7);
+        }
+        if (!delivery) {
+            if (pickup || keyMarket) {
+                delivery = '1';
+            } else if (billingDelivery || coords) {
+                delivery = '0';
+            }
+            if (delivery) {
+                writeCookie('delivery', delivery, 7);
+            }
+        }
+        return delivery;
+    }
+    function syncArchiveDeliveryLabel() {
+        var delivery = normalizeDeliveryState();
+        var text = 'Выберите способ получения';
+        if (delivery === '1') {
+            text = readCookie('billing_samoviziv') || text;
+        } else if (delivery === '0') {
+            var bd = readCookie('billing_delivery');
+            if (bd) {
+                var parts = bd.split(',');
+                text = parts.length > 2 ? parts.slice(2).join(',').trim() : bd;
+            }
+        }
+        document.querySelectorAll('.header__delivery-result, .js-delivery-address').forEach(function (el) {
+            el.textContent = text;
+        });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', syncArchiveDeliveryLabel);
+    } else {
+        syncArchiveDeliveryLabel();
+    }
+})();
+</script>
 
 <?php
 /* Вспомогательная функция для кнопки доставки — убирает дублирование кода.

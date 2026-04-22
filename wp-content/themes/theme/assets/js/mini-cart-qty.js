@@ -63,8 +63,8 @@
 
         qtyElement.textContent = String(displayQty).replace('.', ',');
 
-        // в корзину шлём КОЛ-ВО ШАГОВ (целое)
-        updateCartViaAjax(cartItemKey, steps);
+        // В корзину отправляем фактическое количество (для весовых — дробное, напр. 0.3).
+        updateCartViaAjax(cartItemKey, displayQty);
     }
 
     function updateCartViaAjax(cartItemKey, quantity) {
@@ -108,9 +108,17 @@
                         });
                     });
                     jQuery(document.body).trigger('update_checkout');
+                    if (typeof window.wc_checkout_form !== 'undefined' &&
+                        typeof window.wc_checkout_form.update_checkout === 'function') {
+                        window.wc_checkout_form.update_checkout();
+                    }
                 } else {
                     // Даже если фрагменты не пришли, просим Woo пересчитать итоги checkout.
                     jQuery(document.body).trigger('update_checkout');
+                    if (typeof window.wc_checkout_form !== 'undefined' &&
+                        typeof window.wc_checkout_form.update_checkout === 'function') {
+                        window.wc_checkout_form.update_checkout();
+                    }
                 }
             })
             .catch(function (error) {
