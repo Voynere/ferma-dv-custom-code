@@ -259,8 +259,7 @@ defined( 'ABSPATH' ) || exit;
             // При обновлении чекаута
             $(document.body).on('updated_checkout', toggleCouponField);
 
-            // Также проверяем каждую секунду (на всякий случай)
-            setInterval(toggleCouponField, 1000);
+            // Периодический опрос убран: достаточно событий updated_checkout/applied_coupon/removed_coupon.
         });
     </script>
     <script>

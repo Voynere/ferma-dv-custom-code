@@ -59,7 +59,7 @@ if ( ! function_exists( 'ferma_is_catalog_cache_candidate' ) ) {
 		if ( is_cart() || is_checkout() || is_account_page() ) {
 			return false;
 		}
-		return is_shop() || is_product_category() || is_product_tag();
+		return is_front_page() || is_home() || is_shop() || is_product_category() || is_product_tag();
 	}
 }
 
@@ -111,6 +111,11 @@ function ferma_send_public_cache_headers_catalog() {
 	if ( ! ferma_is_public_catalog_cache_request() || headers_sent() ) {
 		return;
 	}
+	// Убираем заголовки, мешающие CDN/прокси-кешу для гостевой витрины.
+	header_remove( 'Pragma' );
+	header_remove( 'Expires' );
+	header_remove( 'Set-Cookie' );
+	header( 'Vary: Accept-Encoding', true );
 	header( 'Cache-Control: public, max-age=120, s-maxage=600, stale-while-revalidate=60', true );
 }
 
