@@ -174,6 +174,10 @@
         });
         fermaApplyCompactPlaceholders();
         fermaBeautifyChangeAddressButton();
+        // POST после ошибки валидации: WC отрисовал notices в DOM — дублируем у кнопки, как при AJAX.
+        setTimeout(function () {
+            fermaShowInlineFromCheckoutNotices();
+        }, 0);
     });
 
     function fermaEnsureStockModal() {
@@ -259,10 +263,16 @@
         'click',
         function (ev) {
             var t = ev.target;
-            if (!t || t.id !== 'place_order') {
+            var placeBtn =
+                t && t.nodeType === 1 && t.id === 'place_order'
+                    ? t
+                    : t && typeof t.closest === 'function'
+                      ? t.closest('#place_order')
+                      : null;
+            if (!placeBtn) {
                 return;
             }
-            var form = t.closest('form.checkout');
+            var form = placeBtn.closest('form.checkout');
             if (!form) {
                 return;
             }
@@ -280,13 +290,13 @@
             fermaStockAjax('ferma_checkout_stock_check', function (res) {
                 if (!res || !res.success || !res.data) {
                     window.__fermaStockGateOk = true;
-                    t.click();
+                    placeBtn.click();
                     return;
                 }
                 var issues = res.data.issues || [];
                 if (!issues.length) {
                     window.__fermaStockGateOk = true;
-                    t.click();
+                    placeBtn.click();
                     return;
                 }
                 var first = issues[0];
