@@ -530,6 +530,12 @@ function ferma_catalog_infinite_scroll_assets() {
 	if ( $max_pages > $max_infinite ) {
 		return;
 	}
+	// Защита TTFB: не генерируем сотни URL подгрузки на сервере в HTML.
+	$max_urls = (int) apply_filters( 'ferma_catalog_infinite_max_urls', 40 );
+	if ( $max_urls < 1 ) {
+		$max_urls = 1;
+	}
+	$last_page_for_urls = min( $max_pages, $max_urls + 1 ); // +1, т.к. первая страница уже отрисована.
 
 	$theme_ver = wp_get_theme()->get( 'Version' );
 	if ( ! $theme_ver ) {
@@ -545,7 +551,7 @@ function ferma_catalog_infinite_scroll_assets() {
 	);
 
 	$page_urls = array();
-	for ( $p = 2; $p <= $max_pages; $p++ ) {
+	for ( $p = 2; $p <= $last_page_for_urls; $p++ ) {
 		$page_urls[] = ferma_catalog_build_page_url( $p );
 	}
 
@@ -554,7 +560,7 @@ function ferma_catalog_infinite_scroll_assets() {
 		'fermaCatalogInfinite',
 		array(
 			'pageUrls'    => $page_urls,
-			'totalPages'  => $max_pages,
+			'totalPages'  => count( $page_urls ) + 1,
 			'i18nLoading' => __( 'Загрузка товаров…', 'theme' ),
 			'i18nDone'    => __( 'Все товары загружены', 'theme' ),
 			'i18nError'   => __( 'Не удалось загрузить. Обновите страницу.', 'theme' ),
@@ -3034,13 +3040,20 @@ function custom_display_product_attributes_in_summary() {
 
 
 function redirect_child_category() {
-    if (is_product_category()) {
-        $category = get_queried_object();
-        $category_id = $category->term_id;
-
-		$category_link = get_category_link($category_id);
-
-		if($_SERVER['REMOTE_ADDR'] == "217.150.75.124") {
+    if ( ! is_product_category() ) {
+        return;
+    }
+    if ( ! isset( $_SERVER['REMOTE_ADDR'] ) || $_SERVER['REMOTE_ADDR'] !== '217.150.75.124' ) {
+        return;
+    }
+    $category = get_queried_object();
+    if ( ! $category || empty( $category->term_id ) ) {
+        return;
+    }
+    $category_link = get_term_link( (int) $category->term_id, 'product_cat' );
+    if ( is_wp_error( $category_link ) || empty( $category_link ) ) {
+        return;
+    }
 
 			$current_url = strtok("https://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]", '?');
 
@@ -3051,10 +3064,16 @@ function redirect_child_category() {
 				wp_redirect($category_link, 301);
 				exit;
 			}
-		}
-    }
 }
 add_action('template_redirect', 'redirect_child_category');
+
+add_filter( 'wp_headers', 'ferma_remove_pingback_header', 99 );
+function ferma_remove_pingback_header( $headers ) {
+	if ( isset( $headers['X-Pingback'] ) ) {
+		unset( $headers['X-Pingback'] );
+	}
+	return $headers;
+}
 
 //add_action( 'woocommerce_email', 'ferma_disable_emails' );
 
