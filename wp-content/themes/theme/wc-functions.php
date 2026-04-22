@@ -686,9 +686,9 @@ function add_contents_button_to_gutenberg() {
 }
 add_action('wp_footer', 'debug_checkout_notices');
 function debug_checkout_notices() {
-    if (is_checkout()) {
-        echo '<script>console.log("WC Notices:", ' . json_encode(WC()->session->get('wc_notices', array())) . ');</script>';
-    }
+	if ( function_exists( 'is_checkout' ) && is_checkout() && function_exists( 'WC' ) && WC() && WC()->session ) {
+		echo '<script>console.log("WC Notices:", ' . wp_json_encode( WC()->session->get( 'wc_notices', array() ) ) . ');</script>';
+	}
 }
 
 // --- Посты рубрики "Вопрос-ответ" --- 

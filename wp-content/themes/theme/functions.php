@@ -529,7 +529,14 @@ function ferma_catalog_infinite_scroll_assets() {
 	if ( is_admin() || ! apply_filters( 'ferma_catalog_infinite_scroll_enabled', true ) ) {
 		return;
 	}
-	if ( ! function_exists( 'is_shop' ) || ( ! is_shop() && ! is_product_category() && ! is_product_tag() ) ) {
+	if (
+		! function_exists( 'is_shop' )
+		|| (
+			! ( function_exists( 'is_shop' ) && is_shop() )
+			&& ! ( function_exists( 'is_product_category' ) && is_product_category() )
+			&& ! ( function_exists( 'is_product_tag' ) && is_product_tag() )
+		)
+	) {
 		return;
 	}
 	$paged = max( 1, (int) get_query_var( 'paged' ), (int) get_query_var( 'page' ) );
@@ -3012,7 +3019,9 @@ remove_filter( 'the_content', 'display_attributes_after_product_description', 10
 // Добавил вывод атрибутов в .summary
 add_action( 'woocommerce_single_product_summary', 'custom_display_product_attributes_in_summary', 35 );
 function custom_display_product_attributes_in_summary() {
-	if ( ! is_product() ) return;
+	if ( ! function_exists( 'is_product' ) || ! is_product() ) {
+		return;
+	}
 
 	global $product;
 
@@ -3106,10 +3115,10 @@ function ferma_disable_emails( $email_class ) {
 
 //add_filter( 'pre_option_woocommerce_hide_out_of_stock_items', 'fix_kulichi_category' );
 function fix_kulichi_category( $hide ) {
-   if ( is_product_category( 'kulichi' )) {
-      $hide = 'no';
-   }
-   return $hide;
+	if ( function_exists( 'is_product_category' ) && is_product_category( 'kulichi' ) ) {
+		$hide = 'no';
+	}
+	return $hide;
 }
 
 function ferma_woocommerce_email_recipient( $recipient, $order, $email ) {
@@ -3527,11 +3536,15 @@ function ferma_wc_print_errors() {
 }
 
 function get_cart_fragments() {
-    $fragments = array();
+	$fragments = array();
 
-    // Мини-корзина
-    ob_start();
-    woocommerce_mini_cart();
+	if ( ! function_exists( 'WC' ) || ! WC() || ! WC()->cart ) {
+		return $fragments;
+	}
+
+	// Мини-корзина
+	ob_start();
+	woocommerce_mini_cart();
     $fragments['div.widget_shopping_cart_content'] = '<div class="widget_shopping_cart_content">' . ob_get_clean() . '</div>';
 
     // Счетчик товаров (если у вас есть такой элемент)
@@ -4387,9 +4400,13 @@ function q_promocode_format_time_left( int $seconds ): string {
     return implode( ' ', $parts );
 }
 add_action( 'send_headers', function() {
-    if ( function_exists( 'is_cart' ) && ( is_cart() || is_checkout() || is_account_page() ) ) {
-        nocache_headers();
-    }
+	if (
+		( function_exists( 'is_cart' ) && is_cart() )
+		|| ( function_exists( 'is_checkout' ) && is_checkout() )
+		|| ( function_exists( 'is_account_page' ) && is_account_page() )
+	) {
+		nocache_headers();
+	}
 } );
 
 function fas_log($msg) {

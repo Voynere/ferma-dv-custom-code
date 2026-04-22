@@ -19,9 +19,12 @@
 
 defined('ABSPATH') || exit;
 
-do_action('woocommerce_before_mini_cart'); ?>
+do_action('woocommerce_before_mini_cart');
 
-<?php if (!WC()->cart->is_empty()) : ?>
+$ferma_wc_cart_ready = function_exists( 'WC' ) && WC() && WC()->cart;
+?>
+
+<?php if ( $ferma_wc_cart_ready && ! WC()->cart->is_empty() ) : ?>
 
     <div class="cart__top">
         <h3 class="cart__title">КОРЗИНА</h3>
