@@ -111,7 +111,14 @@ class WmsOrderApi extends WmsData
         $this->order_wc->update_meta_data('_ms_order_id', $order_ms['id']);
         $this->order_wc->update_meta_data('_ms_updated', $order_ms['updated']);
 
-        $this->set_positions($this->order_wc, $order_ms);
+        $positions_result = $this->set_positions($this->order_wc, $order_ms);
+        if ($positions_result === false) {
+            $msg = 'Заказ выгружен в МойСклад без позиций: проверьте _id_ms/SKU у товаров.';
+            WmsLogs::set_logs($msg . ' Order ID: ' . $order_id, true);
+            $this->order_wc->add_order_note($msg);
+            // Поставим ретрай на случай временной рассинхронизации ассортимента.
+            Queues::addSingle(time() + (60 * 10), 'create_an_order_in_moysklad', array('order_id' => $order_id));
+        }
 
         $this->order_wc->delete_meta_data('_ms_cron_marker');
 
@@ -381,9 +388,30 @@ class WmsOrderApi extends WmsData
         }
 
         $item_product = $item->get_product();
+        if (!$item_product) {
+            return false;
+        }
         $product_uuid = apply_filters('wms_product_order_position_ms_uuid', $item_product->get_meta('_id_ms'), $item);
 
+        // Fallback: если _id_ms пустой/битый, пробуем найти ассортимент в МС по SKU.
         if (!$product_uuid || !wp_is_uuid($product_uuid)) {
+            $sku = (string)$item_product->get_sku();
+            if (!empty($sku)) {
+                $found_uuid = $this->search_position($sku);
+                if ($found_uuid && wp_is_uuid($found_uuid)) {
+                    $product_uuid = $found_uuid;
+                    // Кэшируем найденную связку, чтобы следующие заказы не теряли позицию.
+                    update_post_meta($item_product->get_id(), '_id_ms', $found_uuid);
+                }
+            }
+        }
+
+        if (!$product_uuid || !wp_is_uuid($product_uuid)) {
+            WmsLogs::set_logs(
+                'Пропуск позиции: товар без _id_ms и без совпадения по SKU. Product ID: ' . $item_product->get_id() .
+                ', SKU: ' . $item_product->get_sku(),
+                true
+            );
             return false;
         }
 
@@ -504,7 +532,7 @@ class WmsOrderApi extends WmsData
         $this->positions = apply_filters('wms_order_product_action', $positions, $order);
 
         if (!$this->positions) {
-            WmsLogs::set_logs('Ошибка при выгрузке позиций заказа: нет доступных позиций', true);
+            WmsLogs::set_logs('Ошибка при выгрузке позиций заказа: нет доступных позиций. Order ID: ' . $order->get_id(), true);
             return false;
         }
 
