@@ -2698,11 +2698,14 @@ function pre_get_posts_product_actions( $q ) {
 	if ( ! is_a( $cat_obj, 'WP_Term' ) || ! isset( $cat_obj->term_id ) ) {
 		return;
 	}
+	$term_id = (int) $cat_obj->term_id;
+	if ( $term_id !== 355 && $term_id !== 2626 ) {
+		return;
+	}
 
-	if ( (int) $cat_obj->term_id === 355 ) {
-		$price_date = get_field('pricedate', 'option');
-		//$price_date = date("Y-m-d 23:59:59", strtotime($price_date));
-		$discount = get_field('priceint', 'option');
+	if ( $term_id === 355 ) {
+		$price_date = ferma_get_cached_option_field('pricedate');
+		$discount   = (float) ferma_get_cached_option_field('priceint');
 
 		$price_date = date("Y-m-d 23:59:59", strtotime($price_date));
 
@@ -2713,30 +2716,19 @@ function pre_get_posts_product_actions( $q ) {
 			$q->set( 'cat', '7815' );
 		}
 
-		$terms = ferma_get_all_product_cat_term_ids();
-
 		$q->set( 'tax_query', array(
-			'relation' => 'AND',
 			array(
 				'taxonomy' => 'pa_akcziya',
 				'field' => 'slug',
 				'terms' => array(1),
 				'operator' => 'IN',
-			),
-			array(
-				'taxonomy' => 'product_cat',
-				'field' => 'id',
-				'terms' => $terms,
-				'operator' => 'IN'
 			)
 		));
 	}
 
-	if ( (int) $cat_obj->term_id === 2626 ) {
-		$zp_date_start = get_field('zp_date_start', 'option');
-		$zp_date_end = get_field('zp_date_end', 'option');
-		//$price_date = date("Y-m-d 23:59:59", strtotime($price_date));
-		$discount = get_field('priceint', 'option');
+	if ( $term_id === 2626 ) {
+		$zp_date_start = ferma_get_cached_option_field('zp_date_start');
+		$zp_date_end   = ferma_get_cached_option_field('zp_date_end');
 
 		$zp_date_start = date("Y-m-d 23:59:59", strtotime($zp_date_start));
 		$zp_date_end = date("Y-m-d 23:59:59", strtotime($zp_date_end));
@@ -2747,22 +2739,11 @@ function pre_get_posts_product_actions( $q ) {
 			$q->set( 'cat', '7815' );
 		}
 
-		$q->set( 'tax_query', null);
-
 		$green_friday_products = get_green_friday_products();
-		$good_ids = $green_friday_products['good_ids'];
-
-		$terms = ferma_get_all_product_cat_term_ids();
-
-		$q->set( 'tax_query', array(
-			'relation' => 'OR',
-			array(
-				'taxonomy' => 'product_cat',
-				'field' => 'id',
-				'terms' => $terms,
-				'operator' => 'IN'
-			)
-		));
+		$good_ids = isset($green_friday_products['good_ids']) ? array_map('intval', (array) $green_friday_products['good_ids']) : array();
+		if ( empty( $good_ids ) ) {
+			$good_ids = array( 0 );
+		}
 		$q->set( 'post__in', $good_ids );
 	}
 
