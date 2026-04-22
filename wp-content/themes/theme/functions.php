@@ -9,7 +9,7 @@
 add_action('init', 'force_no_cache_for_checkout');
 
 function force_no_cache_for_checkout() {
-    if (is_checkout()) {
+    if ( function_exists( 'is_checkout' ) && is_checkout() && ! is_order_received_page() ) {
         // Заголовки для отключения кэширования
         header('Cache-Control: no-cache, no-store, must-revalidate');
         header('Pragma: no-cache');
@@ -22,16 +22,6 @@ function force_no_cache_for_checkout() {
         // Для Cloudflare
         header('CF-Cache-Status: BYPASS');
 
-        // Удаляем все заголовки кэширования
-        if (function_exists('header_remove')) {
-            $headers = headers_list();
-            foreach ($headers as $header) {
-                if (stripos($header, 'cache') !== false ||
-                    stripos($header, 'expires') !== false) {
-                    header_remove($header);
-                }
-            }
-        }
     }
 }
 
@@ -115,6 +105,38 @@ function ferma_send_public_cache_headers_catalog() {
 	header_remove( 'Pragma' );
 	header_remove( 'Expires' );
 	header_remove( 'Set-Cookie' );
+	header( 'Vary: Accept-Encoding', true );
+	header( 'Cache-Control: public, max-age=120, s-maxage=600, stale-while-revalidate=60', true );
+}
+
+if ( ! function_exists( 'ferma_is_guest_cacheable_page' ) ) {
+	function ferma_is_guest_cacheable_page() {
+		if ( is_user_logged_in() ) {
+			return false;
+		}
+		if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+			return false;
+		}
+		if ( function_exists( 'is_cart' ) && ( is_cart() || is_checkout() || is_account_page() ) ) {
+			return false;
+		}
+		if ( isset( $_SERVER['REQUEST_METHOD'] ) && $_SERVER['REQUEST_METHOD'] !== 'GET' ) {
+			return false;
+		}
+		return true;
+	}
+}
+
+add_action( 'send_headers', 'ferma_force_guest_public_cache_headers', 10000 );
+function ferma_force_guest_public_cache_headers() {
+	if ( ! ferma_is_guest_cacheable_page() || headers_sent() ) {
+		return;
+	}
+	if ( function_exists( 'session_cache_limiter' ) ) {
+		@session_cache_limiter( '' );
+	}
+	header_remove( 'Pragma' );
+	header_remove( 'Expires' );
 	header( 'Vary: Accept-Encoding', true );
 	header( 'Cache-Control: public, max-age=120, s-maxage=600, stale-while-revalidate=60', true );
 }
