@@ -3075,6 +3075,13 @@ function ferma_remove_pingback_header( $headers ) {
 	return $headers;
 }
 
+add_action( 'send_headers', 'ferma_remove_pingback_header_late', PHP_INT_MAX );
+function ferma_remove_pingback_header_late() {
+	if ( ! headers_sent() ) {
+		header_remove( 'X-Pingback' );
+	}
+}
+
 //add_action( 'woocommerce_email', 'ferma_disable_emails' );
 
 function ferma_disable_emails( $email_class ) {
