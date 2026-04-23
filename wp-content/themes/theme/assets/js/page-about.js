@@ -11,6 +11,13 @@ function fermaSafeSwiperOptions(selector, options) {
     return safe;
 }
 
+function fermaCreateSwiper(selector, options) {
+    if (!document.querySelector(selector)) {
+        return null;
+    }
+    return new Swiper(selector, fermaSafeSwiperOptions(selector, options));
+}
+
 function fermaAlignSwiperNav(swiper) {
     if (!swiper || !swiper.el || !swiper.params || !swiper.params.navigation) {
         return;
@@ -68,7 +75,7 @@ function fermaBindSwiperNavAlignment(swiper) {
 }
 
 // Слайдер с подборками продукции
-var swiper = new Swiper(".selectionSwiper", fermaSafeSwiperOptions(".selectionSwiper", {
+var swiper = fermaCreateSwiper(".selectionSwiper", {
     slidesPerView: 2,
     spaceBetween: 24,
     loop: true,
@@ -88,5 +95,5 @@ var swiper = new Swiper(".selectionSwiper", fermaSafeSwiperOptions(".selectionSw
             slidesPerView: 5,
         },
     },
-}));
+});
 fermaBindSwiperNavAlignment(swiper);

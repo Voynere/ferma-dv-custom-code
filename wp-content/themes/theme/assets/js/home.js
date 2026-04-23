@@ -12,6 +12,13 @@ function fermaSafeSwiperOptions(selector, options) {
     return safe;
 }
 
+function fermaCreateSwiper(selector, options) {
+    if (!document.querySelector(selector)) {
+        return null;
+    }
+    return new Swiper(selector, fermaSafeSwiperOptions(selector, options));
+}
+
 function fermaAlignSwiperNav(swiper) {
     if (!swiper || !swiper.el || !swiper.params || !swiper.params.navigation) {
         return;
@@ -69,7 +76,7 @@ function fermaBindSwiperNavAlignment(swiper) {
 }
 
 // Слайдер баннера на главной (в разметке: .homeSwiper + .homeSwiper-next/prev)
-var homeHeroSwiper = new Swiper(".homeSwiper", fermaSafeSwiperOptions(".homeSwiper", {
+var homeHeroSwiper = fermaCreateSwiper(".homeSwiper", {
     slidesPerView: 1,
     spaceBetween: 16,
     loop: true,
@@ -90,11 +97,11 @@ var homeHeroSwiper = new Swiper(".homeSwiper", fermaSafeSwiperOptions(".homeSwip
     keyboard: {
         enabled: true,
     },
-}));
+});
 fermaBindSwiperNavAlignment(homeHeroSwiper);
 
 // Слайдер с подборками продукции
-var swiper = new Swiper(".selectionSwiper", fermaSafeSwiperOptions(".selectionSwiper", {
+var swiper = fermaCreateSwiper(".selectionSwiper", {
     slidesPerView: 2,
     spaceBetween: 24,
     loop: true,
@@ -114,11 +121,11 @@ var swiper = new Swiper(".selectionSwiper", fermaSafeSwiperOptions(".selectionSw
             slidesPerView: 5,
         },
     },
-}));
+});
 fermaBindSwiperNavAlignment(swiper);
 
 // Слайдер статей
-var swiper = new Swiper(".articleSwiper", fermaSafeSwiperOptions(".articleSwiper", {
+var swiper = fermaCreateSwiper(".articleSwiper", {
     slidesPerView: 2,
     spaceBetween: 24,
     loop: true,
@@ -126,11 +133,11 @@ var swiper = new Swiper(".articleSwiper", fermaSafeSwiperOptions(".articleSwiper
         nextEl: ".articleSwiper-next",
         prevEl: ".articleSwiper-prev",
     },
-}));
+});
 fermaBindSwiperNavAlignment(swiper);
 
 // Слайдер с поставщиками
-var swiper = new Swiper(".supplierSwiper", fermaSafeSwiperOptions(".supplierSwiper", {
+var swiper = fermaCreateSwiper(".supplierSwiper", {
     slidesPerView: 1,
     spaceBetween: 24,
     loop: true,
@@ -144,12 +151,12 @@ var swiper = new Swiper(".supplierSwiper", fermaSafeSwiperOptions(".supplierSwip
             spaceBetween: 24,
         },
     },
-}));
+});
 fermaBindSwiperNavAlignment(swiper);
 
 // Мобильный баннер в шапке (header-home): .bannerSwiper
 if (document.querySelector(".bannerSwiper")) {
-    var bannerHeaderSwiper = new Swiper(".bannerSwiper", fermaSafeSwiperOptions(".bannerSwiper", {
+    var bannerHeaderSwiper = fermaCreateSwiper(".bannerSwiper", {
         slidesPerView: 1,
         spaceBetween: 16,
         loop: true,
@@ -157,5 +164,5 @@ if (document.querySelector(".bannerSwiper")) {
             nextEl: ".bannerSwiper-next",
             prevEl: ".bannerSwiper-prev",
         },
-    }));
+    });
 }

@@ -12,6 +12,13 @@ function fermaSafeSwiperOptions(selector, options) {
     return safe;
 }
 
+function fermaCreateSwiper(selector, options) {
+    if (!document.querySelector(selector)) {
+        return null;
+    }
+    return new Swiper(selector, fermaSafeSwiperOptions(selector, options));
+}
+
 function fermaAlignSwiperNav(swiper) {
     if (!swiper || !swiper.el || !swiper.params || !swiper.params.navigation) {
         return;
@@ -69,7 +76,7 @@ function fermaBindSwiperNavAlignment(swiper) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    var swiper = new Swiper(".blogSwiper", fermaSafeSwiperOptions(".blogSwiper", {
+    var swiper = fermaCreateSwiper(".blogSwiper", {
         slidesPerView: 1,
         spaceBetween: 24,
         loop: true,
@@ -77,6 +84,6 @@ document.addEventListener('DOMContentLoaded', function () {
             nextEl: ".blogSwiper-next",
             prevEl: ".blogSwiper-prev",
         },
-    }));
+    });
     fermaBindSwiperNavAlignment(swiper);
 });
