@@ -214,6 +214,22 @@
         background: #e87e7e !important;
     }
 
+    /* Keep internal-page desktop header consistent with product-page reference layout. */
+    @media (min-width: 868px) {
+        body:not(.home):not(.single-product) .header__desktop-bot {
+            display: flex !important;
+            margin-top: 24px;
+        }
+
+        body:not(.home):not(.single-product) .header__desktop-menu {
+            margin-bottom: 0;
+        }
+    }
+
+    body:not(.home):not(.single-product) .header__logo div span {
+        color: var(--color-light-black) !important;
+    }
+
 </style>
 <p style="display:none;">
     <?
