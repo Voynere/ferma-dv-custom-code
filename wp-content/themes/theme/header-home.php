@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 
 <head>
@@ -1438,15 +1438,6 @@ if (!empty($_POST["vib"])) {
             </div>
         </div>
 
-        <div id="market_zarya" class="market_el">
-            <p class="modal-delivery__selfpickup-adress">Заря (ул. Чкалова, 30)</p>
-            <div class="mainblock_time1 enable1" data-market="6"  style="">
-                <div class="underblocktime1" style="">
-                    <p class="delivery-text modal-delivery__selfpickup-btn"style="margin-bottom:0px;">Выбрать</p>
-                </div>
-            </div>
-        </div>
-
         <div id="market_sputnik" class="market_el">
             <p class="modal-delivery__selfpickup-adress">ул. Тимирязева,31 строение 1 (район Спутник)</p>
             <div class="mainblock_time1 enable1" data-market="3" style="">
@@ -1536,12 +1527,6 @@ if (!empty($_POST["vib"])) {
                 balloonContentLayout: null
             }
         );
-        var myPlacemark6 = new ymaps.Placemark([43.181235883133674,131.9154298472213], {
-            hintContent: 'Заря (Чкалова, 30)'
-        }, {
-            balloonContentLayout: null
-        });
-
         var myGroup = new ymaps.GeoObjectCollection({}, {
             draggable: false,
             preset: 'islands#blueIcon',
@@ -1551,7 +1536,6 @@ if (!empty($_POST["vib"])) {
         myGroup.add(myPlacemark11)
             .add(myPlacemark1)
             .add(myPlacemark3)
-            .add(myPlacemark6)
             .add(myPlacemark8);
 
         map2.geoObjects.add(myGroup);
@@ -1627,20 +1611,6 @@ if (!empty($_POST["vib"])) {
                         console.log(fullAddress);
                     });
                     map2.setCenter(myPlacemark3.geometry.getCoordinates());
-                    // Устанавливаем масштаб
-                    map2.setZoom(15);
-
-                }
-
-                if (dataMarket == 6) {
-                    myPlacemark6.options.set('iconColor', '#ff0000');
-                    document.getElementById('samoviziv').innerHTML = myPlacemark6.properties.get('hintContent');
-                    ymaps.geocode(myPlacemark6.geometry.getCoordinates()).then(function (res) {
-                        var fullAddress = res.geoObjects.get(0).getAddressLine();
-                        document.getElementById('suggest').value = fullAddress;
-                        console.log(fullAddress);
-                    });
-                    map2.setCenter(myPlacemark6.geometry.getCoordinates());
                     // Устанавливаем масштаб
                     map2.setZoom(15);
 
