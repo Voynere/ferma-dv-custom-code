@@ -1,5 +1,19 @@
+function fermaSafeSwiperOptions(selector, options) {
+    var root = document.querySelector(selector);
+    if (!root) {
+        return options;
+    }
+    var slides = root.querySelectorAll(".swiper-slide").length;
+    var safe = Object.assign({}, options);
+    // Loop mode in Swiper requires enough slides; disable to avoid layout glitches.
+    if (safe.loop && slides < 2) {
+        safe.loop = false;
+    }
+    return safe;
+}
+
 // Слайдер баннера на главной (в разметке: .homeSwiper + .homeSwiper-next/prev)
-var homeHeroSwiper = new Swiper(".homeSwiper", {
+var homeHeroSwiper = new Swiper(".homeSwiper", fermaSafeSwiperOptions(".homeSwiper", {
     slidesPerView: 1,
     spaceBetween: 16,
     loop: true,
@@ -20,10 +34,10 @@ var homeHeroSwiper = new Swiper(".homeSwiper", {
     keyboard: {
         enabled: true,
     },
-});
+}));
 
 // Слайдер с подборками продукции
-var swiper = new Swiper(".selectionSwiper", {
+var swiper = new Swiper(".selectionSwiper", fermaSafeSwiperOptions(".selectionSwiper", {
     slidesPerView: 2,
     spaceBetween: 24,
     loop: true,
@@ -43,10 +57,10 @@ var swiper = new Swiper(".selectionSwiper", {
             slidesPerView: 5,
         },
     },
-});
+}));
 
 // Слайдер статей
-var swiper = new Swiper(".articleSwiper", {
+var swiper = new Swiper(".articleSwiper", fermaSafeSwiperOptions(".articleSwiper", {
     slidesPerView: 2,
     spaceBetween: 24,
     loop: true,
@@ -54,10 +68,10 @@ var swiper = new Swiper(".articleSwiper", {
         nextEl: ".articleSwiper-next",
         prevEl: ".articleSwiper-prev",
     },
-});
+}));
 
 // Слайдер с поставщиками
-var swiper = new Swiper(".supplierSwiper", {
+var swiper = new Swiper(".supplierSwiper", fermaSafeSwiperOptions(".supplierSwiper", {
     slidesPerView: 1,
     spaceBetween: 24,
     loop: true,
@@ -71,11 +85,11 @@ var swiper = new Swiper(".supplierSwiper", {
             spaceBetween: 24,
         },
     },
-});
+}));
 
 // Мобильный баннер в шапке (header-home): .bannerSwiper
 if (document.querySelector(".bannerSwiper")) {
-    var bannerHeaderSwiper = new Swiper(".bannerSwiper", {
+    var bannerHeaderSwiper = new Swiper(".bannerSwiper", fermaSafeSwiperOptions(".bannerSwiper", {
         slidesPerView: 1,
         spaceBetween: 16,
         loop: true,
@@ -83,5 +97,5 @@ if (document.querySelector(".bannerSwiper")) {
             nextEl: ".bannerSwiper-next",
             prevEl: ".bannerSwiper-prev",
         },
-    });
+    }));
 }

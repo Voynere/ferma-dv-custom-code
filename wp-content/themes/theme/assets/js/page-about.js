@@ -1,5 +1,18 @@
+function fermaSafeSwiperOptions(selector, options) {
+    var root = document.querySelector(selector);
+    if (!root) {
+        return options;
+    }
+    var slides = root.querySelectorAll(".swiper-slide").length;
+    var safe = Object.assign({}, options);
+    if (safe.loop && slides < 2) {
+        safe.loop = false;
+    }
+    return safe;
+}
+
 // Слайдер с подборками продукции
-var swiper = new Swiper(".selectionSwiper", {
+var swiper = new Swiper(".selectionSwiper", fermaSafeSwiperOptions(".selectionSwiper", {
     slidesPerView: 2,
     spaceBetween: 24,
     loop: true,
@@ -19,4 +32,4 @@ var swiper = new Swiper(".selectionSwiper", {
             slidesPerView: 5,
         },
     },
-});
+}));
