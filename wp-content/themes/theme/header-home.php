@@ -157,6 +157,23 @@
         align-items: stretch;
     }
 
+    /* Guard against legacy global snippets from Simple CSS&JS on inner pages. */
+    body:not(.home):not(.single-product) #photo_pc_1,
+    body:not(.home):not(.single-product) #photo_pc_2,
+    body:not(.home):not(.single-product) #photo_0,
+    body:not(.home):not(.single-product) #photo_1,
+    body:not(.home):not(.single-product) #photo_2,
+    body:not(.home):not(.single-product) .mslider,
+    body:not(.home):not(.single-product) .dslider {
+        display: none !important;
+    }
+
+    body:not(.home):not(.single-product) .class {
+        display: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
 </style>
 <p style="display:none;">
     <?
