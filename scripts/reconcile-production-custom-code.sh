@@ -22,7 +22,6 @@ copy_if_exists "$SERVER_PATH/wp-content/plugins/wms-store" "$BACKUP_DIR/wp-conte
 copy_if_exists "$SERVER_PATH/wp-content/plugins/wms-addon-groop" "$BACKUP_DIR/wp-content/plugins/wms-addon-groop"
 copy_if_exists "$SERVER_PATH/yandexeda" "$BACKUP_DIR/yandexeda"
 copy_if_exists "$SERVER_PATH/update_green_friday.php" "$BACKUP_DIR/update_green_friday.php"
-copy_if_exists "$SERVER_PATH/ferma_fasovka_sync_once.php" "$BACKUP_DIR/ferma_fasovka_sync_once.php"
 copy_if_exists "$SERVER_PATH/moysklad.php" "$BACKUP_DIR/moysklad.php"
 copy_if_exists "$SERVER_PATH/check_bal.php" "$BACKUP_DIR/check_bal.php"
 copy_if_exists "$SERVER_PATH/cjfuns.php" "$BACKUP_DIR/cjfuns.php"
@@ -35,7 +34,6 @@ git -C "$SERVER_PATH" diff -- \
   wp-content/plugins/wms-addon-groop \
   yandexeda \
   update_green_friday.php \
-  ferma_fasovka_sync_once.php \
   > "$BACKUP_DIR/custom-code.patch" || true
 
 echo "Backup written to $BACKUP_DIR"

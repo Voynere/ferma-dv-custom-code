@@ -21,7 +21,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           port: ${{ secrets.SERVER_PORT }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "wp-content/themes/theme,yandexeda,wp-content/plugins/woocommerce-mysklad-sync,wp-content/plugins/wms-store,wp-content/plugins/wms-addon-groop,update_green_friday.php,ferma_fasovka_sync_once.php"
+          source: "wp-content/themes/theme,yandexeda,wp-content/plugins/woocommerce-mysklad-sync,wp-content/plugins/wms-store,wp-content/plugins/wms-addon-groop,update_green_friday.php"
           target: "/tmp/ferma-dv-custom-code"
           rm: true
 
@@ -32,7 +32,6 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           port: ${{ secrets.SERVER_PORT }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          envs: FERMA_FASOVKA_SYNC_CONFIG_B64
           script: |
             set -euo pipefail
 
@@ -51,14 +50,9 @@ jobs:
               install -m 0644 "$STAGING/update_green_friday.php" "$TARGET/update_green_friday.php"
             fi
 
-            if [ -f "$STAGING/ferma_fasovka_sync_once.php" ]; then
-              install -m 0644 "$STAGING/ferma_fasovka_sync_once.php" "$TARGET/ferma_fasovka_sync_once.php"
-            fi
-
-            if [ -n "${FERMA_FASOVKA_SYNC_CONFIG_B64:-}" ]; then
-              echo "$FERMA_FASOVKA_SYNC_CONFIG_B64" | base64 -d | install -m 0600 /dev/stdin "$TARGET/ferma_fasovka_sync_once.config.php"
-            fi
+            # Removed from repo: one-off MoySklad fasovka script (superseded by theme + WMS sync)
+            rm -f "$TARGET/ferma_fasovka_sync_once.php" \
+                  "$TARGET/ferma_fasovka_sync_once.config.php" \
+                  "$TARGET/ferma_fasovka_sync_once.config.sample.php"
 
             rm -rf "$STAGING"
-        env:
-          FERMA_FASOVKA_SYNC_CONFIG_B64: ${{ secrets.FERMA_FASOVKA_SYNC_CONFIG_B64 }}

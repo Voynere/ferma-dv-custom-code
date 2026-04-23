@@ -10,7 +10,6 @@ These paths are treated as the initial source of truth for the new custom-code r
 - `wp-content/plugins/wms-addon-groop/`
 - `yandexeda/`
 - `update_green_friday.php`
-- `ferma_fasovka_sync_once.php`
 
 ## Manual review paths
 

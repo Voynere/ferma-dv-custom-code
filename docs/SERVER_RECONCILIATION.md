@@ -20,7 +20,7 @@ if [ -d "$SERVER_PATH/yandexeda" ]; then
   cp -a "$SERVER_PATH/yandexeda" "$BACKUP_DIR/yandexeda"
 fi
 
-for file in update_green_friday.php ferma_fasovka_sync_once.php moysklad.php check_bal.php cjfuns.php; do
+for file in update_green_friday.php moysklad.php check_bal.php cjfuns.php; do
   if [ -f "$SERVER_PATH/$file" ]; then
     cp -a "$SERVER_PATH/$file" "$BACKUP_DIR/$file"
   fi
@@ -40,7 +40,6 @@ git -C "$SERVER_PATH" diff -- \
   wp-content/plugins/wms-addon-groop \
   yandexeda \
   update_green_friday.php \
-  ferma_fasovka_sync_once.php \
   > "$BACKUP_DIR/custom-code.patch" || true
 ```
 
