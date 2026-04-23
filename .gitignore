@@ -21,6 +21,11 @@ logs_*/
 # WordPress runtime and generated content
 .tmb/
 wp-content/uploads/
+!wp-content/uploads/
+!wp-content/uploads/2024/
+!wp-content/uploads/2024/08/
+!wp-content/uploads/2024/08/jingleberry.woff
+!wp-content/uploads/2024/08/jingleberry.woff2
 wp-content/cache/
 wp-content/webp-express/
 wp-content/ewww/

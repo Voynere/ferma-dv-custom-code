@@ -21,7 +21,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           port: ${{ secrets.SERVER_PORT }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          source: "wp-content/themes/theme,yandexeda,wp-content/plugins/woocommerce-mysklad-sync,wp-content/plugins/wms-store,wp-content/plugins/wms-addon-groop,update_green_friday.php"
+          source: "wp-content/themes/theme,wp-content/uploads/2024/08/jingleberry.woff,wp-content/uploads/2024/08/jingleberry.woff2,yandexeda,wp-content/plugins/woocommerce-mysklad-sync,wp-content/plugins/wms-store,wp-content/plugins/wms-addon-groop,update_green_friday.php"
           target: "/tmp/ferma-dv-custom-code"
           rm: true
 
@@ -41,6 +41,13 @@ jobs:
             mkdir -p "$TARGET/wp-content/themes" "$TARGET/wp-content/plugins"
 
             rsync -a --delete "$STAGING/wp-content/themes/theme/" "$TARGET/wp-content/themes/theme/"
+            install -d "$TARGET/wp-content/uploads/2024/08"
+            if [ -f "$STAGING/wp-content/uploads/2024/08/jingleberry.woff" ]; then
+              install -m 0644 "$STAGING/wp-content/uploads/2024/08/jingleberry.woff" "$TARGET/wp-content/uploads/2024/08/jingleberry.woff"
+            fi
+            if [ -f "$STAGING/wp-content/uploads/2024/08/jingleberry.woff2" ]; then
+              install -m 0644 "$STAGING/wp-content/uploads/2024/08/jingleberry.woff2" "$TARGET/wp-content/uploads/2024/08/jingleberry.woff2"
+            fi
             rsync -a --delete "$STAGING/yandexeda/" "$TARGET/yandexeda/"
             rsync -a --delete "$STAGING/wp-content/plugins/woocommerce-mysklad-sync/" "$TARGET/wp-content/plugins/woocommerce-mysklad-sync/"
             rsync -a --delete "$STAGING/wp-content/plugins/wms-store/" "$TARGET/wp-content/plugins/wms-store/"
