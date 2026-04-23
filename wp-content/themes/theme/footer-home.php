@@ -402,9 +402,14 @@ if($popup_show) :
 <!-- old -->
 
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-<script src="<?php bloginfo('template_url') ?>/assets/js/home.js"></script>
-<script src="<?php bloginfo('template_url') ?>/assets/js/main.js?v=1.1"></script>
-<script src="<?php bloginfo('template_url') ?>/assets/js/header-follow.js?v=1.2"></script>
+<?php
+$ferma_home_js_ver = file_exists( get_template_directory() . '/assets/js/home.js' ) ? filemtime( get_template_directory() . '/assets/js/home.js' ) : time();
+$ferma_main_js_ver = file_exists( get_template_directory() . '/assets/js/main.js' ) ? filemtime( get_template_directory() . '/assets/js/main.js' ) : time();
+$ferma_header_follow_js_ver = file_exists( get_template_directory() . '/assets/js/header-follow.js' ) ? filemtime( get_template_directory() . '/assets/js/header-follow.js' ) : time();
+?>
+<script src="<?php bloginfo('template_url') ?>/assets/js/home.js?ver=<?php echo esc_attr( (string) $ferma_home_js_ver ); ?>"></script>
+<script src="<?php bloginfo('template_url') ?>/assets/js/main.js?ver=<?php echo esc_attr( (string) $ferma_main_js_ver ); ?>"></script>
+<script src="<?php bloginfo('template_url') ?>/assets/js/header-follow.js?ver=<?php echo esc_attr( (string) $ferma_header_follow_js_ver ); ?>"></script>
 
 </body>
 
