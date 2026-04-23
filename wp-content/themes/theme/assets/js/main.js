@@ -84,6 +84,68 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
+// Safe replacement for legacy custom snippet 7744.js (tabs + delivery modal behavior).
+document.addEventListener('DOMContentLoaded', function () {
+    var body = document.body;
+    var modal = document.querySelector('.modal1');
+    var scrollTop = 0;
+
+    function openModal() {
+        if (!modal) return;
+        scrollTop = window.pageYOffset || document.documentElement.scrollTop || 0;
+        modal.style.display = 'block';
+        body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        if (!modal) return;
+        modal.style.display = 'none';
+        body.style.overflow = '';
+        window.scrollTo(0, scrollTop);
+    }
+
+    // Tab buttons: delegated handler supports dynamic rendering and multiple buttons.
+    document.addEventListener('click', function (event) {
+        var tabButton = event.target.closest('.tab-button1');
+        if (!tabButton) return;
+
+        var target = tabButton.getAttribute('data-target');
+        if (!target) return;
+
+        document.querySelectorAll('.tab-content1').forEach(function (tab) {
+            tab.style.display = 'none';
+            tab.classList.remove('active1');
+        });
+
+        document.querySelectorAll('.tab-button1').forEach(function (btn) {
+            btn.classList.remove('active1');
+        });
+
+        var targetEl = document.querySelector(target);
+        if (targetEl) {
+            targetEl.style.display = 'block';
+            targetEl.classList.add('active1');
+        }
+        tabButton.classList.add('active1');
+    });
+
+    document.addEventListener('click', function (event) {
+        if (event.target.closest('.open-modal1')) {
+            openModal();
+        }
+
+        if (event.target.closest('.close-modal1')) {
+            closeModal();
+        }
+    });
+
+    window.addEventListener('click', function (event) {
+        if (modal && event.target === modal) {
+            closeModal();
+        }
+    });
+});
+
 
 
 // Строка поиска для моб устройств header-product: 
