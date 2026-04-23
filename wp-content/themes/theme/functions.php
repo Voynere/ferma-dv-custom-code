@@ -39,6 +39,32 @@ function add_nocache_to_checkout_url($url) {
 }
 
 /**
+ * Remove legacy addon query params from storefront URLs.
+ * We filter catalog by cookies; old links with ?wms-addon-store-filter-form must canonicalize.
+ */
+add_action('template_redirect', 'ferma_strip_legacy_store_filter_query', 1);
+function ferma_strip_legacy_store_filter_query() {
+    if (is_admin()) {
+        return;
+    }
+    $hasLegacyFilter = isset($_GET['wms-addon-store-filter-form']);
+    $hasLegacyPostType = isset($_GET['post_type']) && $_GET['post_type'] === 'page';
+    if (!$hasLegacyFilter && !$hasLegacyPostType) {
+        return;
+    }
+    if (!isset($_SERVER['REQUEST_URI'])) {
+        return;
+    }
+    $requestUri = (string) $_SERVER['REQUEST_URI'];
+    $path = strtok($requestUri, '?');
+    if (!is_string($path) || $path === '') {
+        $path = '/';
+    }
+    wp_safe_redirect(home_url($path), 301);
+    exit;
+}
+
+/**
  * Витрина: магазин, категории и метки (без корзины/чекаута/ЛК).
  */
 if ( ! function_exists( 'ferma_is_catalog_cache_candidate' ) ) {

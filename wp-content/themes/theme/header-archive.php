@@ -3,4 +3,4 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-require get_template_directory() . '/header-home.php';
+require get_template_directory() . '/header.php';
