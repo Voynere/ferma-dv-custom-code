@@ -1648,9 +1648,8 @@ add_action( 'widgets_init', 'theme_widgets_init' );
  * Enqueue scripts and styles.
  */
 function theme_scripts() {
-	if ( ! is_page( 2 ) && ! is_page( 18120 ) && ! ( function_exists( 'is_product' ) && is_product() ) ) {
-		wp_enqueue_style( 'theme-style', get_stylesheet_uri(), '', '2.9.9' );
-	}
+	// Legacy stylesheet is intentionally disabled to keep all templates
+	// on the same visual baseline as homepage and product pages.
 
 	wp_enqueue_style( 'complect-style', get_template_directory_uri() . '/css/complect.css', '', '1.0' );
 
