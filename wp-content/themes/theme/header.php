@@ -1,4 +1,12 @@
-﻿<!doctype html>
+﻿<?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+require get_template_directory() . '/header-home.php';
+return;
+?>
+<!doctype html>
 <html lang="ru">
 <!-- ferma-debug-header: header.php -->
 <head>

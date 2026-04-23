@@ -140,10 +140,11 @@
     .selection__inner .selectionSwiper-next,
     .selection__inner .selectionSwiper-prev {
         position: absolute;
-        top: 50%;
-        bottom: auto;
-        transform: translateY(-50%);
-        z-index: 3;
+        top: 50% !important;
+        bottom: auto !important;
+        transform: translateY(-50%) !important;
+        margin-top: 0 !important;
+        z-index: 3 !important;
     }
 </style>
 <p style="display:none;">
