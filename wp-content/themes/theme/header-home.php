@@ -133,6 +133,19 @@
         z-index: 111111111111111;
     }
 </style>
+<style>
+    /* Swiper navigation fallback: keep arrows vertically centered */
+    .home-slider__inner .homeSwiper-next,
+    .home-slider__inner .homeSwiper-prev,
+    .selection__inner .selectionSwiper-next,
+    .selection__inner .selectionSwiper-prev {
+        position: absolute;
+        top: 50%;
+        bottom: auto;
+        transform: translateY(-50%);
+        z-index: 3;
+    }
+</style>
 <p style="display:none;">
     <?
     $user_id = get_current_user_id();
