@@ -146,6 +146,11 @@
         margin-top: 0 !important;
         z-index: 3 !important;
     }
+
+    /* Missing Jingleberry font files cause 404 in production; keep visual fallback explicit. */
+    :root {
+        --font-f-jingleberry: "Roboto Condensed", Arial, sans-serif;
+    }
 </style>
 <p style="display:none;">
     <?
