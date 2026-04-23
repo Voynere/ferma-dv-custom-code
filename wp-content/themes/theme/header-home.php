@@ -210,6 +210,10 @@
         }
     }
 
+    .mapboxgl-ctrl-geocoder--button {
+        background: #e87e7e !important;
+    }
+
 </style>
 <p style="display:none;">
     <?
