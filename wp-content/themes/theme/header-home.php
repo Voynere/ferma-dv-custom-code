@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="ru">
+<!-- ferma-debug-header: header-home.php -->
 
 <head>
     <meta charset="UTF-8">
