@@ -37,6 +37,7 @@
             'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
         })(window,document,'script','dataLayer','GTM-PS4BM6F');</script>
     <!-- End Google Tag Manager -->
+    <?php require get_template_directory() . '/inc/partials/header-critical-css.php'; ?>
     <title>Ферма DВ</title>
 </head>
 
