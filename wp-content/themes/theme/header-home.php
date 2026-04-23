@@ -147,6 +147,21 @@
         z-index: 3 !important;
     }
 
+    /* Prevent generic Swiper slide height stretching across content sections. */
+    .homeSwiper .swiper-slide,
+    .selectionSwiper .swiper-slide,
+    .articleSwiper .swiper-slide,
+    .supplierSwiper .swiper-slide {
+        height: auto !important;
+    }
+
+    .homeSwiper .swiper-wrapper,
+    .selectionSwiper .swiper-wrapper,
+    .articleSwiper .swiper-wrapper,
+    .supplierSwiper .swiper-wrapper {
+        align-items: stretch;
+    }
+
 </style>
 <p style="display:none;">
     <?
