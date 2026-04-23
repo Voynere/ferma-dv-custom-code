@@ -159,6 +159,7 @@
     .selectionSwiper .swiper-wrapper,
     .articleSwiper .swiper-wrapper,
     .supplierSwiper .swiper-wrapper {
+        height: auto !important;
         align-items: stretch;
     }
 
