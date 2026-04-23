@@ -147,18 +147,12 @@
         z-index: 3 !important;
     }
 
-    /* Prevent generic Swiper slide height stretching across content sections. */
-    .homeSwiper .swiper-slide,
-    .selectionSwiper .swiper-slide,
-    .articleSwiper .swiper-slide,
-    .supplierSwiper .swiper-slide {
+    /* Prevent generic Swiper height stretching across content sections (except header mobile banner). */
+    .swiper:not(.bannerSwiper) .swiper-slide {
         height: auto !important;
     }
 
-    .homeSwiper .swiper-wrapper,
-    .selectionSwiper .swiper-wrapper,
-    .articleSwiper .swiper-wrapper,
-    .supplierSwiper .swiper-wrapper {
+    .swiper:not(.bannerSwiper) .swiper-wrapper {
         height: auto !important;
         align-items: stretch;
     }
