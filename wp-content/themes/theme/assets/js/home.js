@@ -13,6 +13,9 @@ function fermaSafeSwiperOptions(selector, options) {
 }
 
 function fermaCreateSwiper(selector, options) {
+    if (typeof Swiper === "undefined") {
+        return null;
+    }
     if (!document.querySelector(selector)) {
         return null;
     }
