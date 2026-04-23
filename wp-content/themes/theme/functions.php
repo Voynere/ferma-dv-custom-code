@@ -1759,41 +1759,6 @@ function theme_scripts() {
     );
 }
 add_action( 'wp_enqueue_scripts', 'theme_scripts' );
-
-// Temporary diagnostics for style/script loading differences across templates.
-add_action(
-	'wp_head',
-	function () {
-		if ( ! current_user_can( 'administrator' ) && ! isset( $_GET['debug_styles'] ) ) {
-			return;
-		}
-
-		global $wp_styles, $wp_scripts;
-
-		$page_id = get_queried_object_id();
-		$template_slug = function_exists( 'get_page_template_slug' ) ? get_page_template_slug( $page_id ) : '';
-
-		echo "\n<!-- ===== FERMA STYLE DEBUG ===== -->\n";
-		echo '<!-- Page ID: ' . esc_html( (string) $page_id ) . " -->\n";
-		echo '<!-- Page template: ' . esc_html( (string) $template_slug ) . " -->\n";
-		echo '<!-- is_home: ' . ( is_home() ? 'true' : 'false' ) . " -->\n";
-		echo '<!-- is_archive: ' . ( is_archive() ? 'true' : 'false' ) . " -->\n";
-		echo '<!-- is_category: ' . ( is_category() ? 'true' : 'false' ) . " -->\n";
-		echo '<!-- is_page: ' . ( is_page() ? 'true' : 'false' ) . " -->\n";
-		echo '<!-- is_single: ' . ( is_single() ? 'true' : 'false' ) . " -->\n";
-		echo '<!-- is_product: ' . ( function_exists( 'is_product' ) && is_product() ? 'true' : 'false' ) . " -->\n";
-
-		if ( isset( $wp_styles->queue ) && is_array( $wp_styles->queue ) ) {
-			echo '<!-- Enqueued styles: ' . esc_html( implode( ', ', $wp_styles->queue ) ) . " -->\n";
-		}
-		if ( isset( $wp_scripts->queue ) && is_array( $wp_scripts->queue ) ) {
-			echo '<!-- Enqueued scripts: ' . esc_html( implode( ', ', $wp_scripts->queue ) ) . " -->\n";
-		}
-
-		echo "<!-- ===== END DEBUG ===== -->\n";
-	},
-	999
-);
 add_action('woocommerce_before_add_to_cart_button', function() {
     if (!WC()->cart) return;
 
