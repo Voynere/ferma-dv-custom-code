@@ -23,8 +23,9 @@ function fermaAlignSwiperNav(swiper) {
     }
 
     var parentRect = parent.getBoundingClientRect();
-    var swiperRect = swiper.el.getBoundingClientRect();
-    var centeredTop = (swiperRect.top - parentRect.top) + (swiperRect.height / 2);
+    var target = swiper.el.querySelector(".swiper-slide-active img, .swiper-slide-active .selection__item, .swiper-slide-active .supplier__item, .swiper-slide-active .article__item, .swiper-slide-active");
+    var targetRect = target ? target.getBoundingClientRect() : swiper.el.getBoundingClientRect();
+    var centeredTop = (targetRect.top - parentRect.top) + (targetRect.height / 2);
 
     var selectors = [swiper.params.navigation.nextEl, swiper.params.navigation.prevEl];
     selectors.forEach(function (selector) {
@@ -62,6 +63,8 @@ function fermaBindSwiperNavAlignment(swiper) {
         swiper.on("breakpoint", update);
         swiper.on("observerUpdate", update);
         swiper.on("imagesReady", update);
+        swiper.on("slideChange", update);
+        swiper.on("transitionEnd", update);
     }
 }
 
