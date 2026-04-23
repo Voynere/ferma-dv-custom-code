@@ -39,7 +39,6 @@
 </head>
 
 <body <?php body_class(); ?>>
-<?php wp_body_open(); ?>
 <!-- Старый код -->
 <?if ( is_user_logged_in() && get_user_meta( get_current_user_id(), 'delivery', true ) == '1' ) {?>
     <style>
