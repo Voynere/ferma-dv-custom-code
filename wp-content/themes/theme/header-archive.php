@@ -8,12 +8,6 @@
 <meta name="yandex-verification" content="50671f6ce40cf19f" />
 <meta name="mailru-domain" content="Rsg5YmdfoMnfaRN0" />
 
-<!-- Bootstrap 4: same as header.php — grid for archive-product (container/row/col) -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"
-      media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"></noscript>
-
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -91,9 +85,32 @@ $check = $query['wms-addon-store-filter-form'][0];
 $check1 = $query['post_type'];
 $term_id = get_queried_object_id();
 $term_link = get_term_link( $term_id );
-if($check != null || !empty($check1)) {
-    header('Location: '.$term_link);
-    exit;
+if($_COOKIE['delivery'] == 0) {
+    if($check != null) { header('Location: '.$term_link); }
+} else {
+    if($check != null and empty($check1)) {
+        $term_id = get_queried_object_id();
+        $term_link = get_term_link( $term_id );
+        if ($check != $_COOKIE['key_market']) {
+            header('Location: '.$term_link . '?wms-addon-store-filter-form%5B0%5D=' . $_COOKIE['key_market']);
+        }
+    }
+    if ($check == null) {
+        header('Location: '.$term_link . '?wms-addon-store-filter-form%5B0%5D=' . $_COOKIE['key_market']);
+    }
+    if(!empty($check1)) {
+        $term_id = get_queried_object_id();
+        $term_link = get_term_link( $term_id );
+        if ( is_user_logged_in() && get_user_meta( get_current_user_id(), 'delivery', true ) == '0') {
+            header('Location: '.$term_link);
+        } elseif (!is_user_logged_in() && $_COOKIE['delivery'] == 0) {
+            header('Location: '.$term_link);
+        } else {
+            if ($check != $_COOKIE['key_market']) {
+                header('Location: '.$term_link . '?post_type=page&wms-addon-store-filter-form%5B0%5D=' . $_COOKIE['key_market']);
+            }
+        }
+    }
 }
 }
 ?>
@@ -272,22 +289,7 @@ a.xoo-wsc-ft-btn.button.btn.xoo-wsc-ft-btn-checkout { background: #4caf50; color
         }
     } else { echo 'Доставка или самовывоз'; $resultArray = 'Выберите способ получения'; }
 } else {
-    $row = isset($_COOKIE['delivery']) ? $_COOKIE['delivery'] : null;
-    if (!isset($row) || $row === '') {
-        $hasPickup = isset($_COOKIE['billing_samoviziv']) && $_COOKIE['billing_samoviziv'] !== '';
-        $hasDelivery = (isset($_COOKIE['billing_delivery']) && $_COOKIE['billing_delivery'] !== '') ||
-            (isset($_COOKIE['coords']) && $_COOKIE['coords'] !== '') ||
-            (isset($_COOKIE['billing_coords']) && $_COOKIE['billing_coords'] !== '');
-        if ($hasPickup) {
-            $row = '1';
-            setcookie('delivery', '1', time() + 3600 * 24 * 7, '/');
-            $_COOKIE['delivery'] = '1';
-        } elseif ($hasDelivery) {
-            $row = '0';
-            setcookie('delivery', '0', time() + 3600 * 24 * 7, '/');
-            $_COOKIE['delivery'] = '0';
-        }
-    }
+    $row = $_COOKIE['delivery'];
     if (isset($row)) {
         if ($row == 1) { echo 'Самовывоз'; $resultArray = $_COOKIE['billing_samoviziv']; }
         if ($row == 0) {
@@ -639,7 +641,7 @@ a.xoo-wsc-ft-btn.button.btn.xoo-wsc-ft-btn-checkout { background: #4caf50; color
     <h2 class="modal-delivery__selfpickup-title">Выбор магазина</h2>
     <h5 class="modal-delivery__selfpickup-city">Владивосток:</h5>
     <div id="market_egersheld" class="market_el">
-        <p class="modal-delivery__selfpickup-adress">Эгершельд, Верхнепортовая, 41в</p>
+        <p class="modal-delivery__selfpickup-adress">Эгершельд, Верхнепортовая,68а</p>
         <div class="mainblock_time1 enable1" data-market="11"><div class="underblocktime1"><p class="delivery-text modal-delivery__selfpickup-btn" style="margin-bottom:0px;">Выбрать</p></div></div>
     </div>
     <script>
@@ -651,8 +653,12 @@ a.xoo-wsc-ft-btn.button.btn.xoo-wsc-ft-btn-checkout { background: #4caf50; color
         <p class="modal-delivery__selfpickup-adress">Реми-Сити (ул. Народный пр-т, 20)</p>
         <div class="mainblock_time1 enable1" data-market="1"><div class="underblocktime1"><p class="delivery-text modal-delivery__selfpickup-btn" style="margin-bottom:0px;">Выбрать</p></div></div>
     </div>
+    <div id="market_zarya" class="market_el">
+        <p class="modal-delivery__selfpickup-adress">Заря (ул. Чкалова, 30)</p>
+        <div class="mainblock_time1 enable1" data-market="6"><div class="underblocktime1"><p class="delivery-text modal-delivery__selfpickup-btn" style="margin-bottom:0px;">Выбрать</p></div></div>
+    </div>
     <div id="market_sputnik" class="market_el">
-        <p class="modal-delivery__selfpickup-adress">ул. Тимирязева, 31 строение 1 (район Спутник)</p>
+        <p class="modal-delivery__selfpickup-adress">ул. Тимирязева,31 строение 1 (район Спутник)</p>
         <div class="mainblock_time1 enable1" data-market="3"><div class="underblocktime1"><p class="delivery-text modal-delivery__selfpickup-btn" style="margin-bottom:0px;">Выбрать</p></div></div>
     </div>
 </div>
@@ -683,13 +689,14 @@ function init() {
         }
     });
 
-    var myPlacemark11 = new ymaps.Placemark([43.09968, 131.863907], { hintContent: 'Эгершельд, Верхнепортовая, 41в' }, { balloonContentLayout: null });
+    var myPlacemark11 = new ymaps.Placemark([43.09968, 131.863907], { hintContent: 'Эгершельд, Верхнепортовая,68а' }, { balloonContentLayout: null });
     var myPlacemark1 = new ymaps.Placemark([43.128381, 131.919746], { hintContent: 'Реми-Сити (ул. Народный пр-т, 20)' }, { balloonContentLayout: null });
-    var myPlacemark3 = new ymaps.Placemark([43.24827778336888, 132.02109573106299], { hintContent: 'ул. Тимирязева, 31 строение 1 (район Спутник)' }, { balloonContentLayout: null });
+    var myPlacemark3 = new ymaps.Placemark([43.24827778336888, 132.02109573106299], { hintContent: 'ул. Тимирязева,31 строение 1 (район Спутник)' }, { balloonContentLayout: null });
+    var myPlacemark6 = new ymaps.Placemark([43.181235883133674,131.9154298472213], { hintContent: 'Заря (Чкалова, 30)' }, { balloonContentLayout: null });
     var myPlacemark8 = new ymaps.Placemark([43.132657, 131.905418], { hintContent: 'Океанский проспект 108' }, { balloonContentLayout: null });
 
     var myGroup = new ymaps.GeoObjectCollection({}, { draggable: false, preset: 'islands#blueIcon', iconColor: '#3caa3c' });
-    myGroup.add(myPlacemark11).add(myPlacemark1).add(myPlacemark3).add(myPlacemark8);
+    myGroup.add(myPlacemark11).add(myPlacemark1).add(myPlacemark3).add(myPlacemark6).add(myPlacemark8);
     map2.geoObjects.add(myGroup);
 
     myGroup.events.add('click', function (e) {
@@ -710,7 +717,7 @@ function init() {
     });
 
     /* FIX: маппинг data-market → placemark, убраны несуществующие метки */
-    var placemarkMap = { '11': myPlacemark11, '1': myPlacemark1, '3': myPlacemark3, '8': myPlacemark8 };
+    var placemarkMap = { '11': myPlacemark11, '1': myPlacemark1, '3': myPlacemark3, '6': myPlacemark6, '8': myPlacemark8 };
 
     document.querySelectorAll('.mainblock_time1').forEach(function(button) {
         button.addEventListener('click', function() {
@@ -792,90 +799,6 @@ updateAddressButton1.addEventListener('click', () => {
     });
 });
 </script>
-<script>
-(function () {
-    function readCookie(name) {
-        var prefix = name + '=';
-        var cookies = document.cookie ? document.cookie.split(';') : [];
-        for (var i = 0; i < cookies.length; i++) {
-            var c = cookies[i].trim();
-            if (c.indexOf(prefix) === 0) {
-                return decodeURIComponent(c.substring(prefix.length));
-            }
-        }
-        return '';
-    }
-    function writeCookie(name, value, days) {
-        var expires = '';
-        if (days && days > 0) {
-            var d = new Date();
-            d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
-            expires = '; expires=' + d.toUTCString();
-        }
-        document.cookie = name + '=' + encodeURIComponent(value) + expires + '; path=/; SameSite=Lax';
-    }
-    function normalizeDeliveryState() {
-        var changed = false;
-        var delivery = readCookie('delivery');
-        var billingDelivery = readCookie('billing_delivery');
-        var coords = readCookie('coords') || readCookie('billing_coords');
-        var pickup = readCookie('billing_samoviziv');
-        var keyMarket = readCookie('key_market') || readCookie('market');
-
-        if (!readCookie('coords') && coords) {
-            writeCookie('coords', coords, 7);
-            changed = true;
-        }
-        if (!readCookie('key_market') && keyMarket) {
-            writeCookie('key_market', keyMarket, 7);
-            changed = true;
-        }
-        if (!delivery) {
-            if (pickup || keyMarket) {
-                delivery = '1';
-            } else if (billingDelivery || coords) {
-                delivery = '0';
-            }
-            if (delivery) {
-                writeCookie('delivery', delivery, 7);
-                changed = true;
-            }
-        }
-        return { delivery: delivery, changed: changed };
-    }
-    function syncArchiveDeliveryLabel() {
-        var state = normalizeDeliveryState();
-        var delivery = state.delivery;
-        var text = 'Выберите способ получения';
-        if (delivery === '1') {
-            text = readCookie('billing_samoviziv') || text;
-        } else if (delivery === '0') {
-            var bd = readCookie('billing_delivery');
-            if (bd) {
-                var parts = bd.split(',');
-                text = parts.length > 2 ? parts.slice(2).join(',').trim() : bd;
-            }
-        }
-        document.querySelectorAll('.header__delivery-result, .js-delivery-address').forEach(function (el) {
-            el.textContent = text;
-        });
-
-        // Если мы только что восстановили ключевые cookie — перезагружаем 1 раз,
-        // чтобы серверный рендер каталога подхватил актуальный способ получения.
-        if (state.changed && !sessionStorage.getItem('fdv_delivery_cookie_reload_done')) {
-            sessionStorage.setItem('fdv_delivery_cookie_reload_done', '1');
-            window.location.reload();
-            return;
-        }
-        sessionStorage.removeItem('fdv_delivery_cookie_reload_done');
-    }
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', syncArchiveDeliveryLabel);
-    } else {
-        syncArchiveDeliveryLabel();
-    }
-})();
-</script>
 
 <?php
 /* Вспомогательная функция для кнопки доставки — убирает дублирование кода.
@@ -902,22 +825,7 @@ ob_start();
             }
         } else { $resultArray = 'Выберите способ получения'; }
     } else {
-        $row = isset($_COOKIE['delivery']) ? $_COOKIE['delivery'] : null;
-        if (!isset($row) || $row === '') {
-            $hasPickup = isset($_COOKIE['billing_samoviziv']) && $_COOKIE['billing_samoviziv'] !== '';
-            $hasDelivery = (isset($_COOKIE['billing_delivery']) && $_COOKIE['billing_delivery'] !== '') ||
-                (isset($_COOKIE['coords']) && $_COOKIE['coords'] !== '') ||
-                (isset($_COOKIE['billing_coords']) && $_COOKIE['billing_coords'] !== '');
-            if ($hasPickup) {
-                $row = '1';
-                setcookie('delivery', '1', time() + 3600 * 24 * 7, '/');
-                $_COOKIE['delivery'] = '1';
-            } elseif ($hasDelivery) {
-                $row = '0';
-                setcookie('delivery', '0', time() + 3600 * 24 * 7, '/');
-                $_COOKIE['delivery'] = '0';
-            }
-        }
+        $row = $_COOKIE['delivery'];
         if (isset($row)) {
             if ($row == 1) { echo 'Самовывоз:'; $resultArray = $_COOKIE['billing_samoviziv']; }
             if ($row == 0) {

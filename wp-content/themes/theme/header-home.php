@@ -8,11 +8,8 @@
     <meta name="yandex-verification" content="50671f6ce40cf19f" />
     <meta name="mailru-domain" content="Rsg5YmdfoMnfaRN0" />
 
-    <!-- Bootstrap 4: same as header.php (was commented — broke layout on pages using get_header('home')) -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"
-          media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"></noscript>
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"> -->
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -41,37 +38,6 @@
 </head>
 
 <body>
-<?php
-if ( ! function_exists( 'ferma_header_home_cart_ok' ) ) {
-	function ferma_header_home_cart_ok() {
-		return function_exists( 'WC' ) && WC() && WC()->cart;
-	}
-}
-if ( ! function_exists( 'ferma_header_home_cart_count' ) ) {
-	function ferma_header_home_cart_count() {
-		return ferma_header_home_cart_ok() ? count( WC()->cart->get_cart() ) : 0;
-	}
-}
-if ( ! function_exists( 'ferma_header_home_cart_total_display' ) ) {
-	function ferma_header_home_cart_total_display() {
-		return ferma_header_home_cart_ok() ? (string) WC()->cart->total : '0';
-	}
-}
-if ( ! function_exists( 'ferma_header_home_cart_product_ids_json' ) ) {
-	function ferma_header_home_cart_product_ids_json() {
-		if ( ! ferma_header_home_cart_ok() ) {
-			return '[]';
-		}
-		$array = array();
-		$i     = 0;
-		foreach ( WC()->cart->get_cart() as $item ) {
-			$array[ $i ] = $item['product_id'];
-			$i++;
-		}
-		return wp_json_encode( $array );
-	}
-}
-?>
 <!-- Старый код -->
 <?if ( is_user_logged_in() && get_user_meta( get_current_user_id(), 'delivery', true ) == '1' ) {?>
     <style>
@@ -89,7 +55,7 @@ if ( ! function_exists( 'ferma_header_home_cart_product_ids_json' ) ) {
         }
     </style>
 <?}?>
-<?if ( !is_user_logged_in() && isset( $_COOKIE['delivery'] ) && $_COOKIE['delivery'] == '1' ) {?>
+<?if ( !is_user_logged_in() && $_COOKIE['delivery'] == '1' ) {?>
     <style>
         #billing_delivery_field {
             display: none;
@@ -98,7 +64,7 @@ if ( ! function_exists( 'ferma_header_home_cart_product_ids_json' ) ) {
             display: none;
         }
     </style>
-<?} if ( !is_user_logged_in() && isset( $_COOKIE['delivery'] ) && $_COOKIE['delivery'] == '0' ) {?>
+<?} if ( !is_user_logged_in() && $_COOKIE['delivery'] == '0' ) {?>
     <style>
         #billing_samoviziv_field, h6#primer {
             display: none;
@@ -169,7 +135,7 @@ if ( ! function_exists( 'ferma_header_home_cart_product_ids_json' ) ) {
 <p style="display:none;">
     <?
     $user_id = get_current_user_id();
-    $args_check = $_COOKIE['market'] ?? null;?>
+    $args_check =  $_COOKIE['market'];?>
 
 </p>
 <?
@@ -178,17 +144,43 @@ if($url == "/my-account/user-market/") {
     header('Location: https://ferma-dv.ru/user-market/');
 } else {
 }
-if ( function_exists( 'is_product_category' ) && is_product_category() ) {
+if( is_product_category() ) {
     $url = $_SERVER['REQUEST_URI'];
     $parts = parse_url($url);
     parse_str($parts['query'], $query);
-    $check = isset($query['wms-addon-store-filter-form'][0]) ? $query['wms-addon-store-filter-form'][0] : null;
-    $check1 = isset($query['post_type']) ? $query['post_type'] : null;
+    $check = $query['wms-addon-store-filter-form'][0];
+    $check1 = $query['post_type'];
     $term_id = get_queried_object_id();
     $term_link = get_term_link( $term_id );
-    if($check != null || !empty($check1)) {
-        header('Location: '.$term_link);
-        exit;
+    if($_COOKIE['delivery'] == 0) {
+        if($check != null) {
+            header('Location: '.$term_link);
+        }
+    } else {
+        if($check != null and empty($check1)) {
+            $term_id = get_queried_object_id();
+            $term_link = get_term_link( $term_id );
+            if ($check != $_COOKIE['key_market']) {
+                header('Location: '.$term_link . '?wms-addon-store-filter-form%5B0%5D=' . $_COOKIE['key_market']);
+            }
+        }
+        if ($check == null) {
+            header('Location: '.$term_link . '?wms-addon-store-filter-form%5B0%5D=' . $_COOKIE['key_market']);
+        }
+        if(!empty($check1)) {
+            $term_id = get_queried_object_id();
+            $term_link = get_term_link( $term_id );
+            if ( is_user_logged_in() && get_user_meta( get_current_user_id(), 'delivery', true ) == '0') {
+                header('Location: '.$term_link);
+            }
+            elseif (!is_user_logged_in() && $_COOKIE['delivery'] == 0) {
+                header('Location: '.$term_link);
+            } else {
+                if ($check != $_COOKIE['key_market']) {
+                    header('Location: '.$term_link . '?post_type=page&wms-addon-store-filter-form%5B0%5D=' . $_COOKIE['key_market']);
+                }
+            }
+        }
     }
 
 }
@@ -202,10 +194,23 @@ if (isset($_COOKIE["market"])) { ?>
         .menumobile {display: none !important;}
     </style>
 <?}?>
-<p id="postsumma" style="display:none"><?php echo esc_html( ferma_header_home_cart_total_display() ); ?></p>
-<p style="display:none" id="carttovar" class="carttovar"><?php echo ferma_header_home_cart_product_ids_json(); ?></p>
+<p id="postsumma" style="display:none">
+    <?
+    global $woocommerce;
+    echo $woocommerce->cart->total;
+    ?>
+</p>
+<p style="display:none" id="carttovar" class="carttovar"><?
+    global $woocommerce;
+    $age = 0;
+    foreach ($woocommerce->cart->get_cart() as $item):
+        $array[$age] = $item['product_id'];
+        $age++;
+    endforeach;
+    echo json_encode($array);
+    ?></p>
 <?
-if ( ( isset( $_COOKIE['vibor'] ) && $_COOKIE['vibor'] == 1 ) || ( isset( $_POST['vib'] ) && $_POST['vib'] == 1 ) ) { ?>
+if ($_COOKIE["vibor"] == 1 or $_POST["vib"] == 1 )  { ?>
     <style>
         .vibgoroda {display: none !important;}
         .viborgoroda_1 {display: block !important;}
@@ -213,7 +218,7 @@ if ( ( isset( $_COOKIE['vibor'] ) && $_COOKIE['vibor'] == 1 ) || ( isset( $_POST
     </style>
 <?}?>
 <?
-if ( ( isset( $_COOKIE['vibor'] ) && $_COOKIE['vibor'] == 2 ) || ( isset( $_POST['vib'] ) && $_POST['vib'] == 2 ) || isset( $_COOKIE['market'] ) ) { ?>
+if ($_COOKIE["vibor"] == 2 or $_POST["vib"] == 2 or isset($_COOKIE["market"])) { ?>
     <style>
         .vibgoroda {display: none !important;}
         .viborgoroda_1 {display: none !important;}
@@ -1406,7 +1411,7 @@ if (!empty($_POST["vib"])) {
         <h5 class="modal-delivery__selfpickup-city">Владивосток:</h5>
         <!-- FIX: исправлены дублирующиеся id="market1" на уникальные -->
         <div id="market_egersheld" class="market_el">
-            <p class="modal-delivery__selfpickup-adress">Эгершельд, Верхнепортовая, 41в</p>
+            <p class="modal-delivery__selfpickup-adress">Эгершельд, Верхнепортовая,68а</p>
             <div class="mainblock_time1 enable1" data-market="11" style="">
                 <div class="underblocktime1" style="">
                     <p class="delivery-text modal-delivery__selfpickup-btn" style="margin-bottom:0px;">Выбрать</p>
@@ -1433,8 +1438,17 @@ if (!empty($_POST["vib"])) {
             </div>
         </div>
 
+        <div id="market_zarya" class="market_el">
+            <p class="modal-delivery__selfpickup-adress">Заря (ул. Чкалова, 30)</p>
+            <div class="mainblock_time1 enable1" data-market="6"  style="">
+                <div class="underblocktime1" style="">
+                    <p class="delivery-text modal-delivery__selfpickup-btn"style="margin-bottom:0px;">Выбрать</p>
+                </div>
+            </div>
+        </div>
+
         <div id="market_sputnik" class="market_el">
-            <p class="modal-delivery__selfpickup-adress">ул. Тимирязева, 31 строение 1 (район Спутник)</p>
+            <p class="modal-delivery__selfpickup-adress">ул. Тимирязева,31 строение 1 (район Спутник)</p>
             <div class="mainblock_time1 enable1" data-market="3" style="">
                 <div class="underblocktime1" style="">
                     <p class="delivery-text modal-delivery__selfpickup-btn"  style="margin-bottom:0px;">Выбрать</p>
@@ -1494,7 +1508,7 @@ if (!empty($_POST["vib"])) {
             map2.setCenter(coords, 16);
         }
         var myPlacemark11 = new ymaps.Placemark([43.09968, 131.863907], {
-            hintContent: 'Эгершельд, Верхнепортовая, 41в'
+            hintContent: 'Эгершельд, Верхнепортовая,68а'
         }, {
             balloonContentLayout: null
         });
@@ -1508,7 +1522,7 @@ if (!empty($_POST["vib"])) {
 
 
         var myPlacemark3 = new ymaps.Placemark([43.24827778336888, 132.02109573106299], {
-            hintContent: 'ул. Тимирязева, 31 строение 1 (район Спутник)'
+            hintContent: 'ул. Тимирязева,31 строение 1 (район Спутник)'
         }, {
             balloonContentLayout: null
         });
@@ -1522,6 +1536,12 @@ if (!empty($_POST["vib"])) {
                 balloonContentLayout: null
             }
         );
+        var myPlacemark6 = new ymaps.Placemark([43.181235883133674,131.9154298472213], {
+            hintContent: 'Заря (Чкалова, 30)'
+        }, {
+            balloonContentLayout: null
+        });
+
         var myGroup = new ymaps.GeoObjectCollection({}, {
             draggable: false,
             preset: 'islands#blueIcon',
@@ -1531,6 +1551,7 @@ if (!empty($_POST["vib"])) {
         myGroup.add(myPlacemark11)
             .add(myPlacemark1)
             .add(myPlacemark3)
+            .add(myPlacemark6)
             .add(myPlacemark8);
 
         map2.geoObjects.add(myGroup);
@@ -1606,6 +1627,20 @@ if (!empty($_POST["vib"])) {
                         console.log(fullAddress);
                     });
                     map2.setCenter(myPlacemark3.geometry.getCoordinates());
+                    // Устанавливаем масштаб
+                    map2.setZoom(15);
+
+                }
+
+                if (dataMarket == 6) {
+                    myPlacemark6.options.set('iconColor', '#ff0000');
+                    document.getElementById('samoviziv').innerHTML = myPlacemark6.properties.get('hintContent');
+                    ymaps.geocode(myPlacemark6.geometry.getCoordinates()).then(function (res) {
+                        var fullAddress = res.geoObjects.get(0).getAddressLine();
+                        document.getElementById('suggest').value = fullAddress;
+                        console.log(fullAddress);
+                    });
+                    map2.setCenter(myPlacemark6.geometry.getCoordinates());
                     // Устанавливаем масштаб
                     map2.setZoom(15);
 
@@ -1788,7 +1823,7 @@ if (!empty($_POST["vib"])) {
                     <div class="header__follow-top">
                         <div class="header__follow-buttons">
                             <button class="header__cart cart-btn btn-grey btn-to-top">
-                                <span class="cart-count"><?php echo (int) ferma_header_home_cart_count(); ?></span>
+                                <span class="cart-count"><?php echo count( WC()->cart->get_cart() ); ?></span>
                                 <img src="<?php bloginfo('template_url') ?>/assets/img/cart.svg" alt="Корзина">
                             </button>
                             <a class="header__bonus btn-grey btn-to-top" href="<? echo get_home_url(); ?>/bonusnaya-programma/">
@@ -1917,7 +1952,7 @@ if (!empty($_POST["vib"])) {
                         </button>
 
                         <button class="header__cart cart-btn btn-grey btn-to-top header__follow-hidden">
-                            <span class="cart-count"><?php echo (int) ferma_header_home_cart_count(); ?></span>
+                            <span class="cart-count"><?php echo count( WC()->cart->get_cart() ); ?></span>
                             <img src="<?php bloginfo('template_url') ?>/assets/img/cart.svg" alt="Корзина">
                         </button>
                         <a class="header__bonus btn-grey btn-to-top header__follow-hidden" href="<? echo get_home_url(); ?>/bonusnaya-programma/">
@@ -1974,7 +2009,7 @@ if (!empty($_POST["vib"])) {
                         </a>
                         <div class="header__tablet-buttons">
                             <button class="header__cart cart-btn btn-grey mob_hidden">
-                                <span class="cart-count"><?php echo (int) ferma_header_home_cart_count(); ?></span>
+                                <span class="cart-count"><?php echo count( WC()->cart->get_cart() ); ?></span>
                                 <img src="<?php bloginfo('template_url') ?>/assets/img/cart.svg" alt="Корзина">
                             </button>
                             <a class="header__bonus btn-grey mob_hidden" href="<? echo get_home_url(); ?>/bonusnaya-programma/">
@@ -2306,7 +2341,7 @@ if (!empty($_POST["vib"])) {
                             </div>
                         </div>
                         <button class="header__cart cart-btn btn-grey mob_hidden">
-                            <span class="cart-count"><?php echo (int) ferma_header_home_cart_count(); ?></span>
+                            <span class="cart-count"><?php echo count( WC()->cart->get_cart() ); ?></span>
                             <img src="<?php bloginfo('template_url') ?>/assets/img/cart.svg" alt="Корзина">
                         </button>
                         <a class="header__bonus btn-grey mob_hidden" href="<? echo get_home_url(); ?>/bonusnaya-programma/">
@@ -2351,7 +2386,7 @@ if (!empty($_POST["vib"])) {
                         контакты
                     </button>
                     <button class="header__cart cart-btn">
-                        <span class="cart-count"><?php echo (int) ferma_header_home_cart_count(); ?></span>
+                        <span class="cart-count"><?php echo count( WC()->cart->get_cart() ); ?></span>
                         <img src="<?php bloginfo('template_url') ?>/assets/img/cart.svg"
                              alt="Корзина">
                         корзина

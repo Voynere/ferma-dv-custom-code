@@ -8,11 +8,6 @@
 <meta name="yandex-verification" content="50671f6ce40cf19f" />
 <meta name="mailru-domain" content="Rsg5YmdfoMnfaRN0" />
 
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"
-      media="print" onload="this.media='all'">
-<noscript><link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"></noscript>
-
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -86,13 +81,36 @@ if( is_product_category() ) {
 $url = $_SERVER['REQUEST_URI'];
 $parts = parse_url($url);
 parse_str($parts['query'], $query);
-$check = isset($query['wms-addon-store-filter-form'][0]) ? $query['wms-addon-store-filter-form'][0] : null;
-$check1 = isset($query['post_type']) ? $query['post_type'] : null;
+$check = $query['wms-addon-store-filter-form'][0];
+$check1 = $query['post_type'];
 $term_id = get_queried_object_id();
 $term_link = get_term_link( $term_id );
-if($check != null || !empty($check1)) {
-    header('Location: '.$term_link);
-    exit;
+if($_COOKIE['delivery'] == 0) {
+    if($check != null) { header('Location: '.$term_link); }
+} else {
+    if($check != null and empty($check1)) {
+        $term_id = get_queried_object_id();
+        $term_link = get_term_link( $term_id );
+        if ($check != $_COOKIE['key_market']) {
+            header('Location: '.$term_link . '?wms-addon-store-filter-form%5B0%5D=' . $_COOKIE['key_market']);
+        }
+    }
+    if ($check == null) {
+        header('Location: '.$term_link . '?wms-addon-store-filter-form%5B0%5D=' . $_COOKIE['key_market']);
+    }
+    if(!empty($check1)) {
+        $term_id = get_queried_object_id();
+        $term_link = get_term_link( $term_id );
+        if ( is_user_logged_in() && get_user_meta( get_current_user_id(), 'delivery', true ) == '0') {
+            header('Location: '.$term_link);
+        } elseif (!is_user_logged_in() && $_COOKIE['delivery'] == 0) {
+            header('Location: '.$term_link);
+        } else {
+            if ($check != $_COOKIE['key_market']) {
+                header('Location: '.$term_link . '?post_type=page&wms-addon-store-filter-form%5B0%5D=' . $_COOKIE['key_market']);
+            }
+        }
+    }
 }
 }
 ?>
@@ -623,7 +641,7 @@ a.xoo-wsc-ft-btn.button.btn.xoo-wsc-ft-btn-checkout { background: #4caf50; color
     <h2 class="modal-delivery__selfpickup-title">Выбор магазина</h2>
     <h5 class="modal-delivery__selfpickup-city">Владивосток:</h5>
     <div id="market_egersheld" class="market_el">
-        <p class="modal-delivery__selfpickup-adress">Эгершельд, Верхнепортовая, 41в</p>
+        <p class="modal-delivery__selfpickup-adress">Эгершельд, Верхнепортовая,68а</p>
         <div class="mainblock_time1 enable1" data-market="11"><div class="underblocktime1"><p class="delivery-text modal-delivery__selfpickup-btn" style="margin-bottom:0px;">Выбрать</p></div></div>
     </div>
     <script>
@@ -635,8 +653,12 @@ a.xoo-wsc-ft-btn.button.btn.xoo-wsc-ft-btn-checkout { background: #4caf50; color
         <p class="modal-delivery__selfpickup-adress">Реми-Сити (ул. Народный пр-т, 20)</p>
         <div class="mainblock_time1 enable1" data-market="1"><div class="underblocktime1"><p class="delivery-text modal-delivery__selfpickup-btn" style="margin-bottom:0px;">Выбрать</p></div></div>
     </div>
+    <div id="market_zarya" class="market_el">
+        <p class="modal-delivery__selfpickup-adress">Заря (ул. Чкалова, 30)</p>
+        <div class="mainblock_time1 enable1" data-market="6"><div class="underblocktime1"><p class="delivery-text modal-delivery__selfpickup-btn" style="margin-bottom:0px;">Выбрать</p></div></div>
+    </div>
     <div id="market_sputnik" class="market_el">
-        <p class="modal-delivery__selfpickup-adress">ул. Тимирязева, 31 строение 1 (район Спутник)</p>
+        <p class="modal-delivery__selfpickup-adress">ул. Тимирязева,31 строение 1 (район Спутник)</p>
         <div class="mainblock_time1 enable1" data-market="3"><div class="underblocktime1"><p class="delivery-text modal-delivery__selfpickup-btn" style="margin-bottom:0px;">Выбрать</p></div></div>
     </div>
 </div>
@@ -667,13 +689,14 @@ function init() {
         }
     });
 
-    var myPlacemark11 = new ymaps.Placemark([43.09968, 131.863907], { hintContent: 'Эгершельд, Верхнепортовая, 41в' }, { balloonContentLayout: null });
+    var myPlacemark11 = new ymaps.Placemark([43.09968, 131.863907], { hintContent: 'Эгершельд, Верхнепортовая,68а' }, { balloonContentLayout: null });
     var myPlacemark1 = new ymaps.Placemark([43.128381, 131.919746], { hintContent: 'Реми-Сити (ул. Народный пр-т, 20)' }, { balloonContentLayout: null });
-    var myPlacemark3 = new ymaps.Placemark([43.24827778336888, 132.02109573106299], { hintContent: 'ул. Тимирязева, 31 строение 1 (район Спутник)' }, { balloonContentLayout: null });
+    var myPlacemark3 = new ymaps.Placemark([43.24827778336888, 132.02109573106299], { hintContent: 'ул. Тимирязева,31 строение 1 (район Спутник)' }, { balloonContentLayout: null });
+    var myPlacemark6 = new ymaps.Placemark([43.181235883133674,131.9154298472213], { hintContent: 'Заря (Чкалова, 30)' }, { balloonContentLayout: null });
     var myPlacemark8 = new ymaps.Placemark([43.132657, 131.905418], { hintContent: 'Океанский проспект 108' }, { balloonContentLayout: null });
 
     var myGroup = new ymaps.GeoObjectCollection({}, { draggable: false, preset: 'islands#blueIcon', iconColor: '#3caa3c' });
-    myGroup.add(myPlacemark11).add(myPlacemark1).add(myPlacemark3).add(myPlacemark8);
+    myGroup.add(myPlacemark11).add(myPlacemark1).add(myPlacemark3).add(myPlacemark6).add(myPlacemark8);
     map2.geoObjects.add(myGroup);
 
     myGroup.events.add('click', function (e) {
@@ -694,7 +717,7 @@ function init() {
     });
 
     /* FIX: маппинг data-market → placemark, убраны несуществующие метки */
-    var placemarkMap = { '11': myPlacemark11, '1': myPlacemark1, '3': myPlacemark3, '8': myPlacemark8 };
+    var placemarkMap = { '11': myPlacemark11, '1': myPlacemark1, '3': myPlacemark3, '6': myPlacemark6, '8': myPlacemark8 };
 
     document.querySelectorAll('.mainblock_time1').forEach(function(button) {
         button.addEventListener('click', function() {
