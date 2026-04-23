@@ -5,6 +5,31 @@ function fermaSafeSwiperOptions(selector, options) {
     }
     var slides = root.querySelectorAll(".swiper-slide").length;
     var safe = Object.assign({}, options);
+    if (safe.loop) {
+        var maxSlidesPerView = 1;
+        var maxSlidesPerGroup = 1;
+
+        var parseNum = function (value, fallback) {
+            var num = Number(value);
+            return Number.isFinite(num) && num > 0 ? num : fallback;
+        };
+
+        maxSlidesPerView = parseNum(safe.slidesPerView, maxSlidesPerView);
+        maxSlidesPerGroup = parseNum(safe.slidesPerGroup, maxSlidesPerGroup);
+
+        if (safe.breakpoints && typeof safe.breakpoints === "object") {
+            Object.keys(safe.breakpoints).forEach(function (bp) {
+                var cfg = safe.breakpoints[bp] || {};
+                maxSlidesPerView = Math.max(maxSlidesPerView, parseNum(cfg.slidesPerView, 1));
+                maxSlidesPerGroup = Math.max(maxSlidesPerGroup, parseNum(cfg.slidesPerGroup, 1));
+            });
+        }
+
+        var requiredSlides = Math.max(2, maxSlidesPerView, maxSlidesPerGroup) + 1;
+        if (slides < requiredSlides) {
+            safe.loop = false;
+        }
+    }
     if (safe.loop && slides < 2) {
         safe.loop = false;
     }
