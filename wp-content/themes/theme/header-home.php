@@ -174,6 +174,36 @@
         padding: 0 !important;
     }
 
+    /* Replacement for safe parts of disabled custom snippet 4438.css */
+    body.woocommerce ul.products li.product .woocommerce-loop-category__title,
+    body.woocommerce ul.products li.product .woocommerce-loop-product__title,
+    body.woocommerce ul.products li.product h3 {
+        padding: 0.5em 0;
+        margin: 0;
+        font-size: 1em;
+        color: #7e3b2a;
+        font-weight: 700;
+        height: 95px;
+    }
+
+    body.woocommerce span.woocommerce-Price-amount.amount {
+        font-weight: 700;
+        font-size: 18px;
+        color: #7e3b2a;
+    }
+
+    body.woocommerce .quantity .qty {
+        height: 35px;
+    }
+
+    body.woocommerce li.product .qib-container {
+        width: 100%;
+        align-items: center;
+        display: flex !important;
+        justify-content: center;
+        text-align: center;
+    }
+
 </style>
 <p style="display:none;">
     <?
