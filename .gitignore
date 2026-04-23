@@ -3,6 +3,7 @@
 Thumbs.db
 .idea/
 .vscode/
+.tmp_*
 
 # Environment-specific files
 wp-config.php
@@ -29,6 +30,10 @@ wp-content/upgrade/
 wp-content/backup-db/
 wp-content/ai1wm-backups/
 wp-content/debug.log
+wp-content/w3tc-config/
+
+# One-off DB tools (do not commit to the repo)
+adminer-*.php
 
 # Generated integration outputs
 green-friday.json
