@@ -7,30 +7,49 @@
  */
 
 // =====================
-// CONFIG
+// CONFIG (file next to this script, not in git)
+// Copy ferma_fasovka_sync_once.config.sample.php -> ferma_fasovka_sync_once.config.php
 // =====================
-
-// Auth mode: 'basic' or 'bearer'
-define('FERMA_MS_AUTH_MODE', 'basic');
-
-// Basic auth
-define('FERMA_MS_BASIC_LOGIN', 'fenikc@fermadv');
-define('FERMA_MS_BASIC_PASSWORD', 'Wsd19862011!!');
-
-// Bearer auth (only if FERMA_MS_AUTH_MODE === 'bearer')
-define('FERMA_MS_BEARER_TOKEN', '');
-
-// Paging
-define('FERMA_MS_LIMIT', 100);
-
-// ACF field key for "razbivka_vesa"
-define('FERMA_ACF_RAZBIVKA_FIELD_KEY', 'field_627cbc0e2d6f3');
-
-// Optional: stop after N processed rows (0 = no limit)
-define('FERMA_MS_MAX_ROWS', 0);
-
-// IMPORTANT: trust only MoySklad, overwrite everything
-define('FERMA_MS_ONLY', true);
+$fermaFasovkaConfigFile = __DIR__ . '/ferma_fasovka_sync_once.config.php';
+if (!is_readable($fermaFasovkaConfigFile)) {
+    header('HTTP/1.1 500 Internal Server Error');
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "Missing or unreadable ferma_fasovka_sync_once.config.php next to this file.\n";
+    echo "Copy ferma_fasovka_sync_once.config.sample.php, rename to ferma_fasovka_sync_once.config.php, and set credentials (not committed to git).\n";
+    exit;
+}
+$fermaFasovkaConfig = require $fermaFasovkaConfigFile;
+if (!is_array($fermaFasovkaConfig)) {
+    header('HTTP/1.1 500 Internal Server Error');
+    header('Content-Type: text/plain; charset=utf-8');
+    echo "ferma_fasovka_sync_once.config.php must return an array.\n";
+    exit;
+}
+$fermaFasovkaDefaults = array(
+    'FERMA_MS_BEARER_TOKEN' => '',
+);
+$fermaFasovkaConfig = array_merge($fermaFasovkaDefaults, $fermaFasovkaConfig);
+$fermaFasovkaRequired = array(
+    'FERMA_MS_AUTH_MODE',
+    'FERMA_MS_BASIC_LOGIN',
+    'FERMA_MS_BASIC_PASSWORD',
+    'FERMA_MS_LIMIT',
+    'FERMA_ACF_RAZBIVKA_FIELD_KEY',
+    'FERMA_MS_MAX_ROWS',
+    'FERMA_MS_ONLY',
+);
+foreach ($fermaFasovkaRequired as $fermaFasovkaKey) {
+    if (!array_key_exists($fermaFasovkaKey, $fermaFasovkaConfig)) {
+        header('HTTP/1.1 500 Internal Server Error');
+        header('Content-Type: text/plain; charset=utf-8');
+        echo "ferma_fasovka_sync_once.config.php: missing key: {$fermaFasovkaKey}\n";
+        exit;
+    }
+    define($fermaFasovkaKey, $fermaFasovkaConfig[$fermaFasovkaKey]);
+}
+if (!defined('FERMA_MS_BEARER_TOKEN')) {
+    define('FERMA_MS_BEARER_TOKEN', (string) $fermaFasovkaConfig['FERMA_MS_BEARER_TOKEN']);
+}
 
 // =====================
 // BOOTSTRAP WP

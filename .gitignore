@@ -6,6 +6,7 @@ Thumbs.db
 .tmp_*
 
 # Environment-specific files
+ferma_fasovka_sync_once.config.php
 wp-config.php
 .htaccess
 error_log
