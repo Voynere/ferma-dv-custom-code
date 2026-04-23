@@ -204,6 +204,12 @@
         text-align: center;
     }
 
+    @media (max-width: 500px) {
+        #choose {
+            margin-bottom: 2em !important;
+        }
+    }
+
 </style>
 <p style="display:none;">
     <?
