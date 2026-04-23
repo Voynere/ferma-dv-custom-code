@@ -489,11 +489,13 @@ if (isset($_GET['login']) && $_GET['login'] == "number") { ?>
         $("#submitcode").on("click", function(){
             var e = FindByAttributeValue("name", "tel_code");
             var l = FindByAttributeValue("name", "telephone1");
+            var normalizedCode = (e && e.value ? e.value : '').replace(/\D+/g, '');
+            var normalizedPhone = (l && l.value ? l.value : '').replace(/\D+/g, '');
             $.ajax({
                 url: '/proverka-koda/',
                 method: 'post',
                 dataType: 'html',
-                data: {text: e.value, phone: l.value},
+                data: {text: normalizedCode, phone: normalizedPhone},
                 success: function(data){
                     var jsonData = JSON.parse(data);
                     if (jsonData.success == 0) {
