@@ -1,3 +1,11 @@
+<?php
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+require get_template_directory() . '/footer-home.php';
+return;
+?>
 <p style="display:none" id="answer_user"><?php
 if ( function_exists( 'ferma_is_catalog_cache_candidate' ) && ferma_is_catalog_cache_candidate() && ! is_user_logged_in() ) {
 	echo '0';

@@ -3,7 +3,7 @@
 * A Simple Category Template
 */
  
-get_header(); ?> 
+get_header('home'); ?> 
  <?
  $the_query = new WP_Query('cat=288&showposts=40');
  $thename = "Новости";
@@ -76,12 +76,9 @@ get_header(); ?>
 </ul>
 </div>
 </div>
-<!-- функция вывода сайдбара -->
-<?php get_sidebar(); ?>
 <!-- функция вывода футера -->
-<?php get_footer(); ?>
+<?php get_footer('home'); ?>
 </section>
  
  
-<?php get_sidebar(); ?>
-<?php get_footer(); ?>
+<?php /* Legacy duplicate sidebar/footer calls removed */ ?>
