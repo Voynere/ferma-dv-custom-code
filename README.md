@@ -23,7 +23,14 @@ This repository is the clean deployment source for Ferma DV custom code only.
 
 **Local WordPress (developer machine):** repeat steps 1–2 in your local site root if you run the script there (e.g. `https://ferma-dv.test/ferma_fasovka_sync_once.php`). The repo can stay without the real config if you do not run this script locally.
 
-**Production server:** after deploy, the workflow updates `ferma_fasovka_sync_once.php` and the `.sample` file, but it **does not** create the real config. **Once**, place `ferma_fasovka_sync_once.config.php` in the live WordPress root (same level as `wp-load.php` — the path in `SERVER_PATH` from GitHub secrets), e.g. via SFTP/SSH, with production credentials. Until that file exists, opening the script URL will respond with HTTP 500 and a short text explaining that the config is missing.
+**Production server (recommended):** add repository secret **`FERMA_FASOVKA_SYNC_CONFIG_B64`** — the **base64** encoding of the entire `ferma_fasovka_sync_once.config.php` file (UTF-8 bytes, one line, no spaces). On each deploy, Actions writes the decoded file to `$SERVER_PATH/ferma_fasovka_sync_once.config.php` with mode `0600`. If the secret is empty, that step is skipped (use manual upload instead).
+
+Encode locally, for example:
+
+- **PowerShell:** `[Convert]::ToBase64String([IO.File]::ReadAllBytes("$PWD\ferma_fasovka_sync_once.config.php"))`
+- **macOS / Linux:** `base64 -w0 < ferma_fasovka_sync_once.config.php` (GNU `base64`; on macOS without `-w0`, paste the single concatenated line into the secret)
+
+**Production (manual):** alternatively, upload `ferma_fasovka_sync_once.config.php` once to the WordPress root via SFTP/SSH. Until the file exists on the server, the script URL returns HTTP 500.
 
 ## What does not belong here
 
@@ -43,6 +50,10 @@ Required GitHub secrets:
 - `SERVER_PORT`
 - `SERVER_SSH_KEY`
 - `SERVER_PATH`
+
+Optional:
+
+- `FERMA_FASOVKA_SYNC_CONFIG_B64` — base64 of `ferma_fasovka_sync_once.config.php` so production gets the file on every deploy without committing it to git.
 
 ## Migration notes
 
