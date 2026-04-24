@@ -1952,61 +1952,16 @@ function ferma_apply_internal_header_layout_fixes() {
 	if ( ! wp_style_is( 'new-style', 'enqueued' ) ) {
 		return;
 	}
-	if ( ! ( is_single() || is_category() || ( is_archive() && ! is_singular() ) ) ) {
+	if ( ! ( is_single() || is_category() || is_product_category() || ( is_archive() && ! is_singular() ) ) ) {
 		return;
 	}
 	$css = '@media (min-width: 868px){'
-		. 'body.single.single-post .header__desktop-bot,body.single-post .header__desktop-bot,body.archive .header__desktop-bot,body.category .header__desktop-bot,body.blog .header__desktop-bot{display:flex !important;margin-top:24px !important;}'
-		. 'body.single.single-post .header__desktop-menu,body.single-post .header__desktop-menu,body.archive .header__desktop-menu,body.category .header__desktop-menu,body.blog .header__desktop-menu{margin-bottom:0 !important;}'
+		. 'body.single.single-post .header__desktop-bot,body.single-post .header__desktop-bot,body.archive .header__desktop-bot,body.category .header__desktop-bot,body.blog .header__desktop-bot,body.tax-product_cat .header__desktop-bot,body.post-type-archive-product .header__desktop-bot,body.tax-product_cat .header__product .header__desktop-bot,body.post-type-archive-product .header__product .header__desktop-bot{display:flex !important;margin-top:24px !important;}'
+		. 'body.single.single-post .header__desktop-menu,body.single-post .header__desktop-menu,body.archive .header__desktop-menu,body.category .header__desktop-menu,body.blog .header__desktop-menu,body.tax-product_cat .header__desktop-menu,body.post-type-archive-product .header__desktop-menu,body.tax-product_cat .header__product .header__desktop-menu,body.post-type-archive-product .header__product .header__desktop-menu{margin-bottom:0 !important;}'
 		. '}'
-		. 'body.single.single-post .header__logo div span,body.single-post .header__logo div span,body.archive .header__logo div span,body.category .header__logo div span,body.blog .header__logo div span{color:var(--color-light-black) !important;}';
+		. 'body.single.single-post .header__logo div span,body.single-post .header__logo div span,body.archive .header__logo div span,body.category .header__logo div span,body.blog .header__logo div span,body.tax-product_cat .header__logo div span,body.post-type-archive-product .header__logo div span,body.tax-product_cat .header__product .header__logo div span,body.post-type-archive-product .header__product .header__logo div span{color:var(--color-light-black) !important;}';
 	wp_add_inline_style( 'new-style', $css );
 }
-
-add_action('wp_head', function() {
-    if ( is_single() || is_category() || is_archive() ) {
-        ?>
-        <style>
-            /* ========================================== */
-            /* FERMA DIAGNOSTIC BLOCK - START */
-            /* ========================================== */
-            body.single.single-post .header__desktop-bot,
-            body.single-post .header__desktop-bot,
-            body.archive .header__desktop-bot,
-            body.category .header__desktop-bot,
-            body.blog .header__desktop-bot {
-                outline: 2px solid red !important;
-                display: flex !important;
-                margin-top: 50px !important;
-                background: rgba(255,0,0,0.1) !important;
-            }
-
-            body.single.single-post .header__desktop-menu,
-            body.single-post .header__desktop-menu,
-            body.archive .header__desktop-menu,
-            body.category .header__desktop-menu,
-            body.blog .header__desktop-menu {
-                border: 2px solid blue !important;
-                margin-bottom: 30px !important;
-                background: rgba(0,0,255,0.1) !important;
-            }
-
-            body.single.single-post .header__logo div span,
-            body.single-post .header__logo div span,
-            body.archive .header__logo div span,
-            body.category .header__logo div span,
-            body.blog .header__logo div span {
-                background-color: yellow !important;
-                color: black !important;
-                font-size: 24px !important;
-            }
-            /* ========================================== */
-            /* FERMA DIAGNOSTIC BLOCK - END */
-            /* ========================================== */
-        </style>
-        <?php
-    }
-}, 100000);
 
 /**
  * jQuery cleanup for legacy theme scripts.
