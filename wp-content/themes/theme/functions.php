@@ -1818,12 +1818,7 @@ add_action( 'widgets_init', 'theme_widgets_init' );
 function theme_scripts() {
 	// Base legacy stylesheet is disabled globally to keep most templates
 	// on the same visual baseline as homepage/product pages.
-	// But single content pages (blog/recipes/promotions detail) still rely on it for header layout.
-	if ( is_single() && ! is_product() ) {
-		$legacy_style_path = get_stylesheet_directory() . '/style.css';
-		$legacy_style_ver  = file_exists( $legacy_style_path ) ? filemtime( $legacy_style_path ) : null;
-		wp_enqueue_style( 'theme-style', get_stylesheet_uri(), array(), $legacy_style_ver );
-	}
+	// For single content pages it will be enqueued later (after new-style) so header rules are not overridden.
 
 	wp_enqueue_style( 'complect-style', get_template_directory_uri() . '/css/complect.css', '', '1.0' );
 
@@ -1838,6 +1833,12 @@ function theme_scripts() {
 	$style_uri = get_template_directory_uri() . '/assets/css/style.min.css';
 	$version = file_exists($style_path) ? filemtime($style_path) : null;
 	wp_enqueue_style( 'new-style', $style_uri, [], $version );
+	if ( is_single() && ! is_product() ) {
+		$legacy_style_path = get_stylesheet_directory() . '/style.css';
+		$legacy_style_ver  = file_exists( $legacy_style_path ) ? filemtime( $legacy_style_path ) : null;
+		// Load after new-style: single blog/recipes/promotions need legacy header rules to win.
+		wp_enqueue_style( 'theme-style-single', get_stylesheet_uri(), array( 'new-style' ), $legacy_style_ver );
+	}
 	// Ensure side cart stays above sticky follow-header while scrolling.
 	wp_add_inline_style( 'new-style', '.cart{z-index:10020 !important;}' );
 
