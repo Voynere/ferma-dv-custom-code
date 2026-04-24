@@ -122,10 +122,33 @@ jQuery(document).ready(function() {
 	// disabled-поля не сериализуются и новое время доставки не уходит в Woo.
 	
 	jQuery( document.body ).on( 'change', 'select[name="billing_asdx1"], #billing_asdx1', function() {
-		var deliveryType = jQuery( this ).find( ':selected' ).attr( 'data-value' );
-		if ( ! deliveryType && jQuery( this ).find( ':selected' ).length ) {
-			deliveryType = jQuery( this ).find( ':selected' ).data( 'value' );
+		var $sel = jQuery( this ).find( ':selected' );
+		var deliveryType = $sel.attr( 'data-value' );
+		if ( ! deliveryType && $sel.length ) {
+			deliveryType = $sel.data( 'value' );
 		}
+		if ( ! deliveryType || String( deliveryType ).indexOf( '_' ) < 0 ) {
+			// Fallback for rare cases when data-value is missing in rebuilt options.
+			var txt = String( $sel.text() || $sel.val() || '' ).toLowerCase();
+			var d = txt.indexOf( 'завтра' ) !== -1 ? 'tomorrow' : 'today';
+			var t = 'evening';
+			if ( txt.indexOf( '10' ) !== -1 && txt.indexOf( '12' ) !== -1 ) {
+				t = 'morning';
+			} else if ( txt.indexOf( '15' ) !== -1 && txt.indexOf( '17' ) !== -1 ) {
+				t = 'day';
+			}
+			deliveryType = d + '_' + t;
+		}
+		fermaSyncDeliveryCtxFields( deliveryType );
+		var da = String( deliveryType ).split( '_' );
+		if ( da.length >= 2 ) {
+			var exp = new Date();
+			exp.setTime( exp.getTime() + 24 * 60 * 60 * 1000 * 30 );
+			document.cookie = 'delivery_day=' + da[0] + ';path=/;expires=' + exp.toUTCString();
+			document.cookie = 'delivery_time=' + da.slice( 1 ).join( '_' ) + ';path=/;expires=' + exp.toUTCString();
+		}
+		// Immediate WC recalculation even if update_delivery_type AJAX is delayed/failed.
+		fermaTriggerWcCheckoutUpdate();
 		update_delivery_type( deliveryType );
 	} );
 	
@@ -331,6 +354,9 @@ jQuery(document).ready(function() {
 					jQuery( '#place_order' ).attr( 'disabled', false );
 				}, 400 );
 			} );
+		} else {
+			// Same slot selected again: still force recalc to avoid stale totals after fragment updates.
+			fermaTriggerWcCheckoutUpdate();
 		}
 	}
 
