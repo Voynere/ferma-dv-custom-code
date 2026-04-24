@@ -1969,7 +1969,7 @@ function ferma_apply_internal_header_layout_fixes() {
  * Final archive/category header guard for conflicting legacy CSS.
  * Injected late into <head> to win specificity/order on taxonomy archives.
  */
-add_action( 'wp_head', 'ferma_force_archive_header_row_layout', 100000 );
+add_action( 'wp_head', 'ferma_force_archive_header_row_layout', 999999 );
 function ferma_force_archive_header_row_layout() {
 	if ( is_admin() ) {
 		return;
@@ -1983,9 +1983,9 @@ function ferma_force_archive_header_row_layout() {
 	}
 	?>
 	<style id="ferma-force-archive-header-row-layout">
-		body.tax-product_cat .header.header__product .header__desktop-bot,
-		body.archive .header.header__product .header__desktop-bot,
-		body.post-type-archive-product .header.header__product .header__desktop-bot {
+		body.tax-product_cat .header__desktop-bot,
+		body.archive .header__desktop-bot,
+		body.post-type-archive-product .header__desktop-bot {
 			display: flex !important;
 			flex-direction: row !important;
 			align-items: center !important;
@@ -1993,17 +1993,27 @@ function ferma_force_archive_header_row_layout() {
 			flex-wrap: nowrap !important;
 			margin-top: 24px !important;
 			gap: 15px !important;
+			float: none !important;
+			position: static !important;
+			clear: none !important;
+			text-align: left !important;
 		}
 		body.tax-product_cat .header__desktop-bot > *,
 		body.archive .header__desktop-bot > *,
 		body.post-type-archive-product .header__desktop-bot > * {
 			flex: 0 0 auto !important;
 		}
+		body.tax-product_cat .header__desktop-bot *,
+		body.archive .header__desktop-bot *,
+		body.post-type-archive-product .header__desktop-bot * {
+			max-width: none !important;
+		}
 		body.tax-product_cat .header__search,
 		body.archive .header__search,
 		body.post-type-archive-product .header__search {
 			flex: 1 1 auto !important;
 			min-width: 150px !important;
+			order: 0 !important;
 		}
 	</style>
 	<?php
