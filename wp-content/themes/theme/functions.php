@@ -2029,15 +2029,12 @@ function ferma_rewrite_legacy_theme_jquery_src( $src, $handle ) {
 }
 
 /**
- * Legacy inline scripts on checkout still use `$` directly.
- * In WP noConflict mode `$` may be unavailable; expose alias right after jquery-core loads.
+ * Legacy theme scripts use `$` directly across many pages.
+ * In WP noConflict mode `$` may be unavailable; expose alias after jquery-core loads.
  */
-add_action( 'wp_enqueue_scripts', 'ferma_checkout_expose_jquery_dollar_alias', 10001 );
-function ferma_checkout_expose_jquery_dollar_alias() {
-	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
-		return;
-	}
-	if ( function_exists( 'is_order_received_page' ) && is_order_received_page() ) {
+add_action( 'wp_enqueue_scripts', 'ferma_frontend_expose_jquery_dollar_alias', 10001 );
+function ferma_frontend_expose_jquery_dollar_alias() {
+	if ( is_admin() ) {
 		return;
 	}
 	wp_enqueue_script( 'jquery' );
