@@ -1816,8 +1816,14 @@ add_action( 'widgets_init', 'theme_widgets_init' );
  * Enqueue scripts and styles.
  */
 function theme_scripts() {
-	// Legacy stylesheet is intentionally disabled to keep all templates
-	// on the same visual baseline as homepage and product pages.
+	// Base legacy stylesheet is disabled globally to keep most templates
+	// on the same visual baseline as homepage/product pages.
+	// But single content pages (blog/recipes/promotions detail) still rely on it for header layout.
+	if ( is_single() && ! is_product() ) {
+		$legacy_style_path = get_stylesheet_directory() . '/style.css';
+		$legacy_style_ver  = file_exists( $legacy_style_path ) ? filemtime( $legacy_style_path ) : null;
+		wp_enqueue_style( 'theme-style', get_stylesheet_uri(), array(), $legacy_style_ver );
+	}
 
 	wp_enqueue_style( 'complect-style', get_template_directory_uri() . '/css/complect.css', '', '1.0' );
 
