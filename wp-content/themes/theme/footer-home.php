@@ -393,6 +393,100 @@ $ferma_header_follow_js_ver = file_exists( get_template_directory() . '/assets/j
 <script src="<?php bloginfo('template_url') ?>/assets/js/home.js?ver=<?php echo esc_attr( (string) $ferma_home_js_ver ); ?>"></script>
 <script src="<?php bloginfo('template_url') ?>/assets/js/main.js?ver=<?php echo esc_attr( (string) $ferma_main_js_ver ); ?>"></script>
 <script src="<?php bloginfo('template_url') ?>/assets/js/header-follow.js?ver=<?php echo esc_attr( (string) $ferma_header_follow_js_ver ); ?>"></script>
+<script>
+(function() {
+    'use strict';
+
+    function isProblemPage() {
+        if (!document.body) {
+            return false;
+        }
+        return document.body.classList.contains('tax-product_cat')
+            || document.body.classList.contains('archive')
+            || document.body.classList.contains('post-type-archive-product')
+            || document.body.classList.contains('category');
+    }
+
+    function fixHeader() {
+        if (!isProblemPage()) {
+            return;
+        }
+
+        const headerBot = document.querySelector('.header__desktop-bot');
+        if (!headerBot) {
+            return;
+        }
+
+        headerBot.style.setProperty('display', 'flex', 'important');
+        headerBot.style.setProperty('flex-direction', 'row', 'important');
+        headerBot.style.setProperty('align-items', 'center', 'important');
+        headerBot.style.setProperty('justify-content', 'space-between', 'important');
+        headerBot.style.setProperty('flex-wrap', 'nowrap', 'important');
+        headerBot.style.setProperty('margin-top', '24px', 'important');
+        headerBot.style.setProperty('gap', '15px', 'important');
+
+        Array.prototype.forEach.call(headerBot.children, function(child) {
+            child.style.setProperty('flex', '0 0 auto', 'important');
+        });
+
+        const search = headerBot.querySelector('.header__search, .dgwt-wcas-search-wrapp');
+        if (search) {
+            search.style.setProperty('flex', '1 1 auto', 'important');
+            search.style.setProperty('min-width', '180px', 'important');
+        }
+
+        console.log('Шапка исправлена на странице:', window.location.pathname);
+    }
+
+    let scheduled = false;
+    function scheduleFix() {
+        if (scheduled) {
+            return;
+        }
+        scheduled = true;
+        window.requestAnimationFrame(function() {
+            scheduled = false;
+            fixHeader();
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fixHeader);
+    } else {
+        fixHeader();
+    }
+
+    window.addEventListener('load', fixHeader);
+    setTimeout(fixHeader, 100);
+    setTimeout(fixHeader, 300);
+    setTimeout(fixHeader, 500);
+    setTimeout(fixHeader, 1000);
+
+    const observer = new MutationObserver(function() {
+        scheduleFix();
+    });
+
+    if (document.body) {
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['class', 'style']
+        });
+    } else {
+        document.addEventListener('DOMContentLoaded', function() {
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['class', 'style']
+            });
+        });
+    }
+
+    window.addEventListener('resize', scheduleFix);
+})();
+</script>
 
 </body>
 
