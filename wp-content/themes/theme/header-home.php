@@ -1832,17 +1832,7 @@ if (!empty($_POST["vib"])) {
 <div class="wrapper">
     <div class="overlay"></div>
 
-    <?php
-    $ferma_header_classes = 'header header__product';
-    if (
-        is_category()
-        || ( function_exists( 'is_product_category' ) && is_product_category() )
-        || ( is_archive() && ! is_singular() )
-    ) {
-        $ferma_header_classes = 'header';
-    }
-    ?>
-    <header class="<?php echo esc_attr( $ferma_header_classes ); ?>">
+    <header class="header header__product">
         <div class="header__follow">
             <div class="container">
                 <div class="header__follow-inner">

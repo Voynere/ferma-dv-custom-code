@@ -1966,51 +1966,6 @@ function ferma_apply_internal_header_layout_fixes() {
 }
 
 /**
- * Final header fallback injected directly into <head>.
- * Used because some templates may skip/alter style enqueue flow.
- */
-add_action( 'wp_head', 'ferma_force_header_layout_fallback_css', 100000 );
-function ferma_force_header_layout_fallback_css() {
-	if ( is_admin() ) {
-		return;
-	}
-	if ( ! ( is_single() || is_category() || is_archive() || ( function_exists( 'is_product_category' ) && is_product_category() ) ) ) {
-		return;
-	}
-	?>
-	<style id="ferma-force-header-layout-fallback">
-		@media (min-width: 868px) {
-			.header__desktop-bot {
-				display: flex !important;
-				margin-top: 24px !important;
-			}
-			.header__desktop-menu {
-				margin-bottom: 0 !important;
-			}
-			.header.header__product .header__desktop-menu {
-				margin-top: 24px !important;
-			}
-		}
-		.header__logo div span,
-		.header__logo div p {
-			color: var(--color-light-black) !important;
-		}
-		.header.header__product .header__desktop-bot {
-			display: flex !important;
-			margin-top: 24px !important;
-		}
-		.header.header__product .header__desktop-menu {
-			margin-bottom: 0 !important;
-		}
-		.header.header__product .header__logo div span,
-		.header.header__product .header__logo div p {
-			color: var(--color-light-black) !important;
-		}
-	</style>
-	<?php
-}
-
-/**
  * jQuery cleanup for legacy theme scripts.
  * Keep only core jQuery and remove old custom handle if present.
  */
