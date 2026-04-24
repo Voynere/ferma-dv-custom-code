@@ -1941,6 +1941,28 @@ function theme_scripts() {
 add_action( 'wp_enqueue_scripts', 'theme_scripts' );
 
 /**
+ * Safety guard: legacy style.css must stay off product/category/archive pages.
+ * Query Monitor shows it can still appear there via late third-party/theme hooks.
+ */
+add_action( 'wp_enqueue_scripts', 'ferma_dequeue_single_legacy_style_outside_single', 10002 );
+function ferma_dequeue_single_legacy_style_outside_single() {
+	if ( is_admin() ) {
+		return;
+	}
+	if ( is_single() && ! is_product() ) {
+		return;
+	}
+	if (
+		( function_exists( 'is_product_category' ) && is_product_category() )
+		|| ( function_exists( 'is_shop' ) && is_shop() )
+		|| is_category()
+		|| ( is_archive() && ! is_singular() )
+	) {
+		wp_dequeue_style( 'theme-style-single' );
+	}
+}
+
+/**
  * Late, deterministic header layout fixes for internal content pages.
  * Runs after styles are enqueued to avoid race/order issues.
  */
