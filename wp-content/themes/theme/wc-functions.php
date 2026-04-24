@@ -611,13 +611,10 @@ function custom_single_template($template) {
     return $template;
 }
 add_filter('single_template', 'custom_single_template');
-// Отключение старых стилей при использовании шаблона single-post.php и 404.php
+// Отключение старых стилей только для 404.
+// Для single-постов (blog/recipes/promotions) style.css нужен для корректной шапки.
 function remove_main_style_for_custom_template() {
-    // Проверяем: либо это пост в нужных категориях, либо это 404-страница
-    if (
-        ( is_single() && has_category( array( 'scontentsk', 'recipe', 'fermerskij-blog' ) ) )
-        || is_404()
-    ) {
+    if ( is_404() ) {
         global $wp_styles;
         $main_style_url = get_stylesheet_uri();
 
