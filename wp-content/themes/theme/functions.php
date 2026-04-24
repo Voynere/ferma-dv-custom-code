@@ -2029,6 +2029,27 @@ function ferma_rewrite_legacy_theme_jquery_src( $src, $handle ) {
 }
 
 /**
+ * Legacy inline scripts on checkout still use `$` directly.
+ * In WP noConflict mode `$` may be unavailable; expose safe alias.
+ */
+add_action( 'wp_head', 'ferma_checkout_expose_jquery_dollar_alias', 1 );
+function ferma_checkout_expose_jquery_dollar_alias() {
+	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
+		return;
+	}
+	if ( function_exists( 'is_order_received_page' ) && is_order_received_page() ) {
+		return;
+	}
+	?>
+<script>
+if (typeof window.jQuery === 'function' && typeof window.$ !== 'function') {
+	window.$ = window.jQuery;
+}
+</script>
+	<?php
+}
+
+/**
  * Force WP core jquery sources at registry level (before enqueue resolution).
  */
 add_action( 'wp_default_scripts', 'ferma_force_wp_core_jquery_registry', 1 );
