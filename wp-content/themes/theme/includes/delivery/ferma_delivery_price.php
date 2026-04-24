@@ -499,6 +499,49 @@ if ( ! function_exists( 'ferma_get_checkout_posted_array' ) ) {
 	}
 }
 
+if ( ! function_exists( 'ferma_normalize_delivery_time_code' ) ) {
+	/**
+	 * Convert different delivery slot representations to morning|day|evening|express.
+	 */
+	function ferma_normalize_delivery_time_code( $raw ) {
+		$v = is_string( $raw ) ? sanitize_text_field( (string) $raw ) : '';
+		if ( $v === '' ) {
+			return null;
+		}
+		$k = sanitize_key( $v );
+		$allowed = array( 'morning', 'day', 'evening', 'express' );
+		if ( in_array( $k, $allowed, true ) ) {
+			return $k;
+		}
+		// today_day / tomorrow_evening / today_express
+		if ( strpos( $k, '_' ) !== false ) {
+			$parts = explode( '_', $k );
+			$last  = end( $parts );
+			if ( $last && in_array( $last, $allowed, true ) ) {
+				return $last;
+			}
+		}
+		// Human labels from billing_asdx1 fallback.
+		$lower = function_exists( 'mb_strtolower' ) ? mb_strtolower( $v, 'UTF-8' ) : strtolower( $v );
+		if ( strpos( $lower, 'экспресс' ) !== false ) {
+			return 'express';
+		}
+		if ( strpos( $lower, '10' ) !== false && strpos( $lower, '12' ) !== false ) {
+			return 'morning';
+		}
+		if ( strpos( $lower, '15' ) !== false && strpos( $lower, '17' ) !== false ) {
+			return 'day';
+		}
+		if ( strpos( $lower, '19' ) !== false && strpos( $lower, '22' ) !== false ) {
+			return 'evening';
+		}
+		if ( strpos( $lower, '19' ) !== false && strpos( $lower, '21' ) !== false ) {
+			return 'evening';
+		}
+		return null;
+	}
+}
+
 if ( ! function_exists( 'ferma_rehydrate_delivery_session' ) ) {
 	/**
 	 * On update_order_review: keep WC session in sync for fee recalculation.
@@ -524,14 +567,20 @@ if ( ! function_exists( 'ferma_rehydrate_delivery_session' ) ) {
 		}
 		$cand = null;
 		if ( isset( $p['billing']['ferma_ctx_delivery_time'] ) && (string) $p['billing']['ferma_ctx_delivery_time'] !== '' ) {
-			$cand = sanitize_key( (string) $p['billing']['ferma_ctx_delivery_time'] );
+			$cand = ferma_normalize_delivery_time_code( (string) $p['billing']['ferma_ctx_delivery_time'] );
 		} elseif ( ! empty( $p['ferma_ctx_delivery_time'] ) ) {
-			$cand = sanitize_key( (string) $p['ferma_ctx_delivery_time'] );
+			$cand = ferma_normalize_delivery_time_code( (string) $p['ferma_ctx_delivery_time'] );
+		} elseif ( isset( $p['billing']['billing_asdx1'] ) && (string) $p['billing']['billing_asdx1'] !== '' ) {
+			$cand = ferma_normalize_delivery_time_code( (string) $p['billing']['billing_asdx1'] );
+		} elseif ( ! empty( $p['billing_asdx1'] ) ) {
+			$cand = ferma_normalize_delivery_time_code( (string) $p['billing_asdx1'] );
+		} elseif ( ! empty( $_POST['delivery_type'] ) ) {
+			$cand = ferma_normalize_delivery_time_code( (string) wp_unslash( $_POST['delivery_type'] ) );
 		}
 		if ( $cand && in_array( $cand, $allowed, true ) ) {
 			WC()->session->set( 'ferma_ctx_delivery_time', $cand );
 		} elseif ( isset( $_COOKIE['delivery_time'] ) && (string) $_COOKIE['delivery_time'] !== '' ) {
-			$c2 = sanitize_key( (string) wp_unslash( (string) $_COOKIE['delivery_time'] ) );
+			$c2 = ferma_normalize_delivery_time_code( (string) wp_unslash( (string) $_COOKIE['delivery_time'] ) );
 			if ( in_array( $c2, $allowed, true ) ) {
 				WC()->session->set( 'ferma_ctx_delivery_time', $c2 );
 			}
@@ -557,15 +606,21 @@ if ( ! function_exists( 'ferma_get_delivery_time_code_for_cart' ) ) {
 		$posted  = ferma_get_checkout_posted_array();
 		$cand    = null;
 		if ( isset( $posted['billing']['ferma_ctx_delivery_time'] ) && (string) $posted['billing']['ferma_ctx_delivery_time'] !== '' ) {
-			$cand = sanitize_key( (string) $posted['billing']['ferma_ctx_delivery_time'] );
+			$cand = ferma_normalize_delivery_time_code( (string) $posted['billing']['ferma_ctx_delivery_time'] );
 		} elseif ( ! empty( $posted['ferma_ctx_delivery_time'] ) ) {
-			$cand = sanitize_key( (string) $posted['ferma_ctx_delivery_time'] );
+			$cand = ferma_normalize_delivery_time_code( (string) $posted['ferma_ctx_delivery_time'] );
+		} elseif ( isset( $posted['billing']['billing_asdx1'] ) && (string) $posted['billing']['billing_asdx1'] !== '' ) {
+			$cand = ferma_normalize_delivery_time_code( (string) $posted['billing']['billing_asdx1'] );
+		} elseif ( ! empty( $posted['billing_asdx1'] ) ) {
+			$cand = ferma_normalize_delivery_time_code( (string) $posted['billing_asdx1'] );
+		} elseif ( ! empty( $_POST['delivery_type'] ) ) {
+			$cand = ferma_normalize_delivery_time_code( (string) wp_unslash( $_POST['delivery_type'] ) );
 		}
 		if ( $cand && in_array( $cand, $allowed, true ) ) {
 			return $cand;
 		}
 		if ( isset( $_COOKIE['delivery_time'] ) && (string) $_COOKIE['delivery_time'] !== '' ) {
-			$c2 = sanitize_key( (string) wp_unslash( (string) $_COOKIE['delivery_time'] ) );
+			$c2 = ferma_normalize_delivery_time_code( (string) wp_unslash( (string) $_COOKIE['delivery_time'] ) );
 			if ( in_array( $c2, $allowed, true ) ) {
 				return $c2;
 			}
