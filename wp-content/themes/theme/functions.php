@@ -2030,9 +2030,9 @@ function ferma_rewrite_legacy_theme_jquery_src( $src, $handle ) {
 
 /**
  * Legacy inline scripts on checkout still use `$` directly.
- * In WP noConflict mode `$` may be unavailable; expose safe alias.
+ * In WP noConflict mode `$` may be unavailable; expose alias right after jquery-core loads.
  */
-add_action( 'wp_head', 'ferma_checkout_expose_jquery_dollar_alias', 1 );
+add_action( 'wp_enqueue_scripts', 'ferma_checkout_expose_jquery_dollar_alias', 10001 );
 function ferma_checkout_expose_jquery_dollar_alias() {
 	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() ) {
 		return;
@@ -2040,13 +2040,20 @@ function ferma_checkout_expose_jquery_dollar_alias() {
 	if ( function_exists( 'is_order_received_page' ) && is_order_received_page() ) {
 		return;
 	}
-	?>
-<script>
-if (typeof window.jQuery === 'function' && typeof window.$ !== 'function') {
-	window.$ = window.jQuery;
-}
-</script>
-	<?php
+	wp_enqueue_script( 'jquery' );
+	if ( wp_script_is( 'jquery-core', 'registered' ) || wp_script_is( 'jquery-core', 'enqueued' ) ) {
+		wp_add_inline_script(
+			'jquery-core',
+			'if(typeof window.jQuery==="function" && typeof window.$!=="function"){window.$=window.jQuery;}',
+			'after'
+		);
+	} else {
+		wp_add_inline_script(
+			'jquery',
+			'if(typeof window.jQuery==="function" && typeof window.$!=="function"){window.$=window.jQuery;}',
+			'after'
+		);
+	}
 }
 
 /**
