@@ -1758,6 +1758,8 @@ function theme_scripts() {
 			'form.checkout .woocommerce-input-wrapper input,form.checkout .woocommerce-input-wrapper select,form.checkout .woocommerce-input-wrapper textarea{position:relative;z-index:1;min-height:40px;padding:9px 12px;font-size:14px;line-height:1.25;}' .
 			'form.checkout .woocommerce-input-wrapper textarea{min-height:72px;}' .
 			'form.checkout .form-row.ferma-inline-label>label{position:absolute!important;top:-9px!important;left:16px!important;display:inline-block!important;padding:0 6px!important;margin:0!important;background:#fff!important;border:0!important;font-weight:400!important;color:#5f5f5f!important;z-index:3!important;}' .
+			'form.checkout #billing_asdx1_field{position:relative;z-index:1;}' .
+			'form.checkout #billing_asdx1_field .ferma-delivery-time-error{position:static !important;clear:both;margin:6px 0 14px !important;padding:10px 12px;line-height:1.45;font-size:14px;color:#b32d2e !important;border:1px solid #f1aeb5;border-radius:8px;background:#fef7f7;}' .
 			'form.checkout .ferma-delivery-address-field{position:relative;}' .
 			'form.checkout .ferma-delivery-address-field .ferma-delivery-address-edit{position:absolute;right:10px;top:50%;transform:translateY(-50%);z-index:4;display:inline-flex;align-items:center;justify-content:center;height:30px;padding:0 12px;border-radius:999px;background:#f3f8ed;border:1px solid #9ee87f;color:#4e4e4e;text-decoration:none;font-size:12px;line-height:1;font-weight:500;}' .
 			'form.checkout .ferma-delivery-address-field .ferma-delivery-address-edit:hover{background:#eaf6df;color:#3f3f3f;}' .

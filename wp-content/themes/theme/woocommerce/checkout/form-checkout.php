@@ -62,7 +62,25 @@ if ( ! $checkout->is_registration_enabled() && $checkout->is_registration_requir
 
 </form>
 
-<? $coords = explode(",", $_COOKIE['billing_coords']); ?>
+<?php
+$ferma_billing_coord_src = '';
+if ( ! empty( $_COOKIE['billing_coords'] ) ) {
+	$ferma_billing_coord_src = (string) wp_unslash( (string) $_COOKIE['billing_coords'] );
+} elseif ( ! empty( $_COOKIE['coords'] ) ) {
+	$ferma_billing_coord_src = (string) wp_unslash( (string) $_COOKIE['coords'] );
+}
+$ferma_billing_parts = array_map( 'trim', explode( ',', $ferma_billing_coord_src, 2 ) );
+$ferma_checkout_lat  = 43.111787507251414;
+$ferma_checkout_lng  = 131.88327396290603;
+if ( isset( $ferma_billing_parts[0], $ferma_billing_parts[1] ) && is_numeric( $ferma_billing_parts[0] ) && is_numeric( $ferma_billing_parts[1] ) ) {
+	$ferma_checkout_lat = (float) $ferma_billing_parts[0];
+	$ferma_checkout_lng = (float) $ferma_billing_parts[1];
+}
+$ferma_default_delivery = '';
+if ( ! empty( $_COOKIE['delivery_day'] ) && ! empty( $_COOKIE['delivery_time'] ) ) {
+	$ferma_default_delivery = (string) wp_unslash( (string) $_COOKIE['delivery_day'] ) . '_' . (string) wp_unslash( (string) $_COOKIE['delivery_time'] );
+}
+?>
 <script>
 var current_delivery_value = '',
 	updated_times = false;
@@ -80,15 +98,31 @@ jQuery(document).ready(function() {
 	if(!updated_times) {
 		ferma_update_times();
 	}
+	function fermaSetBillingTimeError( message ) {
+		var msg = message || 'Не удалось определить время доставки.';
+		var $w = $('#billing_asdx1_field .woocommerce-input-wrapper');
+		if ( !$w.length ) {
+			return;
+		}
+		$w.find( '.ferma-delivery-time-error' ).remove();
+		if ( !$w.find( 'select#billing_asdx1' ).length ) {
+			$w.html( '<select name="billing_asdx1" id="billing_asdx1" class="woodefaults" aria-describedby="ferma-billing-time-error"></select>' );
+		}
+		$( '#billing_asdx1' )
+			.empty()
+			.append( jQuery( '<option value=""></option>' ).text( '—' ) )
+			.prop( 'disabled', true );
+		$w.append( jQuery( '<p class="ferma-delivery-time-error" id="ferma-billing-time-error" role="alert"></p>' ).text( msg ) );
+	}
 	function ferma_update_times() {
-		let default_delivery = '<?php echo ($_COOKIE['delivery_day'] && $_COOKIE['delivery_time']) ? $_COOKIE['delivery_day'] . '_' . $_COOKIE['delivery_time'] : ''; ?>';
+		let default_delivery = <?php echo json_encode( $ferma_default_delivery, JSON_UNESCAPED_UNICODE ); ?>;
 		jQuery.ajax({
 			type: "post",
 			dataType: "json",
 			url: "/wp-admin/admin-ajax.php",
 			data: {
 				action: 'get_delivery_prices',
-				coords: [<?php echo $coords[0]; ?>, <?php echo $coords[1]; ?>]
+				coords: [ <?php echo esc_attr( (string) $ferma_checkout_lat ); ?>, <?php echo esc_attr( (string) $ferma_checkout_lng ); ?> ]
 			},
 			beforeSend: function() {
 				$('#billing_asdx1').attr('disabled', true);
@@ -97,8 +131,10 @@ jQuery(document).ready(function() {
 			success: function(data) {
 				window.updated_times = true;
 				if(!data.success) {
-					$('#billing_asdx1_field .woocommerce-input-wrapper').html('<span style="color: red;font-weight: 700;">' + data.data.error + '</span>');
+					var emsg = ( data && data.data && data.data.error ) ? data.data.error : 'Введите верный адрес доставки.';
+					fermaSetBillingTimeError( emsg );
 				} else {
+					$( '#billing_asdx1_field .ferma-delivery-time-error' ).remove();
 					$('#billing_sss').val(data.data.market);
 					$('#billing_point').val(data.data.id);
 					let choices = '';
@@ -209,7 +245,7 @@ jQuery(document).ready(function() {
 				}
 			},
 			error: function (jqXHR, textStatus, errorThrown) {
-				$('#billing_asdx1').html('<option>Введите верный адрес доставки</option>');
+				fermaSetBillingTimeError( 'Не удалось загрузить окна доставки. Проверьте адрес или обновите страницу.' );
 			}
 		});
 	}
