@@ -1223,9 +1223,82 @@ function update_user_address_callback() {
 		setcookie( 'billing_coords', $address['coords'], time() + 3600 * 24 * 7, '/' );
 	}
 
-	change_delivery_remove_items($points);
+	change_delivery_remove_items( $points );
+
+	// Logged-in: keep cookies in sync with user meta (header/JS and some caches read cookies).
+	if ( is_user_logged_in() && is_array( $address ) && ! empty( $address['billing_delivery'] ) ) {
+		$raw_addr = (string) $address['billing_delivery'];
+		$raw_addr = str_replace( array( "\0", "\r" ), '', $raw_addr );
+		$raw_addr = trim( $raw_addr );
+		if ( $raw_addr !== '' ) {
+			setcookie( 'delivery', '0', time() + 3600 * 24 * 7, '/' );
+			setcookie( 'billing_delivery', $raw_addr, time() + 3600 * 24 * 7, '/' );
+		}
+	}
 }
 
+if ( ! function_exists( 'ferma_get_answer_user_shopping_flag' ) ) {
+	/**
+	 * Hidden #answer_user: 1 = allow add-to-cart; 0 = gate and open delivery modal on hijacked buttons.
+	 */
+	function ferma_get_answer_user_shopping_flag() {
+		if ( is_user_logged_in() ) {
+			$uid  = (int) get_current_user_id();
+			$mode = get_user_meta( $uid, 'delivery', true );
+			if ( $mode !== '' && $mode !== null && $mode !== false ) {
+				return 1;
+			}
+			$bd = get_user_meta( $uid, 'billing_delivery', true );
+			if ( is_string( $bd ) && $bd !== '' ) {
+				return 1;
+			}
+			$ba1 = get_user_meta( $uid, 'billing_address_1', true );
+			if ( is_string( $ba1 ) && $ba1 !== '' ) {
+				return 1;
+			}
+			return 0;
+		}
+		if ( ! isset( $_COOKIE['delivery'] ) ) {
+			return 0;
+		}
+		$d = (string) wp_unslash( (string) $_COOKIE['delivery'] );
+		if ( $d === '1' ) {
+			return 1;
+		}
+		$has_coords  = ( isset( $_COOKIE['coords'] ) && (string) $_COOKIE['coords'] !== '' );
+		$has_sam     = ( isset( $_COOKIE['billing_samoviziv'] ) && (string) wp_unslash( (string) $_COOKIE['billing_samoviziv'] ) !== '' );
+		$has_billdel = ( isset( $_COOKIE['billing_delivery'] ) && (string) wp_unslash( (string) $_COOKIE['billing_delivery'] ) !== '' && $d === '0' );
+		if ( $d === '0' && ( $has_coords || $has_sam || $has_billdel ) ) {
+			return 1;
+		}
+		return 0;
+	}
+}
+
+add_action( 'woocommerce_checkout_update_order_meta', 'ferma_checkout_sync_delivery_usermeta_from_checkout', 20, 1 );
+function ferma_checkout_sync_delivery_usermeta_from_checkout( $order_id ) {
+	// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals
+	unset( $order_id );
+	if ( ! is_user_logged_in() || empty( $_POST ) || ! is_array( $_POST ) ) {
+		return;
+	}
+	if ( empty( $_POST['billing_delivery'] ) || ! is_string( $_POST['billing_delivery'] ) ) {
+		return;
+	}
+	$raw = str_replace( array( "\0", "\r" ), '', (string) wp_unslash( $_POST['billing_delivery'] ) );
+	$raw = trim( $raw );
+	if ( $raw === '' ) {
+		return;
+	}
+	$uid = (int) get_current_user_id();
+	if ( $uid <= 0 ) {
+		return;
+	}
+	update_user_meta( $uid, 'delivery', '0' );
+	update_user_meta( $uid, 'billing_delivery', $raw );
+	setcookie( 'delivery', '0', time() + 3600 * 24 * 7, '/' );
+	setcookie( 'billing_delivery', $raw, time() + 3600 * 24 * 7, '/' );
+}
 
 if ( ! function_exists( 'theme_setup' ) ) :
 	/**
@@ -3702,12 +3775,31 @@ function q_apply_promocode_with_gift( $promo_code ) {
 
     return $result;
 }
-add_action( 'wp_enqueue_scripts', function() {
-    // Всплывашка
+function ferma_should_load_promocode_assets() {
+    if ( function_exists( 'is_cart' ) && is_cart() ) {
+        return true;
+    }
+
+    if ( function_exists( 'is_checkout' ) && is_checkout() ) {
+        return true;
+    }
+
+    if ( function_exists( 'is_account_page' ) && is_account_page() ) {
+        return true;
+    }
+
+    return false;
+}
+
+function ferma_enqueue_promocode_assets() {
+    if ( ! ferma_should_load_promocode_assets() ) {
+        return;
+    }
+
     wp_enqueue_script(
         'q-promo-toast',
         get_template_directory_uri() . '/assets/js/q-promo-toast1.js',
-        array('jquery'),
+        array( 'jquery' ),
         '1.0.0',
         true
     );
@@ -3715,18 +3807,21 @@ add_action( 'wp_enqueue_scripts', function() {
     wp_enqueue_script(
         'q-promocodes-js',
         get_template_directory_uri() . '/assets/js/promocodes11.js',
-        array('jquery', 'q-promo-toast'),
+        array( 'jquery', 'q-promo-toast' ),
         filemtime( get_template_directory() . '/assets/js/promocodes11.js' ),
         true
     );
 
-
-
-    wp_localize_script( 'q-promocodes-js', 'q_promo_vars', array(
-        'ajaxurl' => admin_url( 'admin-ajax.php' ),
-        'nonce'   => wp_create_nonce( 'q_promo_nonce' )
-    ) );
-} );
+    wp_localize_script(
+        'q-promocodes-js',
+        'q_promo_vars',
+        array(
+            'ajaxurl' => admin_url( 'admin-ajax.php' ),
+            'nonce'   => wp_create_nonce( 'q_promo_nonce' ),
+        )
+    );
+}
+add_action( 'wp_enqueue_scripts', 'ferma_enqueue_promocode_assets' );
 
 add_action('wp_enqueue_scripts', function() {
     wp_enqueue_style(

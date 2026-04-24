@@ -54,22 +54,11 @@
 <p style="display:none" id="answer_user"><?
 global $file_prefix;
 wp_cache_clean_cache( $file_prefix, true );
-if ( is_user_logged_in() ) {
-	$const = get_user_meta( get_current_user_id(), 'delivery', true );
-	if($const == "") {
-		unset($const);
-	}
+if ( function_exists( 'ferma_get_answer_user_shopping_flag' ) ) {
+	echo (int) ferma_get_answer_user_shopping_flag();
 } else {
-	if(isset($_COOKIE['delivery']) && ((isset($_COOKIE['coords']) && $_COOKIE['coords'] != '') || (isset($_COOKIE['billing_samoviziv']) && $_COOKIE['billing_samoviziv'] != '') )) {
-		$const = 1;
-	}
+	echo 0;
 }
-
-	if (isset($const)) {
-		echo 1;
-	} else {
-		echo 0;
-	}
 ?></p>
 <script>
 	const samovivizValue = document.querySelector('#data_of_samoviviz').innerHTML;
@@ -82,50 +71,44 @@ options.forEach(option => {
 
 </script>
 <script>
-// Проверяем значение #answer_user
-if (document.getElementById("answer_user").innerText === "0") {
-  // Получаем все элементы <a> с классом "add_to_cart_button"
-  var links = document.querySelectorAll(".add_to_cart_button");
-  // Проходим по всем найденным элементам
-  links.forEach(function(link) {
-    // Заменяем класс на "add_to_card_button1"
-    link.classList.replace("add_to_cart_button", "add_to_card_button1");
-    // Удаляем href
-    link.removeAttribute("href");
-    // Добавляем обработчик клика на элемент
-    link.addEventListener("click", function(event) {
-      // Отменяем стандартное поведение ссылки
-      event.preventDefault();
-      // Открываем модальное окно
-      var modal = document.querySelector(".modal1");
+// Gate add-to-cart until delivery is chosen. Do not bind inside header, mini-cart, or mobile nav
+// so unrelated clicks (ордер/cart) never open the delivery modal by mistake.
+(function () {
+  var el = document.getElementById("answer_user");
+  if (!el || el.innerText !== "0") {
+    return;
+  }
+  var skip = "header, .header, .site-header, #mini-cart, .widget_shopping_cart, .mobile__nav, .header__mobile-banner";
+  function inSkipRegion(node) {
+    return node && node.closest && node.closest(skip);
+  }
+  var modal = document.querySelector(".modal1");
+  function showDeliveryModal() {
+    if (modal) {
       modal.style.display = "block";
+    }
+  }
+  document.querySelectorAll(".add_to_cart_button, .single_add_to_cart_button").forEach(function (link) {
+    if (inSkipRegion(link)) {
+      return;
+    }
+    if (link.getAttribute("data-ferma-delivery-gate") === "1") {
+      return;
+    }
+    link.setAttribute("data-ferma-delivery-gate", "1");
+    if (link.classList && link.classList.contains("add_to_cart_button")) {
+      link.classList.replace("add_to_cart_button", "add_to_card_button1");
+    }
+    if (link.classList && link.classList.contains("single_add_to_cart_button")) {
+      link.classList.replace("single_add_to_cart_button", "single_add_to_cart_button1");
+    }
+    link.removeAttribute("href");
+    link.addEventListener("click", function (event) {
+      event.preventDefault();
+      showDeliveryModal();
     });
   });
-}
-
-
-// Проверяем значение #answer_user
-if (document.getElementById("answer_user").innerText === "0") {
-  // Получаем все элементы <a> с классом "add_to_cart_button"
-  var links = document.querySelectorAll(".single_add_to_cart_button");
-  // Проходим по всем найденным элементам
-  links.forEach(function(link) {
-    // Заменяем класс на "add_to_card_button1"
-    link.classList.replace("single_add_to_cart_button", "single_add_to_cart_button1");
-    // Удаляем href
-    link.removeAttribute("href");
-    // Добавляем обработчик клика на элемент
-    link.addEventListener("click", function(event) {
-      // Отменяем стандартное поведение ссылки
-      event.preventDefault();
-      // Открываем модальное окно
-      var modal = document.querySelector(".modal1");
-      modal.style.display = "block";
-    });
-  });
-}
-
-
+})();
 
 </script>
 <style>
