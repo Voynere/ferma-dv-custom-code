@@ -85,12 +85,33 @@ if ( ! empty( $_COOKIE['delivery_day'] ) && ! empty( $_COOKIE['delivery_time'] )
 var current_delivery_value = '',
 	updated_times = false;
 jQuery(document).ready(function() {
+	// Sync hidden billing fields (sent in post_data) so delivery fee recalculates on update_order_review
+	// without depending on cookie round-trip timing in the same request.
+	function fermaSyncDeliveryCtxFields( deliveryType ) {
+		if ( ! deliveryType || String( deliveryType ).indexOf( '_' ) < 0 ) {
+			return;
+		}
+		var a = String( deliveryType ).split( '_' );
+		if ( a.length < 2 ) {
+			return;
+		}
+		var $t = jQuery( 'input[name="billing[ferma_ctx_delivery_time]"]' );
+		var $d = jQuery( 'input[name="billing[ferma_ctx_delivery_day]"]' );
+		$d.val( a[0] );
+		$t.val( a.slice( 1 ).join( '_' ) );
+		// e.g. today_express -> a = today, express (slice(1) join = express) — actually today_express: split = ['today','express'], slice(1).join = 'express' — good
+		// For today_morning: a = [today, morning] — a.slice(1).join = morning — good
+	}
+
 	// Не блокируем select времени на update_checkout:
 	// disabled-поля не сериализуются и новое время доставки не уходит в Woo.
 	
 	$(document).on('change', 'select[name="billing_asdx1"]', function() {
-		let delivery_type = $(this).find(':selected').data('value');
-		update_delivery_type(delivery_type);
+		var deliveryType = jQuery( this ).find( ':selected' ).attr( 'data-value' );
+		if ( ! deliveryType && jQuery( this ).find( ':selected' ).length ) {
+			deliveryType = jQuery( this ).find( ':selected' ).data( 'value' );
+		}
+		update_delivery_type( deliveryType );
 	});
 	
 	//$('#billing_asdx1').attr('disabled', true);
@@ -226,6 +247,21 @@ jQuery(document).ready(function() {
 					
 					$('#billing_asdx1').html(choices);
 					$('#billing_asdx1').attr('disabled', false);
+					if ( default_delivery ) {
+						fermaSyncDeliveryCtxFields( default_delivery );
+					} else {
+						var dAttr = jQuery( '#billing_asdx1 option:selected' ).attr( 'data-value' );
+						if ( dAttr ) {
+							fermaSyncDeliveryCtxFields( dAttr );
+						}
+					}
+					// One recalculate so the fee uses ferma_ctx_* in post_data.
+					setTimeout( function() {
+						jQuery( document.body ).trigger( 'update_checkout' );
+						if ( typeof window.wc_checkout_form !== 'undefined' && typeof window.wc_checkout_form.update_checkout === 'function' ) {
+							window.wc_checkout_form.update_checkout();
+						}
+					}, 30 );
 					if(default_delivery == '') {
 						const default_delivery_value = $('#billing_asdx1').find(':selected').data('value');
 						const deliveryArray = default_delivery_value.split('_');
@@ -255,6 +291,7 @@ jQuery(document).ready(function() {
 		if(delivery_type != window.current_delivery_value) {
 			window.current_delivery_value = delivery_type;
 			$('#place_order').attr('disabled', true);
+			fermaSyncDeliveryCtxFields( delivery_type );
 			var deliveryArray = (delivery_type || '').split('_');
 			if (deliveryArray.length === 2) {
 				var d = new Date;

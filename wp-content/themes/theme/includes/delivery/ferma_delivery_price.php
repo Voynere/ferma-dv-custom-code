@@ -477,17 +477,66 @@ if(!function_exists('ferma_update_delivery')) {
 	}
 }
 
+if ( ! function_exists( 'ferma_get_checkout_posted_array' ) ) {
+	/**
+	 * Parse WooCommerce `post_data` from update_order_review AJAX (reliable for fee calc vs cookies only).
+	 */
+	function ferma_get_checkout_posted_array() {
+		$out = array();
+		if ( isset( $_POST['post_data'] ) && is_string( $_POST['post_data'] ) ) {
+			parse_str( wp_unslash( $_POST['post_data'] ), $out );
+		}
+		return is_array( $out ) ? $out : array();
+	}
+}
+
+if ( ! function_exists( 'ferma_get_delivery_time_code_for_cart' ) ) {
+	/**
+	 * ACF / ferma_get_delivery_price expect morning|day|evening|express.
+	 * Prefer value posted with checkout (same request as update_order_review); fall back to cookie.
+	 */
+	function ferma_get_delivery_time_code_for_cart() {
+		$posted = ferma_get_checkout_posted_array();
+		$cand  = null;
+		if ( isset( $posted['billing']['ferma_ctx_delivery_time'] ) && (string) $posted['billing']['ferma_ctx_delivery_time'] !== '' ) {
+			$cand = sanitize_key( (string) $posted['billing']['ferma_ctx_delivery_time'] );
+		} elseif ( ! empty( $posted['ferma_ctx_delivery_time'] ) ) {
+			$cand = sanitize_key( (string) $posted['ferma_ctx_delivery_time'] );
+		} elseif ( isset( $_COOKIE['delivery_time'] ) && (string) $_COOKIE['delivery_time'] !== '' ) {
+			$cand = sanitize_key( (string) wp_unslash( (string) $_COOKIE['delivery_time'] ) );
+		}
+		if ( $cand && in_array( $cand, array( 'morning', 'day', 'evening', 'express' ), true ) ) {
+			return $cand;
+		}
+		return 'evening';
+	}
+}
+
+if ( ! function_exists( 'ferma_get_coords_string_for_cart' ) ) {
+	/**
+	 * Coords for delivery fee: billing_coords first, then legacy coords, then default VVO point.
+	 */
+	function ferma_get_coords_string_for_cart() {
+		if ( isset( $_COOKIE['billing_coords'] ) && (string) $_COOKIE['billing_coords'] !== '' ) {
+			return sanitize_text_field( wp_unslash( (string) $_COOKIE['billing_coords'] ) );
+		}
+		if ( isset( $_COOKIE['coords'] ) && (string) $_COOKIE['coords'] !== '' ) {
+			return sanitize_text_field( wp_unslash( (string) $_COOKIE['coords'] ) );
+		}
+		return '43.111787507251414,131.88327396290603';
+	}
+}
+
 if(!function_exists('ferma_add_delivery_fee')) {
 	add_action( 'woocommerce_cart_calculate_fees', 'ferma_add_delivery_fee', 10, 1 );
 	function ferma_add_delivery_fee( $cart )
 	{
-		$coords = ($_COOKIE['coords']) ? $_COOKIE['coords'] : '43.111787507251414,131.88327396290603';
-		
-		$time = ($_COOKIE['delivery_time']) ? $_COOKIE['delivery_time'] : 'evening';
-		
+		$coords = ferma_get_coords_string_for_cart();
+		$time   = ferma_get_delivery_time_code_for_cart();
+
 		$check_delivery = 0;
 		
-		if(isset($_COOKIE['delivery']) && $_COOKIE['delivery'] == 0) {
+		if ( isset( $_COOKIE['delivery'] ) && (string) $_COOKIE['delivery'] === '0' ) {
 			$check_delivery = 1;
 		}
 		
@@ -495,13 +544,13 @@ if(!function_exists('ferma_add_delivery_fee')) {
 			$user_id = get_current_user_id();
 			$row = get_user_meta( $user_id, 'delivery', true );
 			
-			if($row == 0) {
+			if ( $row == 0 ) {
 				$check_delivery = 1;
 			}
 		}
 		
-		if($check_delivery == 1) {
-			$delivery_price = ferma_get_delivery_price($coords, $time);
+		if ( $check_delivery == 1 ) {
+			$delivery_price = ferma_get_delivery_price( $coords, $time );
 			$cart->add_fee( __( "Доставка", "woocommerce" ), $delivery_price, false );
 		}
 	}

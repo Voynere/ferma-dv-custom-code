@@ -1145,6 +1145,25 @@ function save_custom_checkout_field($order_id) {
 
 	}
 
+	// Syncs with delivery window select + cookies for WC AJAX recalculation (ferma_add_delivery_fee).
+	$fields['billing']['ferma_ctx_delivery_time'] = array(
+		'type'     => 'hidden',
+		'required' => false,
+		'class'    => array( 'ferma-ctx-delivery' ),
+		'default'  => isset( $_COOKIE['delivery_time'] ) ? sanitize_text_field( wp_unslash( (string) $_COOKIE['delivery_time'] ) ) : '',
+		'custom_attributes' => array(
+			'data-ferma-ctx' => 'delivery_time',
+		),
+	);
+	$fields['billing']['ferma_ctx_delivery_day'] = array(
+		'type'     => 'hidden',
+		'required' => false,
+		'class'    => array( 'ferma-ctx-delivery' ),
+		'default'  => isset( $_COOKIE['delivery_day'] ) ? sanitize_text_field( wp_unslash( (string) $_COOKIE['delivery_day'] ) ) : '',
+		'custom_attributes' => array(
+			'data-ferma-ctx' => 'delivery_day',
+		),
+	);
 
 	return $fields;
 
