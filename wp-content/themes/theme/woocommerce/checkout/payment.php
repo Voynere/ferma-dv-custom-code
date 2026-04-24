@@ -377,21 +377,21 @@ if ( ! wp_doing_ajax() ) {
 	function deleteFermaCookie(name) {
 		setFermaCookie(name, '', -1);
 	}
-	$(document).on('click', '#promo_code_add', function () {
-		const ferma_promo_code = $('#promo_code').val();
+	jQuery(document).on('click', '#promo_code_add', function () {
+		const ferma_promo_code = jQuery('#promo_code').val();
 		if (typeof ferma_promo_code !== "undefined" && ferma_promo_code != '') {
 			setFermaCookie('ferma_promo_code', ferma_promo_code, '30');
-			$('body').trigger('update_checkout');
+			jQuery('body').trigger('update_checkout');
 		}
 	});
 
-	$(document).on('click', '#promo_code_remove', function () {
+	jQuery(document).on('click', '#promo_code_remove', function () {
 		deleteFermaCookie('ferma_promo_code');
-		$('body').trigger('update_checkout');
+		jQuery('body').trigger('update_checkout');
 	});
 
-	$("#promo_code_but__old").click(function () {
-		$.ajax({
+	jQuery("#promo_code_but__old").click(function () {
+		jQuery.ajax({
 			url: '/wp-content/themes/theme/promo_code.php',
 			/* Куда пойдет запрос */
 			method: 'post',
@@ -408,7 +408,7 @@ if ( ! wp_doing_ajax() ) {
 				console.log(data);
 				var data = JSON.parse(data);
 				if (data.success == 1) {
-					$('body').trigger('update_checkout');
+					jQuery('body').trigger('update_checkout');
 				}
 			}
 		});
@@ -435,9 +435,9 @@ if ( ! wp_doing_ajax() ) {
 
 </script>
 <script>
-	$("#promo_play").click(function () {
+	jQuery("#promo_play").click(function () {
 		var a = document.getElementById("promo_count").value;
-		$.ajax({
+		jQuery.ajax({
 			url: '/wp-content/themes/theme/promo.php',
 			/* Куда пойдет запрос */
 			method: 'post',
