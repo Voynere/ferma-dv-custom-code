@@ -1833,6 +1833,18 @@ function theme_scripts() {
 	$style_uri = get_template_directory_uri() . '/assets/css/style.min.css';
 	$version = file_exists($style_path) ? filemtime($style_path) : null;
 	wp_enqueue_style( 'new-style', $style_uri, [], $version );
+	// Archive/category pages historically relied on these header spacing tweaks.
+	// Keep them scoped to archives only (not single pages).
+	if ( is_category() || ( is_archive() && ! is_singular() ) ) {
+		wp_add_inline_style(
+			'new-style',
+			'@media (min-width: 868px){' .
+			'body.archive .header__desktop-bot,body.category .header__desktop-bot{display:flex !important;margin-top:24px;}' .
+			'body.archive .header__desktop-menu,body.category .header__desktop-menu{margin-bottom:0;}' .
+			'}' .
+			'body.archive .header__logo div span,body.category .header__logo div span{color:var(--color-light-black) !important;}'
+		);
+	}
 	if ( is_single() && ! is_product() ) {
 		$legacy_style_path = get_stylesheet_directory() . '/style.css';
 		$legacy_style_ver  = file_exists( $legacy_style_path ) ? filemtime( $legacy_style_path ) : null;
