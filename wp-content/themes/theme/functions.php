@@ -1833,16 +1833,15 @@ function theme_scripts() {
 	$style_uri = get_template_directory_uri() . '/assets/css/style.min.css';
 	$version = file_exists($style_path) ? filemtime($style_path) : null;
 	wp_enqueue_style( 'new-style', $style_uri, [], $version );
-	// Archive/category pages historically relied on these header spacing tweaks.
-	// Keep them scoped to archives only (not single pages).
-	if ( is_category() || ( is_archive() && ! is_singular() ) ) {
+	// Header-home templates on blog single/category/archive need stable desktop spacing.
+	if ( is_single() || is_category() || ( is_archive() && ! is_singular() ) ) {
 		wp_add_inline_style(
 			'new-style',
 			'@media (min-width: 868px){' .
-			'body.archive .header__desktop-bot,body.category .header__desktop-bot{display:flex !important;margin-top:24px;}' .
-			'body.archive .header__desktop-menu,body.category .header__desktop-menu{margin-bottom:0;}' .
+			'body.single-post .header__desktop-bot,body.archive .header__desktop-bot,body.category .header__desktop-bot{display:flex !important;margin-top:24px !important;}' .
+			'body.single-post .header__desktop-menu,body.archive .header__desktop-menu,body.category .header__desktop-menu{margin-bottom:0 !important;}' .
 			'}' .
-			'body.archive .header__logo div span,body.category .header__logo div span{color:var(--color-light-black) !important;}'
+			'body.single-post .header__logo div span,body.archive .header__logo div span,body.category .header__logo div span{color:var(--color-light-black) !important;}'
 		);
 	}
 	if ( is_single() && ! is_product() ) {
