@@ -1832,6 +1832,8 @@ function theme_scripts() {
 	$style_uri = get_template_directory_uri() . '/assets/css/style.min.css';
 	$version = file_exists($style_path) ? filemtime($style_path) : null;
 	wp_enqueue_style( 'new-style', $style_uri, [], $version );
+	// Ensure side cart stays above sticky follow-header while scrolling.
+	wp_add_inline_style( 'new-style', '.cart{z-index:10020 !important;}' );
 
 	if ( function_exists( 'is_checkout' ) && is_checkout() && function_exists( 'is_order_received_page' ) && ! is_order_received_page() ) {
 		wp_add_inline_style(
