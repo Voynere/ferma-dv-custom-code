@@ -85,11 +85,45 @@ if ( ! empty( $_COOKIE['delivery_day'] ) && ! empty( $_COOKIE['delivery_time'] )
 window.current_delivery_value = '';
 var updated_times = false;
 jQuery(document).ready(function() {
+	var fermaForceRefreshTimer = null;
+	function fermaForceOrderReviewRefresh() {
+		if ( typeof wc_checkout_params === 'undefined' || ! wc_checkout_params.wc_ajax_url ) {
+			return;
+		}
+		var endpoint = wc_checkout_params.wc_ajax_url.toString().replace( '%%endpoint%%', 'update_order_review' );
+		var payload = {
+			security: wc_checkout_params.update_order_review_nonce || '',
+			post_data: jQuery( 'form.checkout' ).serialize()
+		};
+		jQuery.ajax( {
+			type: 'POST',
+			url: endpoint,
+			data: payload,
+			dataType: 'json',
+			success: function( response ) {
+				if ( response && response.fragments ) {
+					jQuery.each( response.fragments, function( selector, html ) {
+						if ( jQuery( selector ).length ) {
+							jQuery( selector ).replaceWith( html );
+						}
+					} );
+					jQuery( document.body ).trigger( 'updated_checkout', [ response ] );
+				}
+			}
+		} );
+	}
+
 	function fermaTriggerWcCheckoutUpdate() {
 		jQuery( document.body ).trigger( 'update_checkout' );
 		if ( typeof window.wc_checkout_form !== 'undefined' && typeof window.wc_checkout_form.update_checkout === 'function' ) {
 			window.wc_checkout_form.update_checkout();
 		}
+		if ( fermaForceRefreshTimer ) {
+			clearTimeout( fermaForceRefreshTimer );
+		}
+		fermaForceRefreshTimer = setTimeout( function() {
+			fermaForceOrderReviewRefresh();
+		}, 180 );
 	}
 	var fermaWcAjaxUrl = ( typeof woocommerce_params !== 'undefined' && woocommerce_params.ajax_url ) ? woocommerce_params.ajax_url : '/wp-admin/admin-ajax.php';
 
