@@ -82,9 +82,24 @@ if ( ! empty( $_COOKIE['delivery_day'] ) && ! empty( $_COOKIE['delivery_time'] )
 }
 ?>
 <script>
-var current_delivery_value = '',
-	updated_times = false;
+window.current_delivery_value = '';
+var updated_times = false;
 jQuery(document).ready(function() {
+	function fermaTriggerWcCheckoutUpdate() {
+		jQuery( document.body ).trigger( 'update_checkout' );
+		if ( typeof window.wc_checkout_form !== 'undefined' && typeof window.wc_checkout_form.update_checkout === 'function' ) {
+			window.wc_checkout_form.update_checkout();
+		}
+	}
+	var fermaWcAjaxUrl = ( typeof woocommerce_params !== 'undefined' && woocommerce_params.ajax_url ) ? woocommerce_params.ajax_url : '/wp-admin/admin-ajax.php';
+
+	// Класс на <p id="billing_*_field"> — WC триггерит update_checkout по change внутри .update_totals_on_change.
+	function fermaEnsureDeliveryTotalsClass() {
+		jQuery( '#billing_asdx1_field, #billing_type_delivery_sam_field' ).addClass( 'update_totals_on_change' );
+	}
+	fermaEnsureDeliveryTotalsClass();
+	jQuery( document.body ).on( 'updated_checkout', fermaEnsureDeliveryTotalsClass );
+
 	// Sync hidden billing fields (sent in post_data) so delivery fee recalculates on update_order_review
 	// without depending on cookie round-trip timing in the same request.
 	function fermaSyncDeliveryCtxFields( deliveryType ) {
@@ -106,13 +121,13 @@ jQuery(document).ready(function() {
 	// Не блокируем select времени на update_checkout:
 	// disabled-поля не сериализуются и новое время доставки не уходит в Woo.
 	
-	$(document).on('change', 'select[name="billing_asdx1"]', function() {
+	jQuery( document.body ).on( 'change', 'select[name="billing_asdx1"], #billing_asdx1', function() {
 		var deliveryType = jQuery( this ).find( ':selected' ).attr( 'data-value' );
 		if ( ! deliveryType && jQuery( this ).find( ':selected' ).length ) {
 			deliveryType = jQuery( this ).find( ':selected' ).data( 'value' );
 		}
 		update_delivery_type( deliveryType );
-	});
+	} );
 	
 	//$('#billing_asdx1').attr('disabled', true);
 	//$('#billing_asdx1').remove();
@@ -121,19 +136,20 @@ jQuery(document).ready(function() {
 	}
 	function fermaSetBillingTimeError( message ) {
 		var msg = message || 'Не удалось определить время доставки.';
-		var $w = $('#billing_asdx1_field .woocommerce-input-wrapper');
-		if ( !$w.length ) {
+		var $w = jQuery( '#billing_asdx1_field .woocommerce-input-wrapper' );
+		if ( ! $w.length ) {
 			return;
 		}
 		$w.find( '.ferma-delivery-time-error' ).remove();
-		if ( !$w.find( 'select#billing_asdx1' ).length ) {
+		if ( ! $w.find( 'select#billing_asdx1' ).length ) {
 			$w.html( '<select name="billing_asdx1" id="billing_asdx1" class="woodefaults" aria-describedby="ferma-billing-time-error"></select>' );
 		}
-		$( '#billing_asdx1' )
+		jQuery( '#billing_asdx1' )
 			.empty()
 			.append( jQuery( '<option value=""></option>' ).text( '—' ) )
 			.prop( 'disabled', true );
 		$w.append( jQuery( '<p class="ferma-delivery-time-error" id="ferma-billing-time-error" role="alert"></p>' ).text( msg ) );
+		fermaEnsureDeliveryTotalsClass();
 	}
 	function ferma_update_times() {
 		let default_delivery = <?php echo json_encode( $ferma_default_delivery, JSON_UNESCAPED_UNICODE ); ?>;
@@ -146,7 +162,7 @@ jQuery(document).ready(function() {
 				coords: [ <?php echo esc_attr( (string) $ferma_checkout_lat ); ?>, <?php echo esc_attr( (string) $ferma_checkout_lng ); ?> ]
 			},
 			beforeSend: function() {
-				$('#billing_asdx1').attr('disabled', true);
+				jQuery( '#billing_asdx1' ).attr( 'disabled', true );
 				//$('#billing_asdx1_field').hide();
 			},
 			success: function(data) {
@@ -155,9 +171,9 @@ jQuery(document).ready(function() {
 					var emsg = ( data && data.data && data.data.error ) ? data.data.error : 'Введите верный адрес доставки.';
 					fermaSetBillingTimeError( emsg );
 				} else {
-					$( '#billing_asdx1_field .ferma-delivery-time-error' ).remove();
-					$('#billing_sss').val(data.data.market);
-					$('#billing_point').val(data.data.id);
+					jQuery( '#billing_asdx1_field .ferma-delivery-time-error' ).remove();
+					jQuery( '#billing_sss' ).val( data.data.market );
+					jQuery( '#billing_point' ).val( data.data.id );
 					let choices = '';
 					<?php
 					date_default_timezone_set("Asia/Vladivostok");
@@ -187,7 +203,7 @@ jQuery(document).ready(function() {
 								'<option data-value="today_express" value="Экспресс-доставка">Экспресс-доставка (В течении 60-90 мин)</option>';
 					<?php } ?>
 					if(typeof data.data.today != "undefined") {
-						$.each(data.data.today, function(type, price) {
+						jQuery.each(data.data.today, function(type, price) {
 							if(price.price == 0) {
 								price.price = 'Бесплатно';
 							} else {
@@ -216,7 +232,7 @@ jQuery(document).ready(function() {
 					}
 									
 					if(typeof data.data.tomorrow != "undefined") {
-						$.each(data.data.tomorrow, function(type,price) {
+						jQuery.each(data.data.tomorrow, function(type,price) {
 							if(price.price == 0) {
 								price.price = 'Бесплатно';
 							} else {
@@ -245,8 +261,10 @@ jQuery(document).ready(function() {
 					
 					//choices = choices + '</div>';
 					
-					$('#billing_asdx1').html(choices);
-					$('#billing_asdx1').attr('disabled', false);
+					jQuery( '#billing_asdx1' ).html( choices );
+					jQuery( '#billing_asdx1' ).attr( 'disabled', false );
+					fermaEnsureDeliveryTotalsClass();
+					window.current_delivery_value = jQuery( '#billing_asdx1 option:selected' ).attr( 'data-value' ) || '';
 					if ( default_delivery ) {
 						fermaSyncDeliveryCtxFields( default_delivery );
 					} else {
@@ -257,13 +275,10 @@ jQuery(document).ready(function() {
 					}
 					// One recalculate so the fee uses ferma_ctx_* in post_data.
 					setTimeout( function() {
-						jQuery( document.body ).trigger( 'update_checkout' );
-						if ( typeof window.wc_checkout_form !== 'undefined' && typeof window.wc_checkout_form.update_checkout === 'function' ) {
-							window.wc_checkout_form.update_checkout();
-						}
+						fermaTriggerWcCheckoutUpdate();
 					}, 30 );
 					if(default_delivery == '') {
-						const default_delivery_value = $('#billing_asdx1').find(':selected').data('value');
+						const default_delivery_value = jQuery( '#billing_asdx1' ).find( ':selected' ).data( 'value' );
 						const deliveryArray = default_delivery_value.split('_');
 						
 						var d = new Date;
@@ -290,38 +305,32 @@ jQuery(document).ready(function() {
 	{
 		if(delivery_type != window.current_delivery_value) {
 			window.current_delivery_value = delivery_type;
-			$('#place_order').attr('disabled', true);
+			jQuery( '#place_order' ).attr( 'disabled', true );
 			fermaSyncDeliveryCtxFields( delivery_type );
 			var deliveryArray = (delivery_type || '').split('_');
 			if (deliveryArray.length === 2) {
 				var d = new Date;
 				d.setTime(d.getTime() + 24*60*60*1000*30);
-				document.cookie = 'delivery_day=' + deliveryArray[0] + ';path=/;expires=' + d.toGMTString();
-				document.cookie = 'delivery_time=' + deliveryArray[1] + ';path=/;expires=' + d.toGMTString();
+				document.cookie = 'delivery_day=' + deliveryArray[0] + ';path=/;expires=' + d.toUTCString();
+				document.cookie = 'delivery_time=' + deliveryArray[1] + ';path=/;expires=' + d.toUTCString();
 			}
+			// Сразу пересчёт по свежим кукам/скрытым полям — не ждём admin-ajax (при сбое POST раньше не было update_order_review).
+			fermaTriggerWcCheckoutUpdate();
 			var data = {
 				action: 'update_delivery_type',
 				delivery_type: delivery_type
 			};
-			
-			jQuery.post( woocommerce_params.ajax_url, data, function( response )
-			{
-				// Обновляем order review после подтверждения сервера.
-				$('body').trigger( 'update_checkout' );
-				if (typeof window.wc_checkout_form !== 'undefined' && typeof window.wc_checkout_form.update_checkout === 'function') {
-					window.wc_checkout_form.update_checkout();
-				}
-				// Дополнительный догоняющий пересчёт на случай гонки cookie/update_order_review.
-				setTimeout(function() {
-					$('body').trigger( 'update_checkout' );
-					if (typeof window.wc_checkout_form !== 'undefined' && typeof window.wc_checkout_form.update_checkout === 'function') {
-						window.wc_checkout_form.update_checkout();
-					}
-				}, 120);
-				setTimeout(() => {
-				  $('#place_order').attr('disabled', false);
-				}, 2000);
-			});
+			jQuery.post( fermaWcAjaxUrl, data, function( response ) {
+				fermaTriggerWcCheckoutUpdate();
+				setTimeout( function() {
+					fermaTriggerWcCheckoutUpdate();
+				}, 120 );
+			} ).always( function() {
+				fermaTriggerWcCheckoutUpdate();
+				setTimeout( function() {
+					jQuery( '#place_order' ).attr( 'disabled', false );
+				}, 400 );
+			} );
 		}
 	}
 

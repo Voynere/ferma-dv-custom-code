@@ -460,6 +460,15 @@ if(!function_exists('ferma_update_delivery')) {
 			$_COOKIE['delivery_time'] = $delivery_time;
 			$_COOKIE['delivery_day']  = $delivery_day;
 
+			if ( function_exists( 'WC' ) && WC()->session ) {
+				$allowed_time = array( 'morning', 'day', 'evening', 'express' );
+				$t = sanitize_key( (string) $delivery_time );
+				if ( in_array( $t, $allowed_time, true ) ) {
+					WC()->session->set( 'ferma_ctx_delivery_time', $t );
+				}
+				WC()->session->set( 'ferma_ctx_delivery_day', sanitize_text_field( (string) $delivery_day ) );
+			}
+
 			wp_send_json_success(
 				array(
 					'delivery_day'  => $delivery_day,
@@ -490,23 +499,85 @@ if ( ! function_exists( 'ferma_get_checkout_posted_array' ) ) {
 	}
 }
 
+if ( ! function_exists( 'ferma_rehydrate_delivery_session' ) ) {
+	/**
+	 * On update_order_review: keep WC session in sync for fee recalculation.
+	 * post_data (billing) when present, else request cookies (updated by update_delivery + JS before update_checkout).
+	 * No early exit when post_data is missing: cookie-only requests still get the right slot.
+	 */
+	add_action( 'woocommerce_checkout_update_order_review', 'ferma_rehydrate_delivery_session', 1, 1 );
+	function ferma_rehydrate_delivery_session( $post_data = '' ) {
+		if ( ! function_exists( 'WC' ) || ! WC()->session ) {
+			return;
+		}
+		$allowed = array( 'morning', 'day', 'evening', 'express' );
+		$raw     = is_string( $post_data ) ? $post_data : '';
+		if ( $raw === '' && ! empty( $_POST['post_data'] ) && is_string( $_POST['post_data'] ) ) {
+			$raw = wp_unslash( $_POST['post_data'] );
+		}
+		$p = array();
+		if ( is_string( $raw ) && $raw !== '' ) {
+			parse_str( $raw, $p );
+		}
+		if ( ! is_array( $p ) ) {
+			$p = array();
+		}
+		$cand = null;
+		if ( isset( $p['billing']['ferma_ctx_delivery_time'] ) && (string) $p['billing']['ferma_ctx_delivery_time'] !== '' ) {
+			$cand = sanitize_key( (string) $p['billing']['ferma_ctx_delivery_time'] );
+		} elseif ( ! empty( $p['ferma_ctx_delivery_time'] ) ) {
+			$cand = sanitize_key( (string) $p['ferma_ctx_delivery_time'] );
+		}
+		if ( $cand && in_array( $cand, $allowed, true ) ) {
+			WC()->session->set( 'ferma_ctx_delivery_time', $cand );
+		} elseif ( isset( $_COOKIE['delivery_time'] ) && (string) $_COOKIE['delivery_time'] !== '' ) {
+			$c2 = sanitize_key( (string) wp_unslash( (string) $_COOKIE['delivery_time'] ) );
+			if ( in_array( $c2, $allowed, true ) ) {
+				WC()->session->set( 'ferma_ctx_delivery_time', $c2 );
+			}
+		}
+		if ( isset( $p['billing']['ferma_ctx_delivery_day'] ) && (string) $p['billing']['ferma_ctx_delivery_day'] !== '' ) {
+			WC()->session->set( 'ferma_ctx_delivery_day', sanitize_text_field( (string) $p['billing']['ferma_ctx_delivery_day'] ) );
+		} elseif ( ! empty( $p['ferma_ctx_delivery_day'] ) ) {
+			WC()->session->set( 'ferma_ctx_delivery_day', sanitize_text_field( (string) $p['ferma_ctx_delivery_day'] ) );
+		} elseif ( isset( $_COOKIE['delivery_day'] ) && (string) $_COOKIE['delivery_day'] !== '' ) {
+			WC()->session->set( 'ferma_ctx_delivery_day', sanitize_text_field( (string) wp_unslash( (string) $_COOKIE['delivery_day'] ) ) );
+		}
+	}
+}
+
 if ( ! function_exists( 'ferma_get_delivery_time_code_for_cart' ) ) {
 	/**
 	 * ACF / ferma_get_delivery_price expect morning|day|evening|express.
-	 * Prefer value posted with checkout (same request as update_order_review); fall back to cookie.
+	 * 1) post_data (if parse_str has billing ferma) 2) delivery_time cookie 3) WC session 4) default evening.
+	 * Cookie before session: JS/ update_delivery set cookies on the client; session can stay stale between visits.
 	 */
 	function ferma_get_delivery_time_code_for_cart() {
-		$posted = ferma_get_checkout_posted_array();
-		$cand  = null;
+		$allowed = array( 'morning', 'day', 'evening', 'express' );
+		$posted  = ferma_get_checkout_posted_array();
+		$cand    = null;
 		if ( isset( $posted['billing']['ferma_ctx_delivery_time'] ) && (string) $posted['billing']['ferma_ctx_delivery_time'] !== '' ) {
 			$cand = sanitize_key( (string) $posted['billing']['ferma_ctx_delivery_time'] );
 		} elseif ( ! empty( $posted['ferma_ctx_delivery_time'] ) ) {
 			$cand = sanitize_key( (string) $posted['ferma_ctx_delivery_time'] );
-		} elseif ( isset( $_COOKIE['delivery_time'] ) && (string) $_COOKIE['delivery_time'] !== '' ) {
-			$cand = sanitize_key( (string) wp_unslash( (string) $_COOKIE['delivery_time'] ) );
 		}
-		if ( $cand && in_array( $cand, array( 'morning', 'day', 'evening', 'express' ), true ) ) {
+		if ( $cand && in_array( $cand, $allowed, true ) ) {
 			return $cand;
+		}
+		if ( isset( $_COOKIE['delivery_time'] ) && (string) $_COOKIE['delivery_time'] !== '' ) {
+			$c2 = sanitize_key( (string) wp_unslash( (string) $_COOKIE['delivery_time'] ) );
+			if ( in_array( $c2, $allowed, true ) ) {
+				return $c2;
+			}
+		}
+		if ( function_exists( 'WC' ) && WC()->session ) {
+			$from = WC()->session->get( 'ferma_ctx_delivery_time' );
+			if ( is_string( $from ) && $from !== '' ) {
+				$c = sanitize_key( $from );
+				if ( in_array( $c, $allowed, true ) ) {
+					return $c;
+				}
+			}
 		}
 		return 'evening';
 	}

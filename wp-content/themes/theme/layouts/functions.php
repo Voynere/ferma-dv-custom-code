@@ -1063,7 +1063,7 @@ function theme_scripts() {
 
 	wp_enqueue_style( 'complect-style', get_template_directory_uri() . '/css/complect.css', '', '1.0' );
 
-	wp_enqueue_script( 'jquery-min', get_template_directory_uri() . '/js/jquery.min.js', array(), '3.1.0', false );
+	wp_enqueue_script( 'jquery' );
 
 	wp_enqueue_script( 'datepicker', get_template_directory_uri() . '/js/datepicker.js', array(), '1.0', true );
 

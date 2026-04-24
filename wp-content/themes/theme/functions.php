@@ -974,10 +974,24 @@ function save_custom_checkout_field($order_id) {
 	// Добавляем значение адреса в поле billing_address_2
 	$fields['billing']['billing_delivery']['default'] = $address2;
 	$current_time = current_time( 'H:i' );
-	if ($current_time > '14:00') {
+	// Сравнение строк HH:MM; раньше при ровно 14:00 и 20:00 ни одна ветка не срабатывала — поле могло быть без нашего class.
+	if ( $current_time >= '20:00' ) {
 		$fields['billing']['billing_asdx1'] = array(
 			'label' => __('Время доставки', 'woocommerce'),
 			'type' => 'select',
+			'class' => array( 'update_totals_on_change' ),
+			'options' => array(
+				'Завтра, 15:00-17:00' => __('Завтра, 15:00-17:00', 'woocommerce'),
+				'Завтра, 19:00-21:00' => __('Завтра, 19:00-21:00', 'woocommerce'),
+			),
+			'default' => $message . ', ' . $result_mes,
+			'required' => true,
+		);
+	} elseif ( $current_time >= '14:00' ) {
+		$fields['billing']['billing_asdx1'] = array(
+			'label' => __('Время доставки', 'woocommerce'),
+			'type' => 'select',
+			'class' => array( 'update_totals_on_change' ),
 			'options' => array(
 				'Сегодня, 19:00-21:00' => __('Сегодня, 19:00-21:00'),
 				'Завтра, 15:00-17:00' => __('Завтра, 15:00-17:00', 'woocommerce'),
@@ -986,23 +1000,11 @@ function save_custom_checkout_field($order_id) {
 			'default' => $message . ', ' . $result_mes,
 			'required' => true,
 		);
-	}
-	if ($current_time > '20:00') {
+	} else {
 		$fields['billing']['billing_asdx1'] = array(
 			'label' => __('Время доставки', 'woocommerce'),
 			'type' => 'select',
-			'options' => array(
-				'Завтра, 15:00-17:00' => __('Завтра, 15:00-17:00', 'woocommerce'),
-				'Завтра, 19:00-21:00' => __('Завтра, 19:00-21:00', 'woocommerce'),
-			),
-			'default' => $message . ', ' . $result_mes,
-			'required' => true,
-		);
-	}
-	if ($current_time < '14:00') {
-		$fields['billing']['billing_asdx1'] = array(
-			'label' => __('Время доставки', 'woocommerce'),
-			'type' => 'select',
+			'class' => array( 'update_totals_on_change' ),
 			'options' => array(
 				'Сегодня, 15:00-17:00' => __('Сегодня, 15:00-17:00', 'woocommerce'),
 				'Сегодня, 19:00-21:00' => __('Сегодня, 19:00-21:00'),
@@ -1055,6 +1057,7 @@ function save_custom_checkout_field($order_id) {
 	$fields['billing']['billing_type_delivery_sam'] = array(
 		'label' => __('Время самовывоза', 'woocommerce'),
 		'type' => 'select',
+		'class' => array( 'update_totals_on_change' ),
 		'options' => $options,
 		'required' => true,
 		'default' => urldecode($_COOKIE['data_of_samoviviz']),
@@ -1168,6 +1171,79 @@ function save_custom_checkout_field($order_id) {
 	return $fields;
 
  }
+
+/**
+ * Всегда вешает update_totals_on_change на обёртку полей (после остальных фильтров checkout_fields).
+ * Убирает случаи, когда billing_asdx1 приходит из другой ветки без класса или теряется при смежных правках.
+ */
+add_filter( 'woocommerce_checkout_fields', 'ferma_checkout_fields_update_totals_class', 999 );
+function ferma_checkout_fields_update_totals_class( $fields ) {
+	if ( ! isset( $fields['billing'] ) || ! is_array( $fields['billing'] ) ) {
+		return $fields;
+	}
+	foreach ( array( 'billing_asdx1', 'billing_type_delivery_sam' ) as $key ) {
+		if ( ! isset( $fields['billing'][ $key ] ) ) {
+			continue;
+		}
+		if ( ! isset( $fields['billing'][ $key ]['class'] ) ) {
+			$fields['billing'][ $key ]['class'] = array();
+		} elseif ( ! is_array( $fields['billing'][ $key ]['class'] ) ) {
+			$fields['billing'][ $key ]['class'] = array( (string) $fields['billing'][ $key ]['class'] );
+		}
+		if ( ! in_array( 'update_totals_on_change', $fields['billing'][ $key ]['class'], true ) ) {
+			$fields['billing'][ $key ]['class'][] = 'update_totals_on_change';
+		}
+	}
+	return $fields;
+}
+
+/**
+ * Низкоуровнево добавляет класс на обёртку поля при рендере (надёжнее, чем только checkout_fields).
+ */
+add_filter( 'woocommerce_form_field_args', 'ferma_form_field_update_totals_class', 10, 3 );
+function ferma_form_field_update_totals_class( $args, $key, $value ) {
+	if ( ! in_array( $key, array( 'billing_asdx1', 'billing_type_delivery_sam' ), true ) ) {
+		return $args;
+	}
+	if ( ! isset( $args['class'] ) ) {
+		$args['class'] = array();
+	} elseif ( ! is_array( $args['class'] ) ) {
+		$args['class'] = array( (string) $args['class'] );
+	}
+	if ( ! in_array( 'update_totals_on_change', $args['class'], true ) ) {
+		$args['class'][] = 'update_totals_on_change';
+	}
+	return $args;
+}
+
+/**
+ * Резерв: класс + гарантированный пересчёт, если шаблон чекаута кэшируется без актуального inline-JS.
+ */
+add_action( 'wp_footer', 'ferma_checkout_delivery_totals_footer', 50 );
+function ferma_checkout_delivery_totals_footer() {
+	if ( ! function_exists( 'is_checkout' ) || ! is_checkout() || is_order_received_page() ) {
+		return;
+	}
+	if ( ! function_exists( 'WC' ) ) {
+		return;
+	}
+	?>
+<script>
+(function() {
+	if ( typeof jQuery === 'undefined' ) {
+		return;
+	}
+	jQuery( function( $ ) {
+		function fermaAddTotalsClass() {
+			$( '#billing_asdx1_field, #billing_type_delivery_sam_field' ).addClass( 'update_totals_on_change' );
+		}
+		fermaAddTotalsClass();
+		$( document.body ).on( 'updated_checkout', fermaAddTotalsClass );
+	} );
+})();
+</script>
+	<?php
+}
 
  add_action( 'woocommerce_checkout_update_order_review', 'custom_woocommerce_checkout_update_order_review', 10, 1 );
  function custom_woocommerce_checkout_update_order_review( $post_data ) {
@@ -1745,7 +1821,8 @@ function theme_scripts() {
 
 	wp_enqueue_style( 'complect-style', get_template_directory_uri() . '/css/complect.css', '', '1.0' );
 
-	wp_enqueue_script( 'jquery-min', get_template_directory_uri() . '/js/jquery.min.js', array(), '3.1.0', false );
+	// Use WordPress core jQuery to preserve WooCommerce checkout dependencies (blockUI, wc-checkout).
+	wp_enqueue_script( 'jquery' );
 
 	wp_enqueue_script( 'datepicker', get_template_directory_uri() . '/js/datepicker.js', array(), '1.0', true );
 
@@ -1853,6 +1930,148 @@ function theme_scripts() {
     );
 }
 add_action( 'wp_enqueue_scripts', 'theme_scripts' );
+
+/**
+ * Checkout hardening: prevent legacy theme jQuery from breaking Woo checkout init.
+ */
+add_action( 'wp_enqueue_scripts', 'ferma_checkout_jquery_hardening', 9999 );
+function ferma_checkout_jquery_hardening() {
+	if ( is_admin() ) {
+		return;
+	}
+	if ( wp_script_is( 'jquery-min', 'enqueued' ) || wp_script_is( 'jquery-min', 'registered' ) ) {
+		wp_dequeue_script( 'jquery-min' );
+		wp_deregister_script( 'jquery-min' );
+	}
+	// Ensure Woo checkout prerequisites exist after all theme/plugin enqueues.
+	wp_enqueue_script( 'jquery' );
+	if ( function_exists( 'is_checkout' ) && is_checkout() && function_exists( 'is_order_received_page' ) && ! is_order_received_page() ) {
+		wp_enqueue_script( 'jquery-blockui' );
+		wp_enqueue_script( 'wc-checkout' );
+		// Safety net: if another script bundle breaks blockUI attach, keep wc-checkout alive.
+		wp_add_inline_script(
+			'wc-checkout',
+			'if(typeof jQuery!=="undefined" && typeof jQuery.blockUI==="undefined"){jQuery.blockUI=function(){};jQuery.blockUI.defaults={};jQuery.unblockUI=function(){};if(jQuery.fn){jQuery.fn.block=function(){return this;};jQuery.fn.unblock=function(){return this;};}}',
+			'before'
+		);
+	}
+}
+
+/**
+ * Last chance before output: normalize jquery handles and remove any queued legacy jquery-min.
+ */
+add_action( 'wp_print_scripts', 'ferma_force_wp_jquery_handles', 0 );
+function ferma_force_wp_jquery_handles() {
+	if ( is_admin() ) {
+		return;
+	}
+	global $wp_scripts;
+	if ( ! $wp_scripts || ! is_object( $wp_scripts ) ) {
+		return;
+	}
+	$core_src    = includes_url( 'js/jquery/jquery.min.js' );
+	$migrate_src = includes_url( 'js/jquery/jquery-migrate.min.js' );
+	if ( isset( $wp_scripts->registered['jquery-core'] ) ) {
+		$wp_scripts->registered['jquery-core']->src = $core_src;
+	}
+	if ( isset( $wp_scripts->registered['jquery-migrate'] ) ) {
+		$wp_scripts->registered['jquery-migrate']->src = $migrate_src;
+	}
+	if ( isset( $wp_scripts->registered['jquery'] ) ) {
+		$wp_scripts->registered['jquery']->src  = false;
+		$wp_scripts->registered['jquery']->deps = array( 'jquery-core', 'jquery-migrate' );
+	}
+	if ( isset( $wp_scripts->registered['jquery-min'] ) ) {
+		unset( $wp_scripts->registered['jquery-min'] );
+	}
+	if ( is_array( $wp_scripts->queue ) ) {
+		$wp_scripts->queue = array_values(
+			array_filter(
+				$wp_scripts->queue,
+				function( $h ) {
+					return $h !== 'jquery-min';
+				}
+			)
+		);
+	}
+}
+
+/**
+ * Last-resort guard: some legacy code can still print theme/js/jquery.min.js directly.
+ * Block that tag to prevent overwriting core jQuery after Woo deps are initialized.
+ */
+add_filter( 'script_loader_tag', 'ferma_block_legacy_theme_jquery_tag', 10000, 3 );
+function ferma_block_legacy_theme_jquery_tag( $tag, $handle, $src ) {
+	if ( is_admin() ) {
+		return $tag;
+	}
+	$src_s = (string) $src;
+	if ( $src_s !== '' && strpos( $src_s, '/wp-content/themes/theme/js/jquery.min.js' ) !== false ) {
+		return '';
+	}
+	return $tag;
+}
+
+/**
+ * If some legacy enqueue rewires jquery src to theme/js/jquery.min.js,
+ * normalize it back to core wp-includes copy.
+ */
+add_filter( 'script_loader_src', 'ferma_rewrite_legacy_theme_jquery_src', 10000, 2 );
+function ferma_rewrite_legacy_theme_jquery_src( $src, $handle ) {
+	if ( is_admin() ) {
+		return $src;
+	}
+	$src_s = (string) $src;
+	if ( $src_s !== '' && strpos( $src_s, '/wp-content/themes/theme/js/jquery.min.js' ) !== false ) {
+		return includes_url( 'js/jquery/jquery.min.js' );
+	}
+	return $src;
+}
+
+/**
+ * Force WP core jquery sources at registry level (before enqueue resolution).
+ */
+add_action( 'wp_default_scripts', 'ferma_force_wp_core_jquery_registry', 1 );
+function ferma_force_wp_core_jquery_registry( $scripts ) {
+	if ( ! $scripts || ! is_object( $scripts ) || ! isset( $scripts->registered ) ) {
+		return;
+	}
+	$core_src    = includes_url( 'js/jquery/jquery.min.js' );
+	$migrate_src = includes_url( 'js/jquery/jquery-migrate.min.js' );
+
+	if ( isset( $scripts->registered['jquery-core'] ) ) {
+		$scripts->registered['jquery-core']->src = $core_src;
+	}
+	if ( isset( $scripts->registered['jquery-migrate'] ) ) {
+		$scripts->registered['jquery-migrate']->src = $migrate_src;
+	}
+	if ( isset( $scripts->registered['jquery'] ) ) {
+		$scripts->registered['jquery']->src  = false;
+		$scripts->registered['jquery']->deps = array( 'jquery-core', 'jquery-migrate' );
+	}
+}
+
+/**
+ * Remove any script handle that points to legacy theme jquery file.
+ */
+add_action( 'wp_enqueue_scripts', 'ferma_remove_legacy_theme_jquery_handles', PHP_INT_MAX );
+function ferma_remove_legacy_theme_jquery_handles() {
+	if ( is_admin() ) {
+		return;
+	}
+	global $wp_scripts;
+	if ( ! $wp_scripts || ! isset( $wp_scripts->registered ) || ! is_array( $wp_scripts->registered ) ) {
+		return;
+	}
+	foreach ( $wp_scripts->registered as $handle => $script ) {
+		$src = isset( $script->src ) ? (string) $script->src : '';
+		if ( $src !== '' && strpos( $src, '/themes/theme/js/jquery.min.js' ) !== false ) {
+			wp_dequeue_script( $handle );
+			wp_deregister_script( $handle );
+		}
+	}
+	wp_enqueue_script( 'jquery' );
+}
 add_action('woocommerce_before_add_to_cart_button', function() {
     if (!WC()->cart) return;
 
