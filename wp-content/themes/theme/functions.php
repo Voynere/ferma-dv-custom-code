@@ -1833,17 +1833,6 @@ function theme_scripts() {
 	$style_uri = get_template_directory_uri() . '/assets/css/style.min.css';
 	$version = file_exists($style_path) ? filemtime($style_path) : null;
 	wp_enqueue_style( 'new-style', $style_uri, [], $version );
-	// Header-home templates on blog single/category/archive need stable desktop spacing.
-	if ( is_single() || is_category() || ( is_archive() && ! is_singular() ) ) {
-		wp_add_inline_style(
-			'new-style',
-			'@media (min-width: 868px){' .
-			'body.single-post .header__desktop-bot,body.archive .header__desktop-bot,body.category .header__desktop-bot{display:flex !important;margin-top:24px !important;}' .
-			'body.single-post .header__desktop-menu,body.archive .header__desktop-menu,body.category .header__desktop-menu{margin-bottom:0 !important;}' .
-			'}' .
-			'body.single-post .header__logo div span,body.archive .header__logo div span,body.category .header__logo div span{color:var(--color-light-black) !important;}'
-		);
-	}
 	if ( is_single() && ! is_product() ) {
 		$legacy_style_path = get_stylesheet_directory() . '/style.css';
 		$legacy_style_ver  = file_exists( $legacy_style_path ) ? filemtime( $legacy_style_path ) : null;
@@ -1950,6 +1939,29 @@ function theme_scripts() {
     );
 }
 add_action( 'wp_enqueue_scripts', 'theme_scripts' );
+
+/**
+ * Late, deterministic header layout fixes for internal content pages.
+ * Runs after styles are enqueued to avoid race/order issues.
+ */
+add_action( 'wp_enqueue_scripts', 'ferma_apply_internal_header_layout_fixes', 999 );
+function ferma_apply_internal_header_layout_fixes() {
+	if ( is_admin() ) {
+		return;
+	}
+	if ( ! wp_style_is( 'new-style', 'enqueued' ) ) {
+		return;
+	}
+	if ( ! ( is_single() || is_category() || ( is_archive() && ! is_singular() ) ) ) {
+		return;
+	}
+	$css = '@media (min-width: 868px){'
+		. 'body.single.single-post .header__desktop-bot,body.single-post .header__desktop-bot,body.archive .header__desktop-bot,body.category .header__desktop-bot,body.blog .header__desktop-bot{display:flex !important;margin-top:24px !important;}'
+		. 'body.single.single-post .header__desktop-menu,body.single-post .header__desktop-menu,body.archive .header__desktop-menu,body.category .header__desktop-menu,body.blog .header__desktop-menu{margin-bottom:0 !important;}'
+		. '}'
+		. 'body.single.single-post .header__logo div span,body.single-post .header__logo div span,body.archive .header__logo div span,body.category .header__logo div span,body.blog .header__logo div span{color:var(--color-light-black) !important;}';
+	wp_add_inline_style( 'new-style', $css );
+}
 
 /**
  * jQuery cleanup for legacy theme scripts.
