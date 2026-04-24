@@ -1932,7 +1932,8 @@ function theme_scripts() {
 add_action( 'wp_enqueue_scripts', 'theme_scripts' );
 
 /**
- * Checkout hardening: prevent legacy theme jQuery from breaking Woo checkout init.
+ * jQuery cleanup for legacy theme scripts.
+ * Keep only core jQuery and remove old custom handle if present.
  */
 add_action( 'wp_enqueue_scripts', 'ferma_checkout_jquery_hardening', 9999 );
 function ferma_checkout_jquery_hardening() {
@@ -1943,94 +1944,15 @@ function ferma_checkout_jquery_hardening() {
 		wp_dequeue_script( 'jquery-min' );
 		wp_deregister_script( 'jquery-min' );
 	}
-	// Ensure Woo checkout prerequisites exist after all theme/plugin enqueues.
 	wp_enqueue_script( 'jquery' );
 	if ( function_exists( 'is_checkout' ) && is_checkout() && function_exists( 'is_order_received_page' ) && ! is_order_received_page() ) {
 		wp_enqueue_script( 'jquery-blockui' );
 		wp_enqueue_script( 'wc-checkout' );
-		// Safety net: if another script bundle breaks blockUI attach, keep wc-checkout alive.
-		wp_add_inline_script(
-			'wc-checkout',
-			'if(typeof jQuery!=="undefined" && typeof jQuery.blockUI==="undefined"){jQuery.blockUI=function(){};jQuery.blockUI.defaults={};jQuery.unblockUI=function(){};if(jQuery.fn){jQuery.fn.block=function(){return this;};jQuery.fn.unblock=function(){return this;};}}',
-			'before'
-		);
 	}
 }
 
 /**
- * Last chance before output: normalize jquery handles and remove any queued legacy jquery-min.
- */
-add_action( 'wp_print_scripts', 'ferma_force_wp_jquery_handles', 0 );
-function ferma_force_wp_jquery_handles() {
-	if ( is_admin() ) {
-		return;
-	}
-	global $wp_scripts;
-	if ( ! $wp_scripts || ! is_object( $wp_scripts ) ) {
-		return;
-	}
-	$core_src    = includes_url( 'js/jquery/jquery.min.js' );
-	$migrate_src = includes_url( 'js/jquery/jquery-migrate.min.js' );
-	if ( isset( $wp_scripts->registered['jquery-core'] ) ) {
-		$wp_scripts->registered['jquery-core']->src = $core_src;
-	}
-	if ( isset( $wp_scripts->registered['jquery-migrate'] ) ) {
-		$wp_scripts->registered['jquery-migrate']->src = $migrate_src;
-	}
-	if ( isset( $wp_scripts->registered['jquery'] ) ) {
-		$wp_scripts->registered['jquery']->src  = false;
-		$wp_scripts->registered['jquery']->deps = array( 'jquery-core', 'jquery-migrate' );
-	}
-	if ( isset( $wp_scripts->registered['jquery-min'] ) ) {
-		unset( $wp_scripts->registered['jquery-min'] );
-	}
-	if ( is_array( $wp_scripts->queue ) ) {
-		$wp_scripts->queue = array_values(
-			array_filter(
-				$wp_scripts->queue,
-				function( $h ) {
-					return $h !== 'jquery-min';
-				}
-			)
-		);
-	}
-}
-
-/**
- * Last-resort guard: some legacy code can still print theme/js/jquery.min.js directly.
- * Block that tag to prevent overwriting core jQuery after Woo deps are initialized.
- */
-add_filter( 'script_loader_tag', 'ferma_block_legacy_theme_jquery_tag', 10000, 3 );
-function ferma_block_legacy_theme_jquery_tag( $tag, $handle, $src ) {
-	if ( is_admin() ) {
-		return $tag;
-	}
-	$src_s = (string) $src;
-	if ( $src_s !== '' && strpos( $src_s, '/wp-content/themes/theme/js/jquery.min.js' ) !== false ) {
-		return '';
-	}
-	return $tag;
-}
-
-/**
- * If some legacy enqueue rewires jquery src to theme/js/jquery.min.js,
- * normalize it back to core wp-includes copy.
- */
-add_filter( 'script_loader_src', 'ferma_rewrite_legacy_theme_jquery_src', 10000, 2 );
-function ferma_rewrite_legacy_theme_jquery_src( $src, $handle ) {
-	if ( is_admin() ) {
-		return $src;
-	}
-	$src_s = (string) $src;
-	if ( $src_s !== '' && strpos( $src_s, '/wp-content/themes/theme/js/jquery.min.js' ) !== false ) {
-		return includes_url( 'js/jquery/jquery.min.js' );
-	}
-	return $src;
-}
-
-/**
- * Legacy theme scripts use `$` directly across many pages.
- * In WP noConflict mode `$` may be unavailable; expose alias after jquery-core loads.
+ * Legacy frontend scripts still use `$` directly outside wrappers.
  */
 add_action( 'wp_enqueue_scripts', 'ferma_frontend_expose_jquery_dollar_alias', 10001 );
 function ferma_frontend_expose_jquery_dollar_alias() {
@@ -2038,64 +1960,11 @@ function ferma_frontend_expose_jquery_dollar_alias() {
 		return;
 	}
 	wp_enqueue_script( 'jquery' );
-	if ( wp_script_is( 'jquery-core', 'registered' ) || wp_script_is( 'jquery-core', 'enqueued' ) ) {
-		wp_add_inline_script(
-			'jquery-core',
-			'if(typeof window.jQuery==="function" && typeof window.$!=="function"){window.$=window.jQuery;}',
-			'after'
-		);
-	} else {
-		wp_add_inline_script(
-			'jquery',
-			'if(typeof window.jQuery==="function" && typeof window.$!=="function"){window.$=window.jQuery;}',
-			'after'
-		);
-	}
-}
-
-/**
- * Force WP core jquery sources at registry level (before enqueue resolution).
- */
-add_action( 'wp_default_scripts', 'ferma_force_wp_core_jquery_registry', 1 );
-function ferma_force_wp_core_jquery_registry( $scripts ) {
-	if ( ! $scripts || ! is_object( $scripts ) || ! isset( $scripts->registered ) ) {
-		return;
-	}
-	$core_src    = includes_url( 'js/jquery/jquery.min.js' );
-	$migrate_src = includes_url( 'js/jquery/jquery-migrate.min.js' );
-
-	if ( isset( $scripts->registered['jquery-core'] ) ) {
-		$scripts->registered['jquery-core']->src = $core_src;
-	}
-	if ( isset( $scripts->registered['jquery-migrate'] ) ) {
-		$scripts->registered['jquery-migrate']->src = $migrate_src;
-	}
-	if ( isset( $scripts->registered['jquery'] ) ) {
-		$scripts->registered['jquery']->src  = false;
-		$scripts->registered['jquery']->deps = array( 'jquery-core', 'jquery-migrate' );
-	}
-}
-
-/**
- * Remove any script handle that points to legacy theme jquery file.
- */
-add_action( 'wp_enqueue_scripts', 'ferma_remove_legacy_theme_jquery_handles', PHP_INT_MAX );
-function ferma_remove_legacy_theme_jquery_handles() {
-	if ( is_admin() ) {
-		return;
-	}
-	global $wp_scripts;
-	if ( ! $wp_scripts || ! isset( $wp_scripts->registered ) || ! is_array( $wp_scripts->registered ) ) {
-		return;
-	}
-	foreach ( $wp_scripts->registered as $handle => $script ) {
-		$src = isset( $script->src ) ? (string) $script->src : '';
-		if ( $src !== '' && strpos( $src, '/themes/theme/js/jquery.min.js' ) !== false ) {
-			wp_dequeue_script( $handle );
-			wp_deregister_script( $handle );
-		}
-	}
-	wp_enqueue_script( 'jquery' );
+	wp_add_inline_script(
+		'jquery',
+		'if(typeof window.jQuery==="function" && typeof window.$!=="function"){window.$=window.jQuery;}',
+		'after'
+	);
 }
 add_action('woocommerce_before_add_to_cart_button', function() {
     if (!WC()->cart) return;
