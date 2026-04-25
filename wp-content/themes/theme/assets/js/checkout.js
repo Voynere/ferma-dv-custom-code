@@ -243,6 +243,22 @@
         }, 0);
     }
 
+    // Some custom checkout scripts temporarily disable #place_order and may fail
+    // to re-enable it on mobile after AJAX/UI updates.
+    function fermaEnsurePlaceOrderEnabled() {
+        var $btn = $('#place_order');
+        if (!$btn.length) {
+            return;
+        }
+        var $form = $btn.closest('form.checkout');
+        if ($form.length && $form.hasClass('processing')) {
+            return;
+        }
+        if ($btn.prop('disabled')) {
+            $btn.prop('disabled', false).removeAttr('disabled').removeClass('disabled');
+        }
+    }
+
     $(document.body).on('checkout_error', function () {
         fermaNoticeArmed = true;
         // После рабочего патча scroll_to_notices позиция ещё не сброшена; иначе берём запас с place_order.
@@ -269,6 +285,8 @@
 
     $(document.body).on('updated_checkout', function () {
         fermaSyncInlineNoticesAfterWcUpdate();
+        setTimeout(fermaEnsurePlaceOrderEnabled, 60);
+        setTimeout(fermaEnsurePlaceOrderEnabled, 300);
     });
 
     $(function () {
@@ -283,6 +301,9 @@
         });
         fermaApplyCompactPlaceholders();
         fermaBeautifyChangeAddressButton();
+        setTimeout(fermaEnsurePlaceOrderEnabled, 0);
+        setTimeout(fermaEnsurePlaceOrderEnabled, 300);
+        setTimeout(fermaEnsurePlaceOrderEnabled, 900);
     });
 
     // Сохраняем позицию перед сабмитом, но не ломаем штатную цепочку WooCommerce checkout.

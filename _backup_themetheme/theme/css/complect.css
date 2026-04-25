@@ -1,0 +1,120 @@
+.product-complect {
+	display: block;
+	clear: both;
+	margin-top: 20px;
+	margin-bottom: 30px;
+}
+
+.product-complect__title {
+	font-family: Jingleberry;
+	font-size: 40px;
+	font-weight: 700;
+	color: #6ba802;
+	text-align: left;
+}
+
+.product-complect__list {
+	display: grid;
+	grid-template-columns: 170px auto 170px auto 170px auto auto auto;
+    gap: 8px;
+}
+.product-complect__item {
+	position: relative;
+}
+.product-complect__discount {
+	position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #eb3f49;
+    color: #fff;
+    padding: 2px 8px;
+    font-size: 16px;
+    line-height: 24px;
+	z-index: 2;
+}
+.product-complect__image {
+	position: relative;
+	width: 100%;
+}
+.product-complect__image img {
+	width: 100%;
+	height: auto;
+}
+.product-complect__name {
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	font-size: 12px;
+	font-weight: bold;
+	color: #fff;
+	padding: 5px;
+	box-sizing: border-box;
+}
+.product-complect__price .discount-offset {
+	padding-top: 0;
+}
+.product-complect__price span.woocommerce-Price-amount.amount {
+	font-size: 12px;
+}
+.product-complect__separator {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	font-size: 32px;
+	font-weight: bold;
+	color: #6ba802;
+	padding: 0 20px;
+}
+.product-complect__total {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	font-size: 20px;
+	color: #6ba802;
+}
+.product-complect__economy {
+	display: flex;
+	align-items: center;
+	font-size: 14px;
+	color: #eb3f49;
+	width: 100%;
+}
+.product-complect__old {
+	display: block;
+	text-decoration: line-through;
+	text-decoration-color: #eb3f49;
+	color: #eb3f49;
+	margin-left: 20px;
+}
+.product-complect__total span {
+	
+}
+.product-complect__total > div {
+	display: flex;
+	flex-wrap: wrap;
+}
+.product-complect__total button {
+	font-size: 14px !important;
+	min-width: 170px;
+    min-height: 50px;
+}
+
+.product-complect__action {
+	border: 1px solid #6ba802;
+	font-size: 12px;
+	padding: 5px;
+	color: #fff;
+	background:#6ba802;
+	border-radius: 8px;
+}
+
+.product-complect__price .product-complect__old {
+	display: inline;
+	margin-left: 5px;
+}
+
+@media screen and (max-width: 767px) {
+	.product-complect__list {
+		grid-template-columns: 100px auto 100px;
+    }
+}
