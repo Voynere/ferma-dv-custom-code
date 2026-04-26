@@ -312,7 +312,7 @@ function my_account_saving_billing_mobile_phone( $user_id ) {
 		global $wpdb;
 		$cur_user_id = get_current_user_id();
 		$wpdb->update(
-			'wp_users',
+			$wpdb->users,
 			array(
 				'user_login'   => $billing_phone,
 				'display_name' => $billing_phone,
