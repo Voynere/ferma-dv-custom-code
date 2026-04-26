@@ -108,6 +108,7 @@ if ( ! function_exists( 'ferma_load_core_modules' ) ) {
 			'inc/promocode/assets.php',
 			'inc/promocode/ajax-errors.php',
 			'inc/promocode/order-meta.php',
+			'inc/promocode/cart-session-sync.php',
 		);
 
 		ferma_require_module_list( $core_modules );
