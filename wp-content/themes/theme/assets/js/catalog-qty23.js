@@ -15,6 +15,25 @@ jQuery(document).ready(function($) {
             }
         }
     }
+    function extractProductIdFromHref(href) {
+        var m = String(href || '').match(/[?&]add-to-cart=(\d+)/);
+        return m && m[1] ? m[1] : '';
+    }
+    function getWooAjaxAddToCartUrl() {
+        if (window.wc_add_to_cart_params && wc_add_to_cart_params.wc_ajax_url) {
+            return wc_add_to_cart_params.wc_ajax_url.replace('%%endpoint%%', 'add_to_cart');
+        }
+        return '/?wc-ajax=add_to_cart';
+    }
+    function applyWooFragments(fragments) {
+        if (!fragments) return;
+        $.each(fragments, function(selector, html) {
+            var $el = $(selector);
+            if ($el.length) {
+                $el.replaceWith(html);
+            }
+        });
+    }
 
     // Safety net: normalize all loop/cart links to Woo AJAX format.
     $('a.add_to_cart_button').each(function () {
@@ -25,6 +44,48 @@ jQuery(document).ready(function($) {
         if (!btn) return;
         ensureAjaxLoopButton($(btn));
     }, true);
+
+    // Fallback for loop cards: handle add-to-cart by AJAX even when Woo default handler is absent.
+    $(document).on('click', '.product-card__cart a.add_to_cart_button', function(e) {
+        var $button = $(this);
+        var href = String($button.attr('href') || '');
+        if (href.indexOf('add-to-cart=') === -1) return;
+
+        e.preventDefault();
+
+        prepareCatalogAddToCartButton($button);
+
+        var productId = String($button.attr('data-product_id') || $button.data('product_id') || extractProductIdFromHref(href));
+        if (!productId) return;
+        var quantity = String($button.attr('data-quantity') || $button.data('quantity') || '1');
+        var ajaxUrl = getWooAjaxAddToCartUrl();
+        if (!ajaxUrl) return;
+
+        $button.addClass('loading');
+        $.ajax({
+            type: 'POST',
+            url: ajaxUrl,
+            dataType: 'json',
+            data: {
+                product_id: productId,
+                quantity: quantity
+            },
+            success: function(response) {
+                if (response && response.error && response.product_url) {
+                    window.location = response.product_url;
+                    return;
+                }
+                var fragments = response ? response.fragments : null;
+                var cartHash = response ? response.cart_hash : null;
+                applyWooFragments(fragments);
+                $(document.body).trigger('added_to_cart', [fragments, cartHash, $button]);
+                $(document.body).trigger('wc_fragment_refresh');
+            },
+            complete: function() {
+                $button.removeClass('loading');
+            }
+        });
+    });
     function readCookie(name) {
         var prefix = name + '=';
         var cookies = document.cookie ? document.cookie.split(';') : [];
