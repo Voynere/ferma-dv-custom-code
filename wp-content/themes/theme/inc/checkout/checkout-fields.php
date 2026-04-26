@@ -7,33 +7,39 @@
 
 add_filter( 'woocommerce_checkout_fields', 'custom_checkout_fields' );
 function custom_checkout_fields( $fields ) {
+	$cookie_time = isset( $_COOKIE['time'] ) ? sanitize_text_field( wp_unslash( (string) $_COOKIE['time'] ) ) : '';
+	$cookie_time_type = isset( $_COOKIE['time_type'] ) ? sanitize_text_field( wp_unslash( (string) $_COOKIE['time_type'] ) ) : '';
+	$cookie_data_check = isset( $_COOKIE['data_check'] ) ? sanitize_text_field( wp_unslash( (string) $_COOKIE['data_check'] ) ) : '';
+	$cookie_samoviz_time = isset( $_COOKIE['data_of_samoviviz'] ) ? sanitize_text_field( wp_unslash( (string) $_COOKIE['data_of_samoviviz'] ) ) : '';
+	$cookie_delivery = isset( $_COOKIE['delivery'] ) ? sanitize_text_field( wp_unslash( (string) $_COOKIE['delivery'] ) ) : '';
+
 	// Получаем значение адреса из сессии или cookie
 	if ( is_user_logged_in() ) {
 		$user_id             = get_current_user_id();
 		$address2            = get_user_meta( $user_id, 'billing_delivery', true );
 		$coment_address      = get_user_meta( $user_id, 'billing_comment', true );
 		$coment_samoviziv    = get_user_meta( $user_id, 'billing_samoviziv', true );
-		$coment_address_type = isset( $_COOKIE['time_type'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['time_type'] ) ) : '';
+		$coment_address_type = $cookie_time_type;
 	} else {
 		$address2            = isset( $_COOKIE['billing_delivery'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['billing_delivery'] ) ) : '';
 		$coment_address      = isset( $_COOKIE['billing_comment'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['billing_comment'] ) ) : '';
 		$coment_samoviziv    = isset( $_COOKIE['billing_samoviziv'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['billing_samoviziv'] ) ) : '';
-		$coment_address_type = isset( $_COOKIE['time_type'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['time_type'] ) ) : '';
+		$coment_address_type = $cookie_time_type;
 	}
 	if ( $coment_address_type == 1 ) {
 		$result_mes = '15:00-17:00';
 	} elseif ( $coment_address_type == 2 ) {
 		$result_mes = '19:00-21:00';
 	}
-	if ( $_COOKIE['time'] == 1 ) {
+	if ( $cookie_time == 1 ) {
 		$message = 'Сегодня';
-	} elseif ( $_COOKIE['time'] == 2 ) {
+	} elseif ( $cookie_time == 2 ) {
 		$message = 'Завтра';
 	}
-	if ( $_COOKIE['time_type'] = 1 ) {
+	if ( $cookie_time_type === '1' ) {
 		$time_of_type = '15:00-17:00';
 	}
-	if ( $_COOKIE['time_type'] = 2 ) {
+	if ( $cookie_time_type === '2' ) {
 		$time_of_type = '19:00-21:00';
 	}
 
@@ -88,7 +94,7 @@ function custom_checkout_fields( $fields ) {
 
 	$fields['billing']['billing_comment']['default']      = $coment_address;
 	$fields['billing']['billing_samoviziv']['default']    = $coment_samoviziv;
-	$fields['billing']['billing_comment_zakaz']['default'] = $_COOKIE['data_check'];
+	$fields['billing']['billing_comment_zakaz']['default'] = $cookie_data_check;
 
 	$current_time = current_time( 'H:i' ); // Получаем текущее местное время в формате часы:минуты
 	$start_time   = strtotime( '10:00' ); // Устанавливаем начальное время
@@ -111,7 +117,7 @@ function custom_checkout_fields( $fields ) {
 			$end = '21:00'; // Устанавливаем конечное время на 21:00
 		}
 		$option_time = 'Сегодня, ' . $start . '-' . $end; // Формируем строку вида "часы:минуты-часы:минуты"
-		if ( $option_time == $_COOKIE['data_of_samoviviz'] ) {
+		if ( $option_time == $cookie_samoviz_time ) {
 			// echo 1;
 		}
 		if ( $start > $current_time ) { // Проверяем, если начальное время больше, чем текущее время
@@ -125,7 +131,7 @@ function custom_checkout_fields( $fields ) {
 		'class'    => array( 'update_totals_on_change' ),
 		'options'  => $options,
 		'required' => true,
-		'default'  => urldecode( $_COOKIE['data_of_samoviviz'] ),
+		'default'  => urldecode( $cookie_samoviz_time ),
 	);
 
 	if ( ! is_user_logged_in() && empty( $_COOKIE['delivery'] ) ) {
@@ -151,14 +157,14 @@ function custom_checkout_fields( $fields ) {
 			unset( $fields['billing']['billing_type_delivery_sam'] );
 		}
 	}
-	if ( ! is_user_logged_in() && $_COOKIE['delivery'] == '1' ) {
+	if ( ! is_user_logged_in() && $cookie_delivery == '1' ) {
 		foreach ( array( 'billing_delivery', 'billing_comment', 'billing_asdx1', 'billing_dev_1', 'billing_dev_2', 'billing_dev_3', 'billing_dev_4', 'billing_type_delivery', 'billing_comment_zakaz' ) as $key ) {
 			if ( isset( $fields['billing'][ $key ] ) ) {
 				unset( $fields['billing'][ $key ] );
 			}
 		}
 	}
-	if ( ! is_user_logged_in() && $_COOKIE['delivery'] == '0' ) {
+	if ( ! is_user_logged_in() && $cookie_delivery == '0' ) {
 		if ( isset( $fields['billing']['billing_samoviziv'] ) ) {
 			unset( $fields['billing']['billing_samoviziv'] );
 		}
