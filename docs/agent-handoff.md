@@ -75,3 +75,14 @@ Last updated: 2026-04-27
 
 `Read docs/agent-handoff.md first, then verify current behavior on category add-to-cart flow (guest incognito). If regression exists, patch only in inc modules / dedicated JS, keep functions.php minimal, and provide commit-by-commit rollback notes.`
 
+## Update protocol
+
+- After every substantial code change, update this handoff file in the same session.
+- Always append:
+  - what changed (paths + 1-line reason),
+  - commit hash(es),
+  - current behavior status (fixed/regressed/unknown),
+  - next verification step.
+- If there are multiple hotfix commits in one session, keep them in chronological order.
+- Do not close a production bug-fix session without synchronizing this file.
+
