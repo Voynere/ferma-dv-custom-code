@@ -261,22 +261,38 @@ jQuery(document).ready(function($) {
         $anchor = pickBest('.xoo-wsc-basket .xoo-wsc-items-count, .xoo-wsc-container .xoo-wsc-items-count');
         if ($anchor.length) return $anchor;
         $anchor = pickBest('.xoo-wsc-basket, .xoo-wsc-container .xoo-wsc-basket');
+        if ($anchor.length) return $anchor;
+
+        // Fallbacks for custom header cart buttons used in this theme.
+        $anchor = pickBest('.header__cart.cart-btn, .header__follow .header__cart, .header__follow-buttons .cart-btn');
+        if ($anchor.length) return $anchor;
+        $anchor = pickBest('.cart-count');
         return $anchor.length ? $anchor : $();
+    }
+    function fermaIsBadProductName(text) {
+        var t = $.trim(String(text || '')).toLowerCase();
+        if (!t) return true;
+        return (
+            t === 'в корзину' ||
+            t.indexOf('выберите способ получения') !== -1 ||
+            t.indexOf('выбрать доставку') !== -1 ||
+            t.indexOf('выбрать самовывоз') !== -1
+        );
     }
     function fermaFindProductName($button) {
         var rootSelectors = '.woocommerce-loop-product__title, .product_title, h1, h2, h3, .product-name a, .product-name';
         var $root = $button.closest('li.ferma-product-card, li.product, .ferma-product-card, .product, .shop-ferma__cart, form.cart, .product-card');
         var name = $.trim($root.find(rootSelectors).first().text());
-        if (name) return name;
+        if (!fermaIsBadProductName(name)) return name;
 
         var pid = $button.data('product_id') || $button.attr('data-product_id') || $root.find('[data-product_id]').first().data('product_id');
         if (pid) {
             name = $.trim($('.post-' + pid + ' ' + rootSelectors).first().text());
-            if (name) return name;
+            if (!fermaIsBadProductName(name)) return name;
         }
 
         name = $.trim($root.find('a.woocommerce-LoopProduct-link, a[href*="/product/"], a').first().text());
-        if (name) return name;
+        if (!fermaIsBadProductName(name)) return name;
 
         var aria = String($button.attr('aria-label') || '');
         if (aria) {
@@ -285,7 +301,7 @@ jQuery(document).ready(function($) {
                 .replace(/^Add\s+/i, '')
                 .replace(/\s+в корзину.*$/i, '')
                 .replace(/\s+to your cart.*$/i, '');
-            if (aria) return $.trim(aria);
+            if (!fermaIsBadProductName(aria)) return $.trim(aria);
         }
         return 'Товар';
     }
