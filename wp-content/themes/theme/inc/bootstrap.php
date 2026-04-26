@@ -83,6 +83,7 @@ if ( ! function_exists( 'ferma_load_core_modules' ) ) {
 			'inc/woocommerce/catalog-infinite-scroll.php',
 			'inc/checkout/delivery-addressing.php',
 			'inc/checkout/checkout-fields.php',
+			'inc/checkout/green-prices.php',
 			'inc/checkout/validation.php',
 			'inc/checkout/delivery-session.php',
 			'inc/bonus/checkout-bonus-state.php',
