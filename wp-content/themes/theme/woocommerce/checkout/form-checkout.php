@@ -144,8 +144,10 @@ jQuery(document).ready(function() {
 		if ( a.length < 2 ) {
 			return;
 		}
-		var $t = jQuery( 'input[name="billing[ferma_ctx_delivery_time]"]' );
-		var $d = jQuery( 'input[name="billing[ferma_ctx_delivery_day]"]' );
+		// Hidden checkout fields may be rendered either as billing[...] or plain keys
+		// depending on Woo checkout field internals/version.
+		var $t = jQuery( 'input[name="billing[ferma_ctx_delivery_time]"], input[name="ferma_ctx_delivery_time"], #ferma_ctx_delivery_time' );
+		var $d = jQuery( 'input[name="billing[ferma_ctx_delivery_day]"], input[name="ferma_ctx_delivery_day"], #ferma_ctx_delivery_day' );
 		$d.val( a[0] );
 		$t.val( a.slice( 1 ).join( '_' ) );
 		// e.g. today_express -> a = today, express (slice(1) join = express) — actually today_express: split = ['today','express'], slice(1).join = 'express' — good
