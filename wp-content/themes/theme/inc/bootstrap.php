@@ -72,6 +72,7 @@ if ( ! function_exists( 'ferma_load_core_modules' ) ) {
 			'inc/shortcodes/banner.php',
 			'inc/integration/moysklad-attributes.php',
 			'inc/catalog/weight-helpers.php',
+			'inc/catalog/cart-pricing.php',
 			'inc/woocommerce/catalog-query-limits.php',
 			'inc/woocommerce/catalog-infinite-scroll.php',
 			'inc/checkout/delivery-addressing.php',
