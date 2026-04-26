@@ -81,6 +81,7 @@ if ( ! function_exists( 'ferma_load_core_modules' ) ) {
 			'inc/catalog/weight-formatting.php',
 			'inc/catalog/cart-pricing.php',
 			'inc/catalog/price-display.php',
+			'inc/catalog/loop-add-to-cart.php',
 			'inc/catalog/nutrition-display.php',
 			'inc/catalog/product-attributes-summary.php',
 			'inc/catalog/stock-visibility.php',
