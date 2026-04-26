@@ -65,6 +65,7 @@ if ( ! function_exists( 'ferma_load_core_modules' ) ) {
 			'inc/cache/catalog-cache.php',
 			'inc/auth/phone-account.php',
 			'inc/account/market-endpoint.php',
+			'inc/shortcodes/banner.php',
 			'inc/woocommerce/catalog-query-limits.php',
 			'inc/woocommerce/catalog-infinite-scroll.php',
 			'inc/checkout/delivery-addressing.php',
