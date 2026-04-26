@@ -105,3 +105,19 @@ function wb_change_product_html( $price ) {
                 <span class="price-unit-text">за ' . esc_html( $unit_label ) . '</span>
             </span>';
 }
+
+add_filter( 'woocommerce_quantity_input_args', 'fdv_default_qty_from_cart', 10, 2 );
+function fdv_default_qty_from_cart( $args, $product ) {
+	if ( is_admin() ) {
+		return $args;
+	}
+
+	$product_id = $product->get_id();
+	$cart_qty   = fdv_get_cart_qty_for_product( $product_id );
+
+	if ( $cart_qty > 0 ) {
+		$args['input_value'] = $cart_qty;
+	}
+
+	return $args;
+}

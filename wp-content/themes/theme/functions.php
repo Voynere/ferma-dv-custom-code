@@ -21,24 +21,6 @@ ferma_load_theme_compat_modules();
 //add_filter('show_admin_bar', '__return_false'); // отключить
 
 
-add_filter( 'woocommerce_quantity_input_args', 'fdv_default_qty_from_cart', 10, 2 );
-function fdv_default_qty_from_cart( $args, $product ) {
-
-    if ( is_admin() ) {
-        return $args;
-    }
-
-    $product_id = $product->get_id();
-    $cart_qty   = fdv_get_cart_qty_for_product( $product_id );
-
-    if ( $cart_qty > 0 ) {
-        $args['input_value'] = $cart_qty;
-    }
-
-    return $args;
-}
-
-
 // add_filter( 'woocommerce_cart_item_price', 'wpd_show_regular_price_on_cart', 30, 3 );
 // function wpd_show_regular_price_on_cart( $price, $values, $cart_item_key ) {
 
