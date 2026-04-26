@@ -100,6 +100,7 @@ if ( ! function_exists( 'ferma_load_core_modules' ) ) {
 			'inc/promocode/save-meta.php',
 			'inc/promocode/session-api.php',
 			'inc/promocode/cart-actions.php',
+			'inc/promocode/gift-pricing.php',
 		);
 
 		ferma_require_module_list( $core_modules );
