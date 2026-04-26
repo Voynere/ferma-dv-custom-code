@@ -191,15 +191,6 @@ function ferma_save_qpromo_to_order( WC_Order $order, $data ) {
     $order->update_meta_data( 'q_promocode', $code );
 }
 
-add_action( 'wp_ajax_nopriv_wc_print_errors', 'ferma_wc_print_errors' );
-add_action( 'wp_ajax_wc_print_errors', 'ferma_wc_print_errors' );
-
-function ferma_wc_print_errors() {
-    wp_send_json_success( array(
-        'html' => wc_print_notices( true )
-    ) );
-}
-
 function get_cart_fragments() {
 	$fragments = array();
 

@@ -105,6 +105,7 @@ if ( ! function_exists( 'ferma_load_core_modules' ) ) {
 			'inc/promocode/core.php',
 			'inc/promocode/usage-limits.php',
 			'inc/promocode/assets.php',
+			'inc/promocode/ajax-errors.php',
 		);
 
 		ferma_require_module_list( $core_modules );
