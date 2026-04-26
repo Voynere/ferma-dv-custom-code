@@ -74,6 +74,32 @@ function ferma_snemanomera_handoff_validate( $token ) {
 	return $uid;
 }
 
+/**
+ * Returns sanitized billing phone from POST payload.
+ *
+ * @return string
+ */
+function ferma_account_posted_billing_phone() {
+	if ( ! isset( $_POST['billing_phone'] ) ) {
+		return '';
+	}
+
+	return sanitize_text_field( wp_unslash( $_POST['billing_phone'] ) );
+}
+
+/**
+ * Checks whether phone-change cookie flag is enabled.
+ *
+ * @return bool
+ */
+function ferma_account_phone_change_cookie_enabled() {
+	if ( ! isset( $_COOKIE['snemanomera1'] ) ) {
+		return false;
+	}
+
+	return (string) wp_unslash( $_COOKIE['snemanomera1'] ) === '1';
+}
+
 // Display the mobile phone field.
 // add_action( 'woocommerce_edit_account_form_start', 'add_billing_mobile_phone_to_edit_account_form' ); // At start
 add_action( 'woocommerce_edit_account_form', 'add_billing_mobile_phone_to_edit_account_form' ); // After existing fields
@@ -270,7 +296,7 @@ function add_billing_mobile_phone_to_edit_account_form() {
 // Check and validate the mobile phone.
 add_action( 'woocommerce_save_account_details_errors', 'billing_mobile_phone_field_validation', 20, 1 );
 function billing_mobile_phone_field_validation( $args ) {
-	if ( isset( $_POST['billing_phone'] ) && empty( $_POST['billing_phone'] ) ) {
+	if ( isset( $_POST['billing_phone'] ) && '' === ferma_account_posted_billing_phone() ) {
 		$args->add( 'error', __( 'Please fill in your Mobile phone', 'woocommerce' ), '' );
 	}
 }
@@ -278,17 +304,18 @@ function billing_mobile_phone_field_validation( $args ) {
 // Save the mobile phone value to user data.
 add_action( 'woocommerce_save_account_details', 'my_account_saving_billing_mobile_phone', 20, 1 );
 function my_account_saving_billing_mobile_phone( $user_id ) {
-	if ( isset( $_POST['billing_phone'] ) && ! empty( $_POST['billing_phone'] ) ) {
-		update_user_meta( $user_id, 'billing_phone', sanitize_text_field( $_POST['billing_phone'] ) );
+	$billing_phone = ferma_account_posted_billing_phone();
+	if ( '' !== $billing_phone ) {
+		update_user_meta( $user_id, 'billing_phone', $billing_phone );
 	}
-	if ( isset( $_COOKIE['snemanomera1'] ) && $_COOKIE['snemanomera1'] == 1 ) {
+	if ( ferma_account_phone_change_cookie_enabled() ) {
 		global $wpdb;
 		$cur_user_id = get_current_user_id();
 		$wpdb->update(
 			'wp_users',
 			array(
-				'user_login'   => $_POST['billing_phone'],
-				'display_name' => $_POST['billing_phone'],
+				'user_login'   => $billing_phone,
+				'display_name' => $billing_phone,
 			),
 			array( 'ID' => $cur_user_id )
 		);
