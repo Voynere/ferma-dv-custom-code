@@ -97,6 +97,7 @@ if ( ! function_exists( 'ferma_load_core_modules' ) ) {
 			'inc/bonus/kilbil-bonuses.php',
 			'inc/promocode/post-type.php',
 			'inc/promocode/meta-boxes.php',
+			'inc/promocode/save-meta.php',
 		);
 
 		ferma_require_module_list( $core_modules );
