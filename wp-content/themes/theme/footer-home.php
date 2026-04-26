@@ -74,15 +74,37 @@ options.forEach(option => {
 // Gate add-to-cart until delivery/pickup is chosen.
 // Keep original button classes/href to avoid breaking Woo scripts; only intercept click.
 (function () {
-  var el = document.getElementById("answer_user");
-  if (!el || el.innerText !== "0") {
-    return;
-  }
   var skip = "header, .header, .site-header, #mini-cart, .widget_shopping_cart, .mobile__nav, .header__mobile-banner";
   var modal = document.querySelector(".modal1");
+  var el = document.getElementById("answer_user");
 
   function inSkipRegion(node) {
     return node && node.closest && node.closest(skip);
+  }
+
+  function readCookie(name) {
+    var prefix = name + "=";
+    var cookies = document.cookie ? document.cookie.split(";") : [];
+    for (var i = 0; i < cookies.length; i++) {
+      var c = cookies[i].trim();
+      if (c.indexOf(prefix) === 0) {
+        return decodeURIComponent(c.substring(prefix.length));
+      }
+    }
+    return "";
+  }
+
+  function hasDeliveryContext() {
+    var d = readCookie("delivery");
+    var coords = readCookie("coords") || readCookie("billing_coords");
+    var pickup = readCookie("billing_samoviziv") || readCookie("key_market");
+    if (d === "0") {
+      return coords !== "";
+    }
+    if (d === "1") {
+      return pickup !== "";
+    }
+    return coords !== "" || pickup !== "";
   }
 
   function showDeliveryModal() {
@@ -92,6 +114,11 @@ options.forEach(option => {
   }
 
   document.addEventListener("click", function (event) {
+    var blockedByCookies = !hasDeliveryContext();
+    var blockedByServer = !!el && el.innerText === "0";
+    if (!blockedByCookies && !blockedByServer) {
+      return;
+    }
     var target = event.target.closest(".add_to_cart_button, .single_add_to_cart_button");
     if (!target) {
       return;

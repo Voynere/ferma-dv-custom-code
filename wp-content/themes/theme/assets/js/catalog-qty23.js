@@ -582,7 +582,7 @@ jQuery(document).ready(function($) {
         prepareCatalogAddToCartButton($(this));
     });
 
-    $(document).on('click', '.product-card__cart .add_to_cart_button', function(e) {
+    $(document).on('click', '.add_to_cart_button.ajax_add_to_cart', function(e) {
         var $button = $(this);
 
         prepareCatalogAddToCartButton($button);
