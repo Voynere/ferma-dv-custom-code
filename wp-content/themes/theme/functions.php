@@ -90,17 +90,6 @@ function custom_shipping_costs( $rates, $package ) {
 
     return $rates;
 }*/
-function get_weight_ratio($product_id)
-{
-    // Если включена разбивка веса – всегда 0.1 кг
-    if ( ferma_is_weighted_product( $product_id ) ) {
-        return 0.1;
-    }
-
-    // Всё остальное – без разбивки (1 кг или шт., в зависимости от логики)
-    return 1;
-}
-
 if ( ! function_exists( 'ferma_calc_percent' ) ) {
 	function ferma_calc_percent( $price, $percent ) {
 		return (float) $price * ( (float) $percent / 100 );
@@ -108,19 +97,6 @@ if ( ! function_exists( 'ferma_calc_percent' ) ) {
 }
 
 add_action( 'woocommerce_after_checkout_validation', 'ferma_validate_delivery_address', 10, 2 );
-function fdv_format_weight( $kg ) {
-    $kg = (float) $kg;
-
-    // нормализуем до 1 знака
-    $kg = round( $kg, 1 );
-
-    if ( abs( $kg - round( $kg ) ) < 0.00001 ) {
-        return (int) round( $kg ) . ' кг';
-    }
-
-    return number_format( $kg, 1, ',', ' ' ) . ' кг';
-}
-
 function ferma_validate_delivery_address( $fields, $errors ){
     if ( isset($_COOKIE['delivery']) && $_COOKIE['delivery'] == 0 && (!isset($_COOKIE['coords']) || $_COOKIE['coords'] == '') ) {
         $errors->add( 'validation', 'Введите корректный адрес и выберите время для доставки' );
