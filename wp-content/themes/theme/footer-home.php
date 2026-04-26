@@ -109,6 +109,11 @@ options.forEach(option => {
   function showDeliveryModal() {
     if (modal) {
       modal.style.display = "block";
+      return;
+    }
+    var opener = document.querySelector(".open-modal1");
+    if (opener) {
+      opener.click();
     }
   }
 
@@ -117,7 +122,7 @@ options.forEach(option => {
     if (!blockedByCookies) {
       return;
     }
-    var target = event.target.closest(".add_to_cart_button, .single_add_to_cart_button");
+    var target = event.target.closest(".add_to_cart_button, .single_add_to_cart_button, .shop-ferma__rel-add, a[href*='add-to-cart=']");
     if (!target) {
       return;
     }

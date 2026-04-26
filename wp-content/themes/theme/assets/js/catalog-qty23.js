@@ -1,4 +1,6 @@
 jQuery(document).ready(function($) {
+    // Safety net: some templates may render loop buttons without ajax class.
+    $('.product-card__cart .add_to_cart_button').addClass('ajax_add_to_cart');
     function readCookie(name) {
         var prefix = name + '=';
         var cookies = document.cookie ? document.cookie.split(';') : [];
@@ -582,17 +584,15 @@ jQuery(document).ready(function($) {
         prepareCatalogAddToCartButton($(this));
     });
 
-    $(document).on('click', '.add_to_cart_button.ajax_add_to_cart', function(e) {
+    $(document).on('click', '.product-card__cart .add_to_cart_button.ajax_add_to_cart', function(e) {
         var $button = $(this);
 
         prepareCatalogAddToCartButton($button);
 
         // Явно блокируем переход по href, чтобы исключить скачок страницы вверх.
         // WooCommerce все равно обработает этот клик через свой ajax add-to-cart хендлер.
-        if ($button.hasClass('ajax_add_to_cart')) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
+        e.preventDefault();
+        e.stopPropagation();
     });
 
     $(document.body).on('added_to_cart', function(e, fragments, cart_hash, $button) {
