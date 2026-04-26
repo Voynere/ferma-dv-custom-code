@@ -75,6 +75,7 @@ if ( ! function_exists( 'ferma_load_core_modules' ) ) {
 			'inc/integration/moysklad-attributes.php',
 			'inc/integration/konfety-razbivka.php',
 			'inc/cart/display-pricing.php',
+			'inc/cart/fragments.php',
 			'inc/catalog/weight-helpers.php',
 			'inc/catalog/weight-formatting.php',
 			'inc/catalog/cart-pricing.php',
