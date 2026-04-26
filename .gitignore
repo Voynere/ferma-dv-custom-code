@@ -4,6 +4,7 @@ Thumbs.db
 .idea/
 .vscode/
 .tmp_*
+_backup_themetheme/
 
 # Environment-specific files
 wp-config.php
