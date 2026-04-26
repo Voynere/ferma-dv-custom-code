@@ -34,24 +34,6 @@ if ( isset( $_GET['check'] ) && 'checkfermatest' === (string) $_GET['check'] ) {
 	//wp_set_auth_cookie( 1041 );
 }
 
-add_action('woocommerce_before_add_to_cart_button', function() {
-    if (!WC()->cart) return;
-
-    global $product;
-    $found_key = '';
-
-    foreach (WC()->cart->get_cart() as $key => $item) {
-        if ($item['product_id'] == $product->get_id()) {
-            $found_key = $key; // нашли позицию
-            break;
-        }
-    }
-
-    if ($found_key) {
-        echo '<input type="hidden" id="single_cart_item_key" value="'.esc_attr($found_key).'">';
-    }
-});
-
 ferma_load_theme_compat_modules();
 
 //add_filter('show_admin_bar', '__return_false'); // отключить
