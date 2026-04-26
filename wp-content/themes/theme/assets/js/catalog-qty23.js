@@ -591,6 +591,7 @@ jQuery(document).ready(function($) {
         // WooCommerce все равно обработает этот клик через свой ajax add-to-cart хендлер.
         if ($button.hasClass('ajax_add_to_cart')) {
             e.preventDefault();
+            e.stopPropagation();
         }
     });
 

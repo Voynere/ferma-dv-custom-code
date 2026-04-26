@@ -43,6 +43,7 @@ function theme_scripts() {
 			'.ferma-checkout-inline-notices__close:hover{background:rgba(0,0,0,.06);}' .
 			'.ferma-checkout-inline-notices__body:empty{display:none;}' .
 			'.ferma-checkout-inline-notices ul{margin:0.35em 0 0;padding-left:1.2em;}' .
+			'@media (max-width: 767px){.ferma-checkout-inline-notices{position:fixed;left:12px;right:12px;top:auto;bottom:calc(env(safe-area-inset-bottom, 0px) + 12px);margin-top:0;max-height:45vh;z-index:100500;}}' .
 			'.ferma-checkout-min-order p{margin:0 0 10px;}' .
 			'.ferma-checkout-min-order__actions{display:flex;gap:8px;flex-wrap:wrap;}' .
 			'.ferma-checkout-min-order__link,.ferma-checkout-min-order__stay{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 12px;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;}' .

@@ -12,7 +12,7 @@ $vl_shops = array(
 	// 'b24e4c35-9609-11eb-0a80-0d0d008550c2',
 	'7c0dc9ce-ce1e-11ea-0a80-09ca000e5e93',
 	'028e05a7-b4fa-11ee-0a80-1198000442be',
-	'076fd75d-aa46-11f0-0a80-16ae00009467c',
+	'076fd75d-aa46-11f0-0a80-16ae0009467c',
 	// '431d0f6f-577a-11ee-0a80-0f790012da73',
 	// 'a99d6fdf-0970-11ed-0a80-0ed600075845',
 );
@@ -50,7 +50,7 @@ function update_user_address1_callback() {
 		}
 		if ( $address['billing_samoviziv'] == 'Реми-Сити (ул. Народный пр-т, 20)' ) {
 			update_user_meta( $user_id, 'samovivoz', 'Реми-Сити' );
-			$points[] = '7b24e4c35-9609-11eb-0a80-0d0d008550c2';
+			$points[] = 'b24e4c35-9609-11eb-0a80-0d0d008550c2';
 		}
 		if ( $address['billing_samoviziv'] == 'ТЦ «Море», Гипермаркет (ул. Некрасовская, 49а)' ) {
 			update_user_meta( $user_id, 'samovivoz', 'ГринМаркет ТЦ Море' );
@@ -103,7 +103,7 @@ function update_user_address1_callback() {
 	if ( $address['billing_samoviziv'] == 'Реми-Сити (ул. Народный пр-т, 20)' ) {
 		setcookie( 'key_market', 'b24e4c35-9609-11eb-0a80-0d0d008550c2', time() + 60 * 60 * 24 * 7, '/' );
 		setcookie( 'market', 'Реми-Сити', time() + 60 * 60 * 24 * 7, '/' );
-		$points[] = '7b24e4c35-9609-11eb-0a80-0d0d008550c2';
+		$points[] = 'b24e4c35-9609-11eb-0a80-0d0d008550c2';
 	}
 	if ( $address['billing_samoviziv'] == 'ТЦ «Море», Гипермаркет (ул. Некрасовская, 49а)' ) {
 		setcookie( 'key_market', 'cab1caa9-da10-11eb-0a80-07410026c356', time() + 60 * 60 * 24 * 7, '/' );

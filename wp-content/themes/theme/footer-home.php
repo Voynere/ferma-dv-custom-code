@@ -71,43 +71,38 @@ options.forEach(option => {
 
 </script>
 <script>
-// Gate add-to-cart until delivery is chosen. Do not bind inside header, mini-cart, or mobile nav
-// so unrelated clicks (ордер/cart) never open the delivery modal by mistake.
+// Gate add-to-cart until delivery/pickup is chosen.
+// Keep original button classes/href to avoid breaking Woo scripts; only intercept click.
 (function () {
   var el = document.getElementById("answer_user");
   if (!el || el.innerText !== "0") {
     return;
   }
   var skip = "header, .header, .site-header, #mini-cart, .widget_shopping_cart, .mobile__nav, .header__mobile-banner";
+  var modal = document.querySelector(".modal1");
+
   function inSkipRegion(node) {
     return node && node.closest && node.closest(skip);
   }
-  var modal = document.querySelector(".modal1");
+
   function showDeliveryModal() {
     if (modal) {
       modal.style.display = "block";
     }
   }
-  document.querySelectorAll(".add_to_cart_button, .single_add_to_cart_button").forEach(function (link) {
-    if (inSkipRegion(link)) {
+
+  document.addEventListener("click", function (event) {
+    var target = event.target.closest(".add_to_cart_button, .single_add_to_cart_button");
+    if (!target) {
       return;
     }
-    if (link.getAttribute("data-ferma-delivery-gate") === "1") {
+    if (inSkipRegion(target)) {
       return;
     }
-    link.setAttribute("data-ferma-delivery-gate", "1");
-    if (link.classList && link.classList.contains("add_to_cart_button")) {
-      link.classList.replace("add_to_cart_button", "add_to_card_button1");
-    }
-    if (link.classList && link.classList.contains("single_add_to_cart_button")) {
-      link.classList.replace("single_add_to_cart_button", "single_add_to_cart_button1");
-    }
-    link.removeAttribute("href");
-    link.addEventListener("click", function (event) {
-      event.preventDefault();
-      showDeliveryModal();
-    });
-  });
+    event.preventDefault();
+    event.stopPropagation();
+    showDeliveryModal();
+  }, true);
 })();
 
 </script>
