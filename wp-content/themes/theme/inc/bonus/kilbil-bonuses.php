@@ -32,6 +32,58 @@ if ( ! function_exists( 'ferma_theme_kilbil_debug_log' ) ) {
 	}
 }
 
+if ( ! function_exists( 'ferma_checkout_get_user_bonus_balance' ) ) {
+	/**
+	 * Returns current Kilbil balance for a user.
+	 *
+	 * Uses user_login as primary identifier and billing_phone as fallback.
+	 *
+	 * @param int $user_id WordPress user ID.
+	 * @return int
+	 */
+	function ferma_checkout_get_user_bonus_balance( $user_id = 0 ) {
+		$user_id = (int) $user_id;
+		if ( $user_id <= 0 ) {
+			$user_id = (int) get_current_user_id();
+		}
+		if ( $user_id <= 0 ) {
+			return 0;
+		}
+
+		$user_info = get_userdata( $user_id );
+		if ( ! $user_info ) {
+			return 0;
+		}
+
+		$search_value = preg_replace( '/[^0-9]/', '', (string) $user_info->user_login );
+		if ( strlen( $search_value ) < 10 ) {
+			$billing_phone = get_user_meta( $user_id, 'billing_phone', true );
+			$search_value  = preg_replace( '/[^0-9]/', '', (string) $billing_phone );
+		}
+		if ( strlen( $search_value ) < 10 ) {
+			return 0;
+		}
+
+		$arr  = array( 'search_mode' => 0, 'search_value' => $search_value );
+		$url  = 'https://bonus.kilbil.ru/load/searchclient?h=666c13d171b01d80b04e590794a968b7';
+		$curl = curl_init( $url );
+		curl_setopt( $curl, CURLOPT_HEADER, false );
+		curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
+		curl_setopt( $curl, CURLOPT_HTTPHEADER, array( 'Content-type: application/json' ) );
+		curl_setopt( $curl, CURLOPT_POST, true );
+		curl_setopt( $curl, CURLOPT_POSTFIELDS, wp_json_encode( $arr ) );
+		$json_response = curl_exec( $curl );
+		curl_close( $curl );
+
+		$obj = json_decode( $json_response );
+		if ( isset( $obj->balance ) ) {
+			return (int) $obj->balance;
+		}
+
+		return 0;
+	}
+}
+
 add_action( 'woocommerce_order_status_on-hold', 'callback_check_bonus' );
 function callback_check_bonus( $order_id ) {
 	date_default_timezone_set( 'Asia/Vladivostok' );
@@ -148,34 +200,7 @@ function callback_order_bonus( $order_id ) {
 }
 
 function get_real_kilbil_bonus() {
-	$userbonus = 0;
-
-	$user_id   = get_current_user_id();
-	$user_info = get_userdata( $user_id );
-	$userlogin = $user_info->user_login;
-	$content   = preg_replace( '/[^0-9]/', '', $userlogin );
-
-	if ( strlen( $content ) < 10 ) {
-		return 0;
-	}
-
-	$arr     = array( 'search_mode' => 0, 'search_value' => $content );
-	$url     = 'https://bonus.kilbil.ru/load/searchclient?h=666c13d171b01d80b04e590794a968b7';
-	$content = json_encode( $arr );
-	$curl    = curl_init( $url );
-	curl_setopt( $curl, CURLOPT_HEADER, false );
-	curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
-	curl_setopt( $curl, CURLOPT_HTTPHEADER, array( 'Content-type: application/json' ) );
-	curl_setopt( $curl, CURLOPT_POST, true );
-	curl_setopt( $curl, CURLOPT_POSTFIELDS, $content );
-	$json_response = curl_exec( $curl );
-	$obj           = json_decode( $json_response );
-	if ( isset( $obj->{'balance'} ) && (int) $obj->{'balance'} > 0 ) {
-		$userbonus = $obj->{'balance'};
-	}
-	curl_close( $curl );
-
-	return $userbonus;
+	return (int) ferma_checkout_get_user_bonus_balance( get_current_user_id() );
 }
 
 // add_action( 'woocommerce_order_status_completed', 'callback_function_name' );

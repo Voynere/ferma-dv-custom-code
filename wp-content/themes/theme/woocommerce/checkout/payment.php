@@ -21,36 +21,8 @@ $ferma_bonus_checkout_allowed = function_exists( 'ferma_checkout_bonuses_allowed
 $userbonus                      = 0;
 
 if ( $ferma_bonus_checkout_allowed && is_user_logged_in() ) {
-	$user_info = get_userdata( get_current_user_id() );
-	if ( $user_info ) {
-		$result = preg_replace( '/[^0-9]/', '', (string) $user_info->user_login );
-		if ( strlen( $result ) < 10 ) {
-			$billing_phone = get_user_meta( (int) $user_info->ID, 'billing_phone', true );
-			$result        = preg_replace( '/[^0-9]/', '', (string) $billing_phone );
-		}
-		if ( strlen( $result ) >= 10 ) {
-			$arr = array(
-				'search_mode'  => 0,
-				'search_value' => $result,
-			);
-			$url  = 'https://bonus.kilbil.ru/load/searchclient?h=666c13d171b01d80b04e590794a968b7';
-			$curl = curl_init( $url );
-			curl_setopt( $curl, CURLOPT_HEADER, false );
-			curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
-			curl_setopt( $curl, CURLOPT_HTTPHEADER, array( 'Content-type: application/json' ) );
-			curl_setopt( $curl, CURLOPT_POST, true );
-			curl_setopt( $curl, CURLOPT_POSTFIELDS, wp_json_encode( $arr ) );
-			$json_response = curl_exec( $curl );
-			curl_close( $curl );
-			$obj = json_decode( $json_response );
-			if ( $obj && isset( $obj->balance ) ) {
-				$userbonus = (int) $obj->balance;
-			}
-		}
-	}
-	// Fallback: if direct API probe failed in this request, use shared helper.
-	if ( $userbonus <= 0 && function_exists( 'get_real_kilbil_bonus' ) ) {
-		$userbonus = (int) get_real_kilbil_bonus();
+	if ( function_exists( 'ferma_checkout_get_user_bonus_balance' ) ) {
+		$userbonus = (int) ferma_checkout_get_user_bonus_balance( get_current_user_id() );
 	}
 }
 
