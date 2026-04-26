@@ -133,9 +133,10 @@ if(!function_exists('ferma_validate_add_cart_item')) {
 			$user_id  = (int) get_current_user_id();
 			$delivery = (string) get_user_meta( $user_id, 'delivery', true );
 			$coords   = (string) get_user_meta( $user_id, 'coords', true );
+			$address  = (string) get_user_meta( $user_id, 'billing_delivery', true );
 			$pickup   = (string) get_user_meta( $user_id, 'billing_samoviziv', true );
 			if ( $delivery === '0' ) {
-				return $coords !== '';
+				return $coords !== '' || $address !== '';
 			}
 			if ( $delivery === '1' ) {
 				return $pickup !== '';
@@ -147,19 +148,20 @@ if(!function_exists('ferma_validate_add_cart_item')) {
 		if ( $coords === '' && isset( $_COOKIE['billing_coords'] ) ) {
 			$coords = (string) wp_unslash( (string) $_COOKIE['billing_coords'] );
 		}
+		$address = isset( $_COOKIE['billing_delivery'] ) ? (string) wp_unslash( (string) $_COOKIE['billing_delivery'] ) : '';
 		$pickup = isset( $_COOKIE['billing_samoviziv'] ) ? (string) wp_unslash( (string) $_COOKIE['billing_samoviziv'] ) : '';
 		if ( $pickup === '' && isset( $_COOKIE['key_market'] ) ) {
 			$pickup = (string) wp_unslash( (string) $_COOKIE['key_market'] );
 		}
 
 		if ( $delivery === '0' ) {
-			return $coords !== '';
+			return $coords !== '' || $address !== '';
 		}
 		if ( $delivery === '1' ) {
 			return $pickup !== '';
 		}
 		// Fallback for requests where delivery mode cookie is absent but context is already selected.
-		return $coords !== '' || $pickup !== '';
+		return $coords !== '' || $address !== '' || $pickup !== '';
 	}
 
 	function ferma_require_delivery_context_before_add_to_cart( $passed, $product_id, $quantity, $variation_id = '', $variations = '' ) {

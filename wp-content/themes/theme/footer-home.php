@@ -96,15 +96,16 @@ options.forEach(option => {
   function hasDeliveryContext() {
     var d = readCookie("delivery");
     var coords = readCookie("coords") || readCookie("billing_coords");
+    var deliveryAddress = readCookie("billing_delivery");
     var pickup = readCookie("billing_samoviziv") || readCookie("key_market");
     if (d === "0") {
-      return coords !== "";
+      return coords !== "" || deliveryAddress !== "";
     }
     if (d === "1") {
       return pickup !== "";
     }
     // Fallback for delayed/missing delivery cookie after modal selection.
-    return coords !== "" || pickup !== "";
+    return coords !== "" || deliveryAddress !== "" || pickup !== "";
   }
 
   function showDeliveryModal() {
