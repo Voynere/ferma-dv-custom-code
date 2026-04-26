@@ -98,6 +98,7 @@ if ( ! function_exists( 'ferma_load_core_modules' ) ) {
 			'inc/promocode/post-type.php',
 			'inc/promocode/meta-boxes.php',
 			'inc/promocode/save-meta.php',
+			'inc/promocode/session-api.php',
 		);
 
 		ferma_require_module_list( $core_modules );
