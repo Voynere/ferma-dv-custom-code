@@ -50,25 +50,6 @@ ferma_load_theme_compat_modules();
 // });
 
 
-if( function_exists('acf_add_options_page') ) {
-
-	acf_add_options_page(array(
-		'page_title' 	=> 'Доп. настройки',
-		'menu_title'	=> 'Доп. настройки',
-		'menu_slug' 	=> 'theme-general-settings',
-		'capability'	=> 'edit_posts',
-		'redirect'		=> false
-	));
-
-	acf_add_options_page(array(
-		'page_title' 	=> 'Уведомления',
-		'menu_title'	=> 'Уведомления',
-		'menu_slug' 	=> 'notice-settings',
-		'capability'	=> 'edit_posts',
-		'redirect'		=> false
-	));
-}
-
 // add_filter( 'woocommerce_get_price_html', 'truemisha_display_price', 99, 2 );
 
 // function truemisha_display_price( $price_html, $product ) {
