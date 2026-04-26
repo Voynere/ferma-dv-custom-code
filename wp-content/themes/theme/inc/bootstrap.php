@@ -63,6 +63,7 @@ if ( ! function_exists( 'ferma_load_core_modules' ) ) {
 		$core_modules = array(
 			'inc/core/theme-admin.php',
 			'inc/core/theme-setup.php',
+			'inc/core/pingback-headers.php',
 			'inc/core/content-helpers.php',
 			'inc/core/admin-options-pages.php',
 			'inc/frontend/assets.php',
