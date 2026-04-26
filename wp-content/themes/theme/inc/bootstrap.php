@@ -1,0 +1,86 @@
+<?php
+/**
+ * Theme bootstrap helpers for optional module loading.
+ *
+ * @package Theme
+ */
+
+if ( ! function_exists( 'ferma_require_if_exists' ) ) {
+	/**
+	 * Require module file from theme directory if it exists.
+	 *
+	 * @param string $relative_path Relative path from theme root.
+	 */
+	function ferma_require_if_exists( $relative_path ) {
+		$file = trailingslashit( get_template_directory() ) . ltrim( (string) $relative_path, '/' );
+		if ( file_exists( $file ) ) {
+			require_once $file;
+		}
+	}
+}
+
+if ( ! function_exists( 'ferma_load_custom_modules' ) ) {
+	/**
+	 * Load custom business modules kept under theme includes/.
+	 */
+	function ferma_load_custom_modules() {
+		$custom_modules = array(
+			'includes/sort/ferma_sort_products_by_balance.php',
+			'includes/delivery/ferma_delivery_price.php',
+			'includes/delivery/order_show_delivery_price.php',
+			'includes/promocode/ferma_promocode.php',
+			'includes/emails/ferma_client_last_login.php',
+			'includes/add2cart/ferma_validate_add_cart_item.php',
+			'includes/unisender/ferma_save_client_unisender.php',
+			'includes/buyoneclick/ferma_buyoneclick.php',
+			'moysklad.php',
+			'includes/shortcode/ferma_shortcodes.php',
+			'includes/complect/ferma_complect.php',
+		);
+
+		foreach ( $custom_modules as $module ) {
+			ferma_require_if_exists( $module );
+		}
+	}
+}
+
+if ( ! function_exists( 'ferma_load_core_modules' ) ) {
+	/**
+	 * Load early core modules used at theme bootstrap.
+	 */
+	function ferma_load_core_modules() {
+		$core_modules = array(
+			'inc/cache/catalog-cache.php',
+			'inc/auth/phone-account.php',
+			'inc/woocommerce/catalog-query-limits.php',
+			'inc/woocommerce/catalog-infinite-scroll.php',
+		);
+
+		foreach ( $core_modules as $module ) {
+			ferma_require_if_exists( $module );
+		}
+	}
+}
+
+if ( ! function_exists( 'ferma_load_theme_compat_modules' ) ) {
+	/**
+	 * Load theme compatibility and WooCommerce integration modules.
+	 */
+	function ferma_load_theme_compat_modules() {
+		$compat_modules = array(
+			'wc-functions.php',
+			'inc/custom-header.php',
+			'inc/template-tags.php',
+			'inc/template-functions.php',
+			'inc/customizer.php',
+		);
+
+		foreach ( $compat_modules as $module ) {
+			ferma_require_if_exists( $module );
+		}
+
+		if ( defined( 'JETPACK__VERSION' ) ) {
+			ferma_require_if_exists( 'inc/jetpack.php' );
+		}
+	}
+}
