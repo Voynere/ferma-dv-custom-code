@@ -76,7 +76,6 @@ options.forEach(option => {
 (function () {
   var skip = "header, .header, .site-header, #mini-cart, .widget_shopping_cart, .mobile__nav, .header__mobile-banner";
   var modal = document.querySelector(".modal1");
-  var el = document.getElementById("answer_user");
 
   function inSkipRegion(node) {
     return node && node.closest && node.closest(skip);
@@ -115,8 +114,7 @@ options.forEach(option => {
 
   document.addEventListener("click", function (event) {
     var blockedByCookies = !hasDeliveryContext();
-    var blockedByServer = !!el && el.innerText === "0";
-    if (!blockedByCookies && !blockedByServer) {
+    if (!blockedByCookies) {
       return;
     }
     var target = event.target.closest(".add_to_cart_button, .single_add_to_cart_button");

@@ -125,6 +125,23 @@ if(!function_exists('ferma_get_current_shops')) {
 if(!function_exists('ferma_validate_add_cart_item')) {
 
 	function ferma_has_delivery_context_for_add_to_cart() {
+		if ( function_exists( 'ferma_get_answer_user_shopping_flag' ) ) {
+			return (int) ferma_get_answer_user_shopping_flag() === 1;
+		}
+
+		if ( is_user_logged_in() ) {
+			$user_id  = (int) get_current_user_id();
+			$delivery = (string) get_user_meta( $user_id, 'delivery', true );
+			$coords   = (string) get_user_meta( $user_id, 'coords', true );
+			$pickup   = (string) get_user_meta( $user_id, 'billing_samoviziv', true );
+			if ( $delivery === '0' ) {
+				return $coords !== '';
+			}
+			if ( $delivery === '1' ) {
+				return $pickup !== '';
+			}
+		}
+
 		$delivery = isset( $_COOKIE['delivery'] ) ? (string) wp_unslash( (string) $_COOKIE['delivery'] ) : '';
 		$coords   = isset( $_COOKIE['coords'] ) ? (string) wp_unslash( (string) $_COOKIE['coords'] ) : '';
 		if ( $coords === '' && isset( $_COOKIE['billing_coords'] ) ) {

@@ -112,6 +112,19 @@ function ferma_loop_add_to_cart_with_qty( $button, $product, $args ) {
 		</div>
 		<?php
 		$button = update_cart_button_quantity( $button, $cart_qty, $product_id );
+		if ( preg_match( '/class=["\']([^"\']*)["\']/', $button, $matches ) ) {
+			$classes = preg_split( '/\s+/', trim( (string) $matches[1] ) );
+			if ( ! in_array( 'ajax_add_to_cart', $classes, true ) ) {
+				$classes[] = 'ajax_add_to_cart';
+				$new_class = trim( implode( ' ', array_filter( $classes ) ) );
+				$button    = preg_replace(
+					'/class=["\']([^"\']*)["\']/',
+					'class="' . esc_attr( $new_class ) . '"',
+					$button,
+					1
+				);
+			}
+		}
 		echo $button;
 		?>
 	</div>
