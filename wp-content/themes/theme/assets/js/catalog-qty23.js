@@ -46,17 +46,30 @@ jQuery(document).ready(function($) {
     }, true);
 
     function parseQuantityFromHref(href) {
-        var m = String(href || '').match(/[?&]quantity=([^&]+)/);
-        if (!m || !m[1]) return '';
-        return decodeURIComponent(m[1]);
+        var raw = String(href || '');
+        if (!raw) return '';
+        try {
+            var url = new URL(raw, window.location.origin);
+            var all = url.searchParams.getAll('quantity');
+            if (all.length) {
+                return all[all.length - 1];
+            }
+        } catch (err) {
+            var m = raw.match(/[?&]quantity=([^&]+)/);
+            if (m && m[1]) return decodeURIComponent(m[1]);
+        }
+        return '';
     }
 
     // Fallback for loop cards: handle add-to-cart by AJAX even when Woo default handler is absent.
     // Use href pattern instead of class-only selector to cover legacy/mixed button markup.
     $(document).on('click', '.product-card__cart a[href*="add-to-cart="], li.product a[href*="add-to-cart="], .ferma-product-card a[href*="add-to-cart="]', function(e) {
         var $button = $(this);
+        if ($button.hasClass('loading')) return;
         var href = String($button.attr('href') || '');
         if (href.indexOf('add-to-cart=') === -1) return;
+        // Keep single-product/cart handlers untouched.
+        if ($button.closest('.shop-ferma__cart, form.cart').length) return;
 
         e.preventDefault();
 
