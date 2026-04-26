@@ -54,6 +54,17 @@ Last updated: 2026-04-27
 - `498fa3e` Treat billing_delivery as valid delivery context for cart gating.
 - `d935290` Handle listing add-to-cart fallback by href pattern, not class only.
 - `70d3b86` Stabilize catalog add-to-cart fallback handlers for maintainability.
+- `22ce9a8` Fix add-to-cart toast title extraction and cart-anchor positioning fallback.
+
+## Latest update (2026-04-27)
+
+- Changed: `wp-content/themes/theme/assets/js/catalog-qty23.js`
+  - Reason: toast title sometimes showed delivery modal text instead of product name; toast anchor did not always lock to header cart icon.
+- Commit: `22ce9a8`
+- Status: fixed in code, pending user visual confirmation on product page toast content/position.
+- Next verification:
+  1. Open single product, click `В корзину`, verify toast title is product name.
+  2. Verify toast appears next to header cart icon (desktop and mobile header layouts).
 
 ## Known caution
 
