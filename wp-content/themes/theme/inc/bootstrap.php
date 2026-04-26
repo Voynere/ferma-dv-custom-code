@@ -19,6 +19,19 @@ if ( ! function_exists( 'ferma_require_if_exists' ) ) {
 	}
 }
 
+if ( ! function_exists( 'ferma_require_module_list' ) ) {
+	/**
+	 * Require a list of optional modules in provided order.
+	 *
+	 * @param array $modules Relative paths from theme root.
+	 */
+	function ferma_require_module_list( $modules ) {
+		foreach ( (array) $modules as $module ) {
+			ferma_require_if_exists( $module );
+		}
+	}
+}
+
 if ( ! function_exists( 'ferma_load_custom_modules' ) ) {
 	/**
 	 * Load custom business modules kept under theme includes/.
@@ -38,9 +51,7 @@ if ( ! function_exists( 'ferma_load_custom_modules' ) ) {
 			'includes/complect/ferma_complect.php',
 		);
 
-		foreach ( $custom_modules as $module ) {
-			ferma_require_if_exists( $module );
-		}
+		ferma_require_module_list( $custom_modules );
 	}
 }
 
@@ -60,9 +71,7 @@ if ( ! function_exists( 'ferma_load_core_modules' ) ) {
 			'inc/bonus/kilbil-bonuses.php',
 		);
 
-		foreach ( $core_modules as $module ) {
-			ferma_require_if_exists( $module );
-		}
+		ferma_require_module_list( $core_modules );
 	}
 }
 
@@ -79,9 +88,7 @@ if ( ! function_exists( 'ferma_load_theme_compat_modules' ) ) {
 			'inc/customizer.php',
 		);
 
-		foreach ( $compat_modules as $module ) {
-			ferma_require_if_exists( $module );
-		}
+		ferma_require_module_list( $compat_modules );
 
 		if ( defined( 'JETPACK__VERSION' ) ) {
 			ferma_require_if_exists( 'inc/jetpack.php' );
