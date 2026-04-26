@@ -719,6 +719,10 @@ if(!function_exists('ferma_is_delivery')) {
 			if($row == 0) {
 				$delivery = true;
 			}
+			// Fallback: during checkout UX we can already have a delivery cookie before user meta catches up.
+			if ( ! $delivery && isset( $_COOKIE['delivery'] ) && (string) $_COOKIE['delivery'] === '0' ) {
+				$delivery = true;
+			}
 		} else {
 			if(isset($_COOKIE['delivery']) && $_COOKIE['delivery'] == 0) {
 				$delivery = true;
@@ -744,7 +748,12 @@ if ( ! function_exists( 'ferma_checkout_bonuses_allowed' ) ) {
 		if ( ! $user || ! $user->ID ) {
 			return false;
 		}
+		// Legacy accounts can have non-phone user_login; billing_phone still identifies the Kilbil client.
 		$digits = preg_replace( '/[^0-9]/', '', (string) $user->user_login );
+		if ( strlen( $digits ) < 10 ) {
+			$billing_phone = get_user_meta( (int) $user->ID, 'billing_phone', true );
+			$digits        = preg_replace( '/[^0-9]/', '', (string) $billing_phone );
+		}
 		return strlen( $digits ) >= 10;
 	}
 }
