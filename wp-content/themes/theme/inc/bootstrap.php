@@ -104,6 +104,7 @@ if ( ! function_exists( 'ferma_load_core_modules' ) ) {
 			'inc/promocode/apply-flow.php',
 			'inc/promocode/core.php',
 			'inc/promocode/usage-limits.php',
+			'inc/promocode/assets.php',
 		);
 
 		ferma_require_module_list( $core_modules );
