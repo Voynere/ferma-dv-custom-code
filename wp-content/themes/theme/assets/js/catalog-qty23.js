@@ -1,10 +1,29 @@
 jQuery(document).ready(function($) {
-    // Safety net: some templates may render loop buttons without ajax class.
-    $('.product-card__cart .add_to_cart_button').addClass('ajax_add_to_cart');
+    function ensureAjaxLoopButton($btn) {
+        if (!$btn || !$btn.length || !$btn.hasClass('add_to_cart_button')) return;
+        var href = String($btn.attr('href') || '');
+        if (href.indexOf('add-to-cart=') === -1) return;
+
+        $btn.addClass('ajax_add_to_cart');
+
+        var pid = $btn.attr('data-product_id') || $btn.data('product_id');
+        if (!pid) {
+            var m = href.match(/[?&]add-to-cart=(\d+)/);
+            if (m && m[1]) {
+                pid = m[1];
+                $btn.attr('data-product_id', pid).data('product_id', pid);
+            }
+        }
+    }
+
+    // Safety net: normalize all loop/cart links to Woo AJAX format.
+    $('a.add_to_cart_button').each(function () {
+        ensureAjaxLoopButton($(this));
+    });
     document.addEventListener('click', function (event) {
-        var btn = event.target.closest('.product-card__cart .add_to_cart_button');
+        var btn = event.target.closest('a.add_to_cart_button');
         if (!btn) return;
-        btn.classList.add('ajax_add_to_cart');
+        ensureAjaxLoopButton($(btn));
     }, true);
     function readCookie(name) {
         var prefix = name + '=';
