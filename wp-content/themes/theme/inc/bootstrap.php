@@ -76,6 +76,7 @@ if ( ! function_exists( 'ferma_load_core_modules' ) ) {
 			'inc/catalog/weight-helpers.php',
 			'inc/catalog/cart-pricing.php',
 			'inc/catalog/price-display.php',
+			'inc/catalog/category-query.php',
 			'inc/discount/runtime-context.php',
 			'inc/woocommerce/catalog-query-limits.php',
 			'inc/woocommerce/catalog-infinite-scroll.php',
