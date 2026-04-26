@@ -63,6 +63,7 @@ if ( ! function_exists( 'ferma_load_core_modules' ) ) {
 		$core_modules = array(
 			'inc/core/theme-admin.php',
 			'inc/core/theme-setup.php',
+			'inc/core/content-helpers.php',
 			'inc/frontend/assets.php',
 			'inc/frontend/product-cart-ui.php',
 			'inc/cache/catalog-cache.php',
