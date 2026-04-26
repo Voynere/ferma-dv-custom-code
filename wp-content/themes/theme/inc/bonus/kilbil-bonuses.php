@@ -252,63 +252,22 @@ function callback_function_name() {
 	$total    = $order->get_total();
 	$percent  = 5;
 	$fulltotal = $total * ( $percent / 100 );
-	$user_info = get_userdata( $user_id );
-	$userlogin = $user_info->user_login;
-	$content   = preg_replace( '/[^0-9]/', '', $userlogin );
-
-	if ( strlen( $content ) < 10 ) {
+	$userbonus = ferma_checkout_get_kilbil_client_id( $user_id );
+	if ( $userbonus <= 0 ) {
 		return false;
 	}
 
-	$arr     = array( 'search_mode' => 0, 'search_value' => $content );
-	$url     = 'https://bonus.kilbil.ru/load/searchclient?h=666c13d171b01d80b04e590794a968b7';
-	$content = json_encode( $arr );
-	$curl    = curl_init( $url );
-	curl_setopt( $curl, CURLOPT_HEADER, false );
-	curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
-	curl_setopt( $curl, CURLOPT_HTTPHEADER, array( 'Content-type: application/json' ) );
-	curl_setopt( $curl, CURLOPT_POST, true );
-	curl_setopt( $curl, CURLOPT_POSTFIELDS, $content );
-	$json_response = curl_exec( $curl );
-	$status        = curl_getinfo( $curl, CURLINFO_HTTP_CODE );
-	$obj           = json_decode( $json_response );
-	$userbonus     = $obj->{'client_id'};
-	curl_close( $curl );
-
-	$arr     = array( 'client_id' => $userbonus, 'bonus_in' => $fulltotal );
-	$url     = 'https://bonus.kilbil.ru/load/manualadd?h=666c13d171b01d80b04e590794a968b7';
-	$content = json_encode( $arr );
-	$curl    = curl_init( $url );
-	curl_setopt( $curl, CURLOPT_HEADER, false );
-	curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
-	curl_setopt( $curl, CURLOPT_HTTPHEADER, array( 'Content-type: application/json' ) );
-	curl_setopt( $curl, CURLOPT_POST, true );
-	curl_setopt( $curl, CURLOPT_POSTFIELDS, $content );
-	$json_response = curl_exec( $curl );
-	$status        = curl_getinfo( $curl, CURLINFO_HTTP_CODE );
-	$obj           = json_decode( $json_response );
-	curl_close( $curl );
-	echo "<script>console.log('Debug Objects: " . $content . "' );</script>";
+	$arr = array( 'client_id' => $userbonus, 'bonus_in' => $fulltotal );
+	$obj = ferma_kilbil_api_post( 'manualadd', $arr );
+	echo "<script>console.log('Debug Objects: " . wp_json_encode( $arr ) . "' );</script>";
 	$data  = $order->get_data();
 	$bonus = get_post_meta( $order->get_id(), 'billing_bonus', true );
 	if ( $bonus > 0 ) {
 		$arr = array( 'client_id' => $userbonus, 'bonus_out' => $bonus );
-
-		$url     = 'https://bonus.kilbil.ru/load/manualadd?h=666c13d171b01d80b04e590794a968b7';
-		$content = json_encode( $arr );
-		$curl    = curl_init( $url );
-		curl_setopt( $curl, CURLOPT_HEADER, false );
-		curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
-		curl_setopt( $curl, CURLOPT_HTTPHEADER, array( 'Content-type: application/json' ) );
-		curl_setopt( $curl, CURLOPT_POST, true );
-		curl_setopt( $curl, CURLOPT_POSTFIELDS, $content );
-		$json_response = curl_exec( $curl );
-		$status        = curl_getinfo( $curl, CURLINFO_HTTP_CODE );
-		$obj           = json_decode( $json_response );
-		curl_close( $curl );
+		$obj = ferma_kilbil_api_post( 'manualadd', $arr );
 		unset( $_COOKIE['balik'] );
 		setcookie( 'balik', null, -1, '/' );
-		echo "<script>console.log('Debug Objects: " . $content . "' );</script>";
+		echo "<script>console.log('Debug Objects: " . wp_json_encode( $arr ) . "' );</script>";
 	}
 }
 
