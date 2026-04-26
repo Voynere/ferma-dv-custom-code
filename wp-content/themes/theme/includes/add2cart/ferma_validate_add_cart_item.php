@@ -158,7 +158,8 @@ if(!function_exists('ferma_validate_add_cart_item')) {
 		if ( $delivery === '1' ) {
 			return $pickup !== '';
 		}
-		return false;
+		// Fallback for requests where delivery mode cookie is absent but context is already selected.
+		return $coords !== '' || $pickup !== '';
 	}
 
 	function ferma_require_delivery_context_before_add_to_cart( $passed, $product_id, $quantity, $variation_id = '', $variations = '' ) {

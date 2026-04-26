@@ -103,7 +103,8 @@ options.forEach(option => {
     if (d === "1") {
       return pickup !== "";
     }
-    return false;
+    // Fallback for delayed/missing delivery cookie after modal selection.
+    return coords !== "" || pickup !== "";
   }
 
   function showDeliveryModal() {
