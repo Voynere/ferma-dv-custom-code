@@ -150,6 +150,21 @@ function update_cart_button_quantity( $button, $quantity, $product_id ) {
         $button
     );
 
+	// Гарантируем ajax-класс на кнопке каталога, чтобы не было перехода/скролла вверх по href.
+	if ( preg_match( '/class=["\']([^"\']*)["\']/', $button, $matches ) ) {
+		$classes = preg_split( '/\s+/', trim( (string) $matches[1] ) );
+		if ( ! in_array( 'ajax_add_to_cart', $classes, true ) ) {
+			$classes[] = 'ajax_add_to_cart';
+			$new_class = trim( implode( ' ', array_filter( $classes ) ) );
+			$button    = preg_replace(
+				'/class=["\']([^"\']*)["\']/',
+				'class="' . esc_attr( $new_class ) . '"',
+				$button,
+				1
+			);
+		}
+	}
+
     return $button;
 }
 

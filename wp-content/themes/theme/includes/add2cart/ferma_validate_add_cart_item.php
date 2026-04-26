@@ -124,6 +124,39 @@ if(!function_exists('ferma_get_current_shops')) {
 
 if(!function_exists('ferma_validate_add_cart_item')) {
 
+	function ferma_has_delivery_context_for_add_to_cart() {
+		$delivery = isset( $_COOKIE['delivery'] ) ? (string) wp_unslash( (string) $_COOKIE['delivery'] ) : '';
+		$coords   = isset( $_COOKIE['coords'] ) ? (string) wp_unslash( (string) $_COOKIE['coords'] ) : '';
+		if ( $coords === '' && isset( $_COOKIE['billing_coords'] ) ) {
+			$coords = (string) wp_unslash( (string) $_COOKIE['billing_coords'] );
+		}
+		$pickup = isset( $_COOKIE['billing_samoviziv'] ) ? (string) wp_unslash( (string) $_COOKIE['billing_samoviziv'] ) : '';
+		if ( $pickup === '' && isset( $_COOKIE['key_market'] ) ) {
+			$pickup = (string) wp_unslash( (string) $_COOKIE['key_market'] );
+		}
+
+		if ( $delivery === '0' ) {
+			return $coords !== '';
+		}
+		if ( $delivery === '1' ) {
+			return $pickup !== '';
+		}
+		return false;
+	}
+
+	function ferma_require_delivery_context_before_add_to_cart( $passed, $product_id, $quantity, $variation_id = '', $variations = '' ) {
+		unset( $product_id, $quantity, $variation_id, $variations );
+		if ( is_admin() ) {
+			return $passed;
+		}
+		if ( ! ferma_has_delivery_context_for_add_to_cart() ) {
+			wc_add_notice( 'Сначала выберите адрес доставки или точку самовывоза.', 'error' );
+			return false;
+		}
+		return $passed;
+	}
+	add_filter( 'woocommerce_add_to_cart_validation', 'ferma_require_delivery_context_before_add_to_cart', 1, 5 );
+
 	function ferma_validate_add_cart_item( $passed, $product_id, $quantity, $variation_id = '', $variations= '' ) {
 		
 		$shops = ferma_get_current_shops();
