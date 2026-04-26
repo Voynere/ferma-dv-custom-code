@@ -550,9 +550,7 @@ jQuery(document).ready(function($) {
         updateQuantity($qtyBlock, -1, updateCart);
     });
 
-    // Перед кликом "В корзину" подсовываем правильное количество
-    $(document).on('mousedown', '.add_to_cart_button', function() {
-        var $button      = $(this);
+    function prepareCatalogAddToCartButton($button) {
         var $productCard = $button.closest('.product-card__cart');
         var $qtyBlock    = $productCard.find('.cart__qty');
 
@@ -577,6 +575,23 @@ jQuery(document).ready(function($) {
             var newUrl  = baseUrl + '?add-to-cart=' + productId + '&quantity=' + realQuantity;
             $button.attr('href', newUrl);
         }
+    }
+
+    // Перед добавлением в корзину подставляем корректное количество.
+    $(document).on('mousedown', '.add_to_cart_button', function() {
+        prepareCatalogAddToCartButton($(this));
+    });
+
+    $(document).on('click', '.product-card__cart .add_to_cart_button', function(e) {
+        var $button = $(this);
+
+        prepareCatalogAddToCartButton($button);
+
+        // Явно блокируем переход по href, чтобы исключить скачок страницы вверх.
+        // WooCommerce все равно обработает этот клик через свой ajax add-to-cart хендлер.
+        if ($button.hasClass('ajax_add_to_cart')) {
+            e.preventDefault();
+        }
     });
 
     $(document.body).on('added_to_cart', function(e, fragments, cart_hash, $button) {
@@ -591,10 +606,6 @@ jQuery(document).ready(function($) {
     // Синхронизируем каталог с мини-корзиной при загрузке
     syncCatalogWithMiniCart();
 
-    // И каждый раз, когда WooCommerce обновляет фрагменты
-    $(document.body).on('wc_fragments_refreshed wc_fragments_loaded', function () {
-        syncCatalogWithMiniCart();
-    });
     function applyGrayStyle() {
         $('.product-card__cart .add_to_cart_button.product-in-cart').css({
             background: '#ccc',
@@ -611,8 +622,6 @@ jQuery(document).ready(function($) {
 
     $(document.body).on('added_to_cart', function () {
         applyGrayStyle();
-    });
-    $(document.body).on('added_to_cart', function() {
         $('.single_add_to_cart_button').addClass('product-in-cart');
     });
 
@@ -791,26 +800,6 @@ jQuery(document).ready(function($) {
 
     // запускаем инициализацию одиночной карточки
     initSingleProductQty();
-    function syncSingleProductCartState() {
-        var $btn = $('.single_add_to_cart_button');
-        if (!$btn.length) return;
-
-        var productId = $btn.data('product_id');
-
-        // пробегаем мини-корзину
-        $('.woocommerce-mini-cart-item, .mini_cart_item').each(function () {
-            var pid = $(this).data('product_id') ||
-                $(this).find('[data-product_id]').data('product_id');
-
-            if (pid == productId) {
-                $btn.addClass('product-in-cart');
-            }
-        });
-    }
-
-    $(document.body).on('wc_fragments_loaded wc_fragments_refreshed', function() {
-        syncSingleProductCartState();
-    });
     function syncSingleProductCartState() {
         var $btn = $('.single_add_to_cart_button');
         if (!$btn.length) return;
