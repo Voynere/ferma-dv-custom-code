@@ -84,6 +84,56 @@ if ( ! function_exists( 'ferma_checkout_get_user_bonus_balance' ) ) {
 	}
 }
 
+if ( ! function_exists( 'ferma_checkout_get_kilbil_client_id' ) ) {
+	/**
+	 * Returns Kilbil client_id for a user.
+	 *
+	 * @param int $user_id WordPress user ID.
+	 * @return int
+	 */
+	function ferma_checkout_get_kilbil_client_id( $user_id = 0 ) {
+		$user_id = (int) $user_id;
+		if ( $user_id <= 0 ) {
+			$user_id = (int) get_current_user_id();
+		}
+		if ( $user_id <= 0 ) {
+			return 0;
+		}
+
+		$user_info = get_userdata( $user_id );
+		if ( ! $user_info ) {
+			return 0;
+		}
+
+		$search_value = preg_replace( '/[^0-9]/', '', (string) $user_info->user_login );
+		if ( strlen( $search_value ) < 10 ) {
+			$billing_phone = get_user_meta( $user_id, 'billing_phone', true );
+			$search_value  = preg_replace( '/[^0-9]/', '', (string) $billing_phone );
+		}
+		if ( strlen( $search_value ) < 10 ) {
+			return 0;
+		}
+
+		$arr  = array( 'search_mode' => 0, 'search_value' => $search_value );
+		$url  = 'https://bonus.kilbil.ru/load/searchclient?h=666c13d171b01d80b04e590794a968b7';
+		$curl = curl_init( $url );
+		curl_setopt( $curl, CURLOPT_HEADER, false );
+		curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
+		curl_setopt( $curl, CURLOPT_HTTPHEADER, array( 'Content-type: application/json' ) );
+		curl_setopt( $curl, CURLOPT_POST, true );
+		curl_setopt( $curl, CURLOPT_POSTFIELDS, wp_json_encode( $arr ) );
+		$json_response = curl_exec( $curl );
+		curl_close( $curl );
+
+		$obj = json_decode( $json_response );
+		if ( isset( $obj->client_id ) ) {
+			return (int) $obj->client_id;
+		}
+
+		return 0;
+	}
+}
+
 add_action( 'woocommerce_order_status_on-hold', 'callback_check_bonus' );
 function callback_check_bonus( $order_id ) {
 	date_default_timezone_set( 'Asia/Vladivostok' );
@@ -138,23 +188,10 @@ function callback_order_bonus( $order_id ) {
 		$total      = $order->get_total();
 		$percent    = 5;
 		$fulltotal  = $total * ( $percent / 100 );
-		$user_info  = get_userdata( $user_id );
-		$userlogin  = $user_info->user_login;
-		$content    = preg_replace( '/[^0-9]/', '', $userlogin );
-		$arr        = array( 'search_mode' => 0, 'search_value' => $content );
-		$url        = 'https://bonus.kilbil.ru/load/searchclient?h=666c13d171b01d80b04e590794a968b7';
-		$content    = json_encode( $arr );
-		$curl       = curl_init( $url );
-		curl_setopt( $curl, CURLOPT_HEADER, false );
-		curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
-		curl_setopt( $curl, CURLOPT_HTTPHEADER, array( 'Content-type: application/json' ) );
-		curl_setopt( $curl, CURLOPT_POST, true );
-		curl_setopt( $curl, CURLOPT_POSTFIELDS, $content );
-		$json_response = curl_exec( $curl );
-		$status        = curl_getinfo( $curl, CURLINFO_HTTP_CODE );
-		$obj           = json_decode( $json_response );
-		$userbonus     = $obj->{'client_id'};
-		curl_close( $curl );
+		$userbonus  = ferma_checkout_get_kilbil_client_id( $user_id );
+		if ( $userbonus <= 0 ) {
+			return;
+		}
 
 		$arr     = array( 'client_id' => $userbonus, 'bonus_in' => $fulltotal );
 		$url     = 'https://bonus.kilbil.ru/load/manualadd?h=666c13d171b01d80b04e590794a968b7';
@@ -280,27 +317,8 @@ function truemisha_add_fee_paypal( $cart ) {
 		return;
 	}
 	if ( isset( $_COOKIE['balik'] ) ) {
-		$userbonus = 0;
-
 		$user_id   = get_current_user_id();
-		$user_info = get_userdata( $user_id );
-		$userlogin = $user_info->user_login;
-		$content   = preg_replace( '/[^0-9]/', '', $userlogin );
-
-		$arr     = array( 'search_mode' => 0, 'search_value' => $content );
-		$url     = 'https://bonus.kilbil.ru/load/searchclient?h=666c13d171b01d80b04e590794a968b7';
-		$content = json_encode( $arr );
-		$curl    = curl_init( $url );
-		curl_setopt( $curl, CURLOPT_HEADER, false );
-		curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
-		curl_setopt( $curl, CURLOPT_HTTPHEADER, array( 'Content-type: application/json' ) );
-		curl_setopt( $curl, CURLOPT_POST, true );
-		curl_setopt( $curl, CURLOPT_POSTFIELDS, $content );
-		$json_response = curl_exec( $curl );
-		$status        = curl_getinfo( $curl, CURLINFO_HTTP_CODE );
-		$obj           = json_decode( $json_response );
-		$userbonus     = $obj->{'balance'};
-		curl_close( $curl );
+		$userbonus = ferma_checkout_get_user_bonus_balance( $user_id );
 
 		$real_balik = $cart->subtotal * 0.3;
 		if ( $_COOKIE['balik'] != $real_balik ) {
