@@ -24,6 +24,10 @@ if ( $ferma_bonus_checkout_allowed && is_user_logged_in() ) {
 	$user_info = get_userdata( get_current_user_id() );
 	if ( $user_info ) {
 		$result = preg_replace( '/[^0-9]/', '', (string) $user_info->user_login );
+		if ( strlen( $result ) < 10 ) {
+			$billing_phone = get_user_meta( (int) $user_info->ID, 'billing_phone', true );
+			$result        = preg_replace( '/[^0-9]/', '', (string) $billing_phone );
+		}
 		if ( strlen( $result ) >= 10 ) {
 			$arr = array(
 				'search_mode'  => 0,
@@ -43,6 +47,10 @@ if ( $ferma_bonus_checkout_allowed && is_user_logged_in() ) {
 				$userbonus = (int) $obj->balance;
 			}
 		}
+	}
+	// Fallback: if direct API probe failed in this request, use shared helper.
+	if ( $userbonus <= 0 && function_exists( 'get_real_kilbil_bonus' ) ) {
+		$userbonus = (int) get_real_kilbil_bonus();
 	}
 }
 
