@@ -61,6 +61,7 @@ if ( ! function_exists( 'ferma_load_core_modules' ) ) {
 	 */
 	function ferma_load_core_modules() {
 		$core_modules = array(
+			'inc/core/theme-admin.php',
 			'inc/cache/catalog-cache.php',
 			'inc/auth/phone-account.php',
 			'inc/woocommerce/catalog-query-limits.php',
