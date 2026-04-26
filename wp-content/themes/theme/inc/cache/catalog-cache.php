@@ -7,6 +7,21 @@
 
 add_action( 'init', 'force_no_cache_for_checkout' );
 
+if ( ! function_exists( 'ferma_get_request_method' ) ) {
+	/**
+	 * Returns current HTTP method in uppercase.
+	 *
+	 * @return string
+	 */
+	function ferma_get_request_method() {
+		if ( ! isset( $_SERVER['REQUEST_METHOD'] ) ) {
+			return '';
+		}
+
+		return strtoupper( (string) $_SERVER['REQUEST_METHOD'] );
+	}
+}
+
 function force_no_cache_for_checkout() {
 	if ( function_exists( 'is_checkout' ) && is_checkout() && function_exists( 'is_order_received_page' ) && ! is_order_received_page() ) {
 		// Headers to disable caching for checkout request/response cycle.
@@ -46,7 +61,8 @@ function ferma_strip_legacy_store_filter_query() {
 		return;
 	}
 	$has_legacy_filter    = isset( $_GET['wms-addon-store-filter-form'] );
-	$has_legacy_post_type = isset( $_GET['post_type'] ) && $_GET['post_type'] === 'page';
+	$legacy_post_type     = isset( $_GET['post_type'] ) ? sanitize_text_field( wp_unslash( $_GET['post_type'] ) ) : '';
+	$has_legacy_post_type = 'page' === $legacy_post_type;
 	if ( ! $has_legacy_filter && ! $has_legacy_post_type ) {
 		return;
 	}
@@ -104,7 +120,7 @@ if ( ! function_exists( 'ferma_is_public_catalog_cache_request' ) ) {
 		if ( wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
 			return false;
 		}
-		if ( isset( $_SERVER['REQUEST_METHOD'] ) && 'GET' !== $_SERVER['REQUEST_METHOD'] ) {
+		if ( 'GET' !== ferma_get_request_method() ) {
 			return false;
 		}
 		return true;
@@ -155,7 +171,7 @@ if ( ! function_exists( 'ferma_is_guest_cacheable_page' ) ) {
 		) {
 			return false;
 		}
-		if ( isset( $_SERVER['REQUEST_METHOD'] ) && $_SERVER['REQUEST_METHOD'] !== 'GET' ) {
+		if ( 'GET' !== ferma_get_request_method() ) {
 			return false;
 		}
 		return true;
