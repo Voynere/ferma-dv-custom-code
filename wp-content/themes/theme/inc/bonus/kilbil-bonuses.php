@@ -32,6 +32,39 @@ if ( ! function_exists( 'ferma_theme_kilbil_debug_log' ) ) {
 	}
 }
 
+if ( ! function_exists( 'ferma_kilbil_api_post' ) ) {
+	/**
+	 * Executes POST request to Kilbil API and returns decoded response.
+	 *
+	 * @param string $path    API path, for example "searchclient".
+	 * @param array  $payload Request body.
+	 * @return object|null
+	 */
+	function ferma_kilbil_api_post( $path, $payload ) {
+		$path = ltrim( (string) $path, '/' );
+		if ( '' === $path ) {
+			return null;
+		}
+
+		$url  = 'https://bonus.kilbil.ru/load/' . $path . '?h=666c13d171b01d80b04e590794a968b7';
+		$curl = curl_init( $url );
+		curl_setopt( $curl, CURLOPT_HEADER, false );
+		curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
+		curl_setopt( $curl, CURLOPT_HTTPHEADER, array( 'Content-type: application/json' ) );
+		curl_setopt( $curl, CURLOPT_POST, true );
+		curl_setopt( $curl, CURLOPT_POSTFIELDS, wp_json_encode( (array) $payload ) );
+		$json_response = curl_exec( $curl );
+		curl_close( $curl );
+
+		if ( ! is_string( $json_response ) || '' === $json_response ) {
+			return null;
+		}
+
+		$response = json_decode( $json_response );
+		return is_object( $response ) ? $response : null;
+	}
+}
+
 if ( ! function_exists( 'ferma_checkout_get_user_bonus_balance' ) ) {
 	/**
 	 * Returns current Kilbil balance for a user.
@@ -64,18 +97,13 @@ if ( ! function_exists( 'ferma_checkout_get_user_bonus_balance' ) ) {
 			return 0;
 		}
 
-		$arr  = array( 'search_mode' => 0, 'search_value' => $search_value );
-		$url  = 'https://bonus.kilbil.ru/load/searchclient?h=666c13d171b01d80b04e590794a968b7';
-		$curl = curl_init( $url );
-		curl_setopt( $curl, CURLOPT_HEADER, false );
-		curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
-		curl_setopt( $curl, CURLOPT_HTTPHEADER, array( 'Content-type: application/json' ) );
-		curl_setopt( $curl, CURLOPT_POST, true );
-		curl_setopt( $curl, CURLOPT_POSTFIELDS, wp_json_encode( $arr ) );
-		$json_response = curl_exec( $curl );
-		curl_close( $curl );
-
-		$obj = json_decode( $json_response );
+		$obj = ferma_kilbil_api_post(
+			'searchclient',
+			array(
+				'search_mode'  => 0,
+				'search_value' => $search_value,
+			)
+		);
 		if ( isset( $obj->balance ) ) {
 			return (int) $obj->balance;
 		}
@@ -114,18 +142,13 @@ if ( ! function_exists( 'ferma_checkout_get_kilbil_client_id' ) ) {
 			return 0;
 		}
 
-		$arr  = array( 'search_mode' => 0, 'search_value' => $search_value );
-		$url  = 'https://bonus.kilbil.ru/load/searchclient?h=666c13d171b01d80b04e590794a968b7';
-		$curl = curl_init( $url );
-		curl_setopt( $curl, CURLOPT_HEADER, false );
-		curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
-		curl_setopt( $curl, CURLOPT_HTTPHEADER, array( 'Content-type: application/json' ) );
-		curl_setopt( $curl, CURLOPT_POST, true );
-		curl_setopt( $curl, CURLOPT_POSTFIELDS, wp_json_encode( $arr ) );
-		$json_response = curl_exec( $curl );
-		curl_close( $curl );
-
-		$obj = json_decode( $json_response );
+		$obj = ferma_kilbil_api_post(
+			'searchclient',
+			array(
+				'search_mode'  => 0,
+				'search_value' => $search_value,
+			)
+		);
 		if ( isset( $obj->client_id ) ) {
 			return (int) $obj->client_id;
 		}
@@ -193,19 +216,8 @@ function callback_order_bonus( $order_id ) {
 			return;
 		}
 
-		$arr     = array( 'client_id' => $userbonus, 'bonus_in' => $fulltotal );
-		$url     = 'https://bonus.kilbil.ru/load/manualadd?h=666c13d171b01d80b04e590794a968b7';
-		$content = json_encode( $arr );
-		$curl    = curl_init( $url );
-		curl_setopt( $curl, CURLOPT_HEADER, false );
-		curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
-		curl_setopt( $curl, CURLOPT_HTTPHEADER, array( 'Content-type: application/json' ) );
-		curl_setopt( $curl, CURLOPT_POST, true );
-		curl_setopt( $curl, CURLOPT_POSTFIELDS, $content );
-		$json_response = curl_exec( $curl );
-		$status        = curl_getinfo( $curl, CURLINFO_HTTP_CODE );
-		$obj           = json_decode( $json_response );
-		curl_close( $curl );
+		$arr = array( 'client_id' => $userbonus, 'bonus_in' => $fulltotal );
+		$obj = ferma_kilbil_api_post( 'manualadd', $arr );
 
 		$data  = $order->get_data();
 		$bonus = get_post_meta( $order->get_id(), 'billing_bonus', true );
@@ -215,21 +227,10 @@ function callback_order_bonus( $order_id ) {
 			);
 			$arr = array( 'client_id' => $userbonus, 'bonus_out' => $bonus );
 
-			$url     = 'https://bonus.kilbil.ru/load/manualadd?h=666c13d171b01d80b04e590794a968b7';
-			$content = json_encode( $arr );
-			$curl    = curl_init( $url );
-			curl_setopt( $curl, CURLOPT_HEADER, false );
-			curl_setopt( $curl, CURLOPT_RETURNTRANSFER, true );
-			curl_setopt( $curl, CURLOPT_HTTPHEADER, array( 'Content-type: application/json' ) );
-			curl_setopt( $curl, CURLOPT_POST, true );
-			curl_setopt( $curl, CURLOPT_POSTFIELDS, $content );
-			$json_response = curl_exec( $curl );
-			$status        = curl_getinfo( $curl, CURLINFO_HTTP_CODE );
-			$obj           = json_decode( $json_response );
-			curl_close( $curl );
+			$obj = ferma_kilbil_api_post( 'manualadd', $arr );
 			unset( $_COOKIE['balik'] );
 			setcookie( 'balik', null, -1, '/' );
-			echo "<script>console.log('Debug Objects: " . $content . "' );</script>";
+			echo "<script>console.log('Debug Objects: " . wp_json_encode( $arr ) . "' );</script>";
 		}
 
 		update_field( 'order_bonus_added', 1, $order_id );
