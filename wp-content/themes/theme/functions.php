@@ -100,24 +100,6 @@ if ( ! function_exists( 'ferma_calc_percent' ) ) {
 
 
 
-// CPT "Промокоды"
-add_action( 'init', function () {
-    register_post_type( 'q_promocode', array(
-        'labels' => array(
-            'name'          => 'Промокоды Q',
-            'singular_name' => 'Промокод Q',
-            'add_new'       => 'Добавить промокод',
-            'add_new_item'  => 'Добавить промокод',
-            'edit_item'     => 'Редактировать промокод',
-        ),
-        'public'       => false,
-        'show_ui'      => true,
-        'menu_position'=> 25,
-        'menu_icon'    => 'dashicons-tickets-alt',
-        'supports'     => array('title'),
-    ) );
-} );
-
 // Метабоксы
 add_action( 'add_meta_boxes', function () {
     add_meta_box(

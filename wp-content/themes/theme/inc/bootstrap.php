@@ -95,6 +95,7 @@ if ( ! function_exists( 'ferma_load_core_modules' ) ) {
 			'inc/checkout/delivery-session.php',
 			'inc/bonus/checkout-bonus-state.php',
 			'inc/bonus/kilbil-bonuses.php',
+			'inc/promocode/post-type.php',
 		);
 
 		ferma_require_module_list( $core_modules );
