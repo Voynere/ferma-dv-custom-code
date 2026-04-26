@@ -45,8 +45,15 @@ jQuery(document).ready(function($) {
         ensureAjaxLoopButton($(btn));
     }, true);
 
+    function parseQuantityFromHref(href) {
+        var m = String(href || '').match(/[?&]quantity=([^&]+)/);
+        if (!m || !m[1]) return '';
+        return decodeURIComponent(m[1]);
+    }
+
     // Fallback for loop cards: handle add-to-cart by AJAX even when Woo default handler is absent.
-    $(document).on('click', '.product-card__cart a.add_to_cart_button', function(e) {
+    // Use href pattern instead of class-only selector to cover legacy/mixed button markup.
+    $(document).on('click', '.product-card__cart a[href*="add-to-cart="], li.product a[href*="add-to-cart="], .ferma-product-card a[href*="add-to-cart="]', function(e) {
         var $button = $(this);
         var href = String($button.attr('href') || '');
         if (href.indexOf('add-to-cart=') === -1) return;
@@ -57,7 +64,7 @@ jQuery(document).ready(function($) {
 
         var productId = String($button.attr('data-product_id') || $button.data('product_id') || extractProductIdFromHref(href));
         if (!productId) return;
-        var quantity = String($button.attr('data-quantity') || $button.data('quantity') || '1');
+        var quantity = String($button.attr('data-quantity') || $button.data('quantity') || parseQuantityFromHref(href) || '1');
         var ajaxUrl = getWooAjaxAddToCartUrl();
         if (!ajaxUrl) return;
 
