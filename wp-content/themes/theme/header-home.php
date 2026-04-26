@@ -1457,7 +1457,7 @@ if (!empty($_POST["vib"])) {
         <h5 class="modal-delivery__selfpickup-city">Владивосток:</h5>
         <!-- FIX: исправлены дублирующиеся id="market1" на уникальные -->
         <div id="market_egersheld" class="market_el">
-            <p class="modal-delivery__selfpickup-adress">Эгершельд, Верхнепортовая,68а</p>
+            <p class="modal-delivery__selfpickup-adress">Эгершельд, Верхнепортовая, 41в</p>
             <div class="mainblock_time1 enable1" data-market="11" style="">
                 <div class="underblocktime1" style="">
                     <p class="delivery-text modal-delivery__selfpickup-btn" style="margin-bottom:0px;">Выбрать</p>
@@ -1545,7 +1545,7 @@ if (!empty($_POST["vib"])) {
             map2.setCenter(coords, 16);
         }
         var myPlacemark11 = new ymaps.Placemark([43.09968, 131.863907], {
-            hintContent: 'Эгершельд, Верхнепортовая,68а'
+            hintContent: 'Эгершельд, Верхнепортовая, 41в'
         }, {
             balloonContentLayout: null
         });
