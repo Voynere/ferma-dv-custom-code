@@ -584,7 +584,7 @@ jQuery(document).ready(function($) {
         prepareCatalogAddToCartButton($(this));
     });
 
-    $(document).on('click', '.product-card__cart .add_to_cart_button.ajax_add_to_cart', function(e) {
+    $(document).on('click', '.add_to_cart_button.ajax_add_to_cart', function(e) {
         var $button = $(this);
 
         prepareCatalogAddToCartButton($button);
@@ -592,7 +592,6 @@ jQuery(document).ready(function($) {
         // Явно блокируем переход по href, чтобы исключить скачок страницы вверх.
         // WooCommerce все равно обработает этот клик через свой ajax add-to-cart хендлер.
         e.preventDefault();
-        e.stopPropagation();
     });
 
     $(document.body).on('added_to_cart', function(e, fragments, cart_hash, $button) {
