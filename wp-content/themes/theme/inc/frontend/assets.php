@@ -248,6 +248,7 @@ function ferma_apply_single_post_header_fixes() {
 	}
 
 	$css = '@media (min-width: 768px){'
+		. 'body.single.single-post .header__follow{display:none !important;}'
 		. 'body.single.single-post .header__logo div p{margin:0 !important;line-height:1.1 !important;letter-spacing:0 !important;color:var(--color-light-black) !important;}'
 		. 'body.single.single-post .header__logo div span{display:block !important;margin-top:2px !important;line-height:1.1 !important;letter-spacing:0 !important;color:var(--color-light-black) !important;}'
 		. 'body.single.single-post .header__phone{color:var(--color-light-black) !important;font-size:var(--font-sz-18) !important;font-weight:var(--font-w-bold) !important;text-decoration:none !important;}'
