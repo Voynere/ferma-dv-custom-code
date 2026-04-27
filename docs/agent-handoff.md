@@ -59,6 +59,7 @@ Last updated: 2026-04-27
 - `676b9c2` Prevent footer inline script crash on category pages.
 - `92bd8c9` Align archive product header/footer with single-product baseline.
 - `18e5272` Prevent header delivery button wrapping on archive/category pages.
+- `25d5ea6` Normalize archive header logo spacing and phone link color.
 
 ## Latest update (2026-04-27)
 
@@ -109,6 +110,16 @@ Last updated: 2026-04-27
 - Next verification:
   1. Open category page with long pickup text (`Самовывоз: ...`).
   2. Confirm delivery control stays single-line (ellipsis allowed) and header controls stay aligned.
+
+## Latest update (2026-04-27, typography/color follow-up)
+
+- Changed: `wp-content/themes/theme/inc/frontend/assets.php`
+  - Reason: category/archive header still differed from single baseline (logo line spacing + blue tel link color).
+- Commit: `25d5ea6`
+- Status: fixed in code, pending screenshot confirmation.
+- Next verification:
+  1. Open product category page and compare logo block spacing with single product page.
+  2. Confirm phone link color is dark (not blue) and header row remains aligned.
 
 ## Known caution
 
