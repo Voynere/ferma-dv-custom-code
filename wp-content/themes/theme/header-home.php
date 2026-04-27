@@ -147,7 +147,18 @@ if ( function_exists( 'is_post_type_archive' ) && is_post_type_archive( 'product
         z-index: 111111111111111;
     }
 </style>
+<?php
+$ferma_style_probe = isset( $_GET['ferma_style_probe'] ) ? sanitize_key( wp_unslash( $_GET['ferma_style_probe'] ) ) : '';
+$ferma_probe_is_single_detail = is_single() && ! ( function_exists( 'is_product' ) && is_product() );
+$ferma_probe_disable_swiper_fallback = $ferma_probe_is_single_detail && ( 'no-swiper-fallback' === $ferma_style_probe );
+$ferma_probe_disable_legacy_hide = $ferma_probe_is_single_detail && ( 'no-legacy-hide' === $ferma_style_probe );
+$ferma_probe_disable_single_guard = $ferma_probe_is_single_detail && ( 'no-single-guard' === $ferma_style_probe );
+$ferma_probe_disable_inline_block = $ferma_probe_is_single_detail && ( 'no-inline-block' === $ferma_style_probe );
+?>
+<?php if ( ! $ferma_probe_disable_inline_block ) : ?>
 <style>
+    /* Probe mode: use ?ferma_style_probe=no-swiper-fallback|no-legacy-hide|no-single-guard|no-inline-block */
+<?php if ( ! $ferma_probe_disable_swiper_fallback ) : ?>
     /* Swiper navigation fallback: keep arrows vertically centered */
     .home-slider__inner .homeSwiper-next,
     .home-slider__inner .homeSwiper-prev,
@@ -170,7 +181,9 @@ if ( function_exists( 'is_post_type_archive' ) && is_post_type_archive( 'product
         height: auto !important;
         align-items: stretch;
     }
+<?php endif; ?>
 
+<?php if ( ! $ferma_probe_disable_legacy_hide ) : ?>
     /* Guard against legacy global snippets from Simple CSS&JS on inner pages. */
     body:not(.home):not(.single-product) #photo_pc_1,
     body:not(.home):not(.single-product) #photo_pc_2,
@@ -187,6 +200,7 @@ if ( function_exists( 'is_post_type_archive' ) && is_post_type_archive( 'product
         margin: 0 !important;
         padding: 0 !important;
     }
+<?php endif; ?>
 
     /* Replacement for safe parts of disabled custom snippet 4438.css */
     body.woocommerce ul.products li.product .woocommerce-loop-category__title,
@@ -228,6 +242,7 @@ if ( function_exists( 'is_post_type_archive' ) && is_post_type_archive( 'product
         background: #e87e7e !important;
     }
 
+<?php if ( ! $ferma_probe_disable_single_guard ) : ?>
     /* Keep single detail header deterministic even when inline legacy styles are present. */
     body.single:not(.single-product) .header__follow {
         display: none !important;
@@ -253,8 +268,10 @@ if ( function_exists( 'is_post_type_archive' ) && is_post_type_archive( 'product
             gap: 24px !important;
         }
     }
+<?php endif; ?>
 
 </style>
+<?php endif; ?>
 <p style="display:none;">
     <?
     $user_id = get_current_user_id();
