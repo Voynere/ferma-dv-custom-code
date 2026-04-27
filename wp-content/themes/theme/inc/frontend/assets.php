@@ -9,9 +9,8 @@
  * Enqueue scripts and styles.
  */
 function theme_scripts() {
-	// Base legacy stylesheet is disabled globally to keep most templates
+	// Base legacy stylesheet is disabled globally to keep templates
 	// on the same visual baseline as homepage/product pages.
-	// For single content pages it will be enqueued later (after new-style) so header rules are not overridden.
 
 	wp_enqueue_style( 'complect-style', get_template_directory_uri() . '/css/complect.css', '', '1.0' );
 
@@ -24,12 +23,8 @@ function theme_scripts() {
 	$style_uri  = get_template_directory_uri() . '/assets/css/style.min.css';
 	$version    = file_exists( $style_path ) ? filemtime( $style_path ) : null;
 	wp_enqueue_style( 'new-style', $style_uri, array(), $version );
-	if ( is_single() && ! is_product() ) {
-		$legacy_style_path = get_stylesheet_directory() . '/style.css';
-		$legacy_style_ver  = file_exists( $legacy_style_path ) ? filemtime( $legacy_style_path ) : null;
-		// Load after new-style: single blog/recipes/promotions need legacy header rules to win.
-		wp_enqueue_style( 'theme-style-single', get_stylesheet_uri(), array( 'new-style' ), $legacy_style_ver );
-	}
+	// NOTE: Do not enqueue legacy style.css on single content pages.
+	// It causes header/menu/sticky regressions (blue links, oversized spacing).
 	// Ensure side cart stays above sticky follow-header while scrolling.
 	wp_add_inline_style( 'new-style', '.cart{z-index:10020 !important;}' );
 
@@ -140,12 +135,10 @@ function ferma_dequeue_single_legacy_style_outside_single() {
 	if ( is_admin() ) {
 		return;
 	}
-	if ( is_single() && ! is_product() ) {
-		return;
-	}
 	if (
 		( function_exists( 'is_product_category' ) && is_product_category() )
 		|| ( function_exists( 'is_shop' ) && is_shop() )
+		|| ( is_single() && ! ( function_exists( 'is_product' ) && is_product() ) )
 		|| is_category()
 		|| ( is_archive() && ! is_singular() )
 	) {
@@ -166,6 +159,7 @@ function ferma_force_dequeue_legacy_style_on_catalog() {
 		( function_exists( 'is_product_category' ) && is_product_category() )
 		|| ( function_exists( 'is_shop' ) && is_shop() )
 		|| ( is_archive() && ! is_singular() )
+		|| ( is_single() && ! ( function_exists( 'is_product' ) && is_product() ) )
 	) {
 		wp_dequeue_style( 'theme-style-single' );
 		wp_deregister_style( 'theme-style-single' );
@@ -181,7 +175,7 @@ function ferma_apply_internal_header_layout_fixes() {
 	if ( is_admin() ) {
 		return;
 	}
-	if ( ! wp_style_is( 'new-style', 'enqueued' ) && ! wp_style_is( 'theme-style-single', 'enqueued' ) ) {
+	if ( ! wp_style_is( 'new-style', 'enqueued' ) ) {
 		return;
 	}
 	$is_product_archive_context = ( function_exists( 'is_product_category' ) && is_product_category() )
@@ -211,8 +205,7 @@ function ferma_apply_internal_header_layout_fixes() {
 		. 'body.tax-product_cat .header__follow .header__desktop-bot,body.post-type-archive-product .header__follow .header__desktop-bot,body.single-product .header__follow .header__desktop-bot{margin-top:0 !important;gap:24px !important;}'
 		. 'body.tax-product_cat .header__follow .header__desktop-bot .header__delivery,body.post-type-archive-product .header__follow .header__desktop-bot .header__delivery,body.single-product .header__follow .header__desktop-bot .header__delivery{max-width:424px !important;}'
 		. 'body.tax-product_cat .header__follow .header__desktop-bot .header__delivery .header__delivery-result,body.post-type-archive-product .header__follow .header__desktop-bot .header__delivery .header__delivery-result,body.single-product .header__follow .header__desktop-bot .header__delivery .header__delivery-result{max-width:260px !important;}';
-	$target_style_handle = wp_style_is( 'theme-style-single', 'enqueued' ) ? 'theme-style-single' : 'new-style';
-	wp_add_inline_style( $target_style_handle, $css );
+	wp_add_inline_style( 'new-style', $css );
 }
 
 /**
