@@ -1893,6 +1893,111 @@ if (!empty($_POST["vib"])) {
             body.single.single-post .header__follow .header__desktop-bot .header__delivery { max-width: 424px !important; }
             body.single.single-post .header__follow .header__desktop-bot .header__delivery .header__delivery-result { display: inline-block !important; max-width: 260px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
         </style>
+        <script>
+            (function () {
+                function forceHeaderParity() {
+                    if (!document.body || !document.body.classList.contains('single-post')) {
+                        return;
+                    }
+                    function applyAll(selector, styles) {
+                        document.querySelectorAll(selector).forEach(function (el) {
+                            Object.keys(styles).forEach(function (prop) {
+                                el.style.setProperty(prop, styles[prop], 'important');
+                            });
+                        });
+                    }
+
+                    applyAll('.header__logo div p', {
+                        'margin': '0',
+                        'line-height': '1.1',
+                        'letter-spacing': '0',
+                        'color': '#1a1a1a',
+                        'font-size': '48px'
+                    });
+                    applyAll('.header__logo div span', {
+                        'display': 'block',
+                        'margin-top': '2px',
+                        'line-height': '1.1',
+                        'letter-spacing': '0',
+                        'color': '#1a1a1a',
+                        'font-size': '20px'
+                    });
+                    applyAll('.header__phone', {
+                        'color': '#1a1a1a',
+                        'font-size': '18px',
+                        'font-weight': '700',
+                        'text-decoration': 'none'
+                    });
+                    applyAll('.header__socials a img', {
+                        'opacity': '1',
+                        'filter': 'none'
+                    });
+                    applyAll('.header__desktop-menu', {
+                        'margin': '40px 0',
+                        'padding': '26px',
+                        'min-height': '94px',
+                        'background-color': '#fdf5e5',
+                        'border-radius': '12px'
+                    });
+                    applyAll('.header__desktop-menu nav ul', {
+                        'justify-content': 'center',
+                        'gap': '64px'
+                    });
+                    applyAll('.header__desktop-menu nav ul li a', {
+                        'color': '#1a1a1a',
+                        'font-size': '18px',
+                        'font-weight': '400',
+                        'text-decoration': 'none'
+                    });
+                    applyAll('.header__desktop-bot .header__catalog', {
+                        'width': '200px',
+                        'min-width': '200px',
+                        'height': '56px',
+                        'border-radius': '12px'
+                    });
+                    applyAll('.header__desktop-bot .header__catalog img', {
+                        'margin-right': '16px'
+                    });
+
+                    applyAll('.header__follow .header__desktop-menu', {
+                        'margin': '0',
+                        'padding': '16px 0',
+                        'min-height': 'auto',
+                        'background': 'transparent',
+                        'border-radius': '0'
+                    });
+                    applyAll('.header__follow .header__desktop-menu nav ul', {
+                        'gap': '16px',
+                        'justify-content': 'space-between'
+                    });
+                    applyAll('.header__follow .header__desktop-menu nav ul li a', {
+                        'color': '#1a1a1a',
+                        'font-size': '16px',
+                        'text-decoration': 'none'
+                    });
+                    applyAll('.header__follow .header__desktop-bot', {
+                        'margin-top': '0',
+                        'gap': '24px'
+                    });
+                    applyAll('.header__follow .header__desktop-bot .header__catalog', {
+                        'width': '56px',
+                        'min-width': '56px',
+                        'height': '56px',
+                        'border-radius': '12px'
+                    });
+                    applyAll('.header__follow .header__desktop-bot .header__catalog img', {
+                        'margin': '0'
+                    });
+                }
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', forceHeaderParity);
+                } else {
+                    forceHeaderParity();
+                }
+                window.addEventListener('load', forceHeaderParity);
+            })();
+        </script>
         <div class="ferma-debug-style-test">STYLE-TEST-5ef6fc7</div>
     <?php endif; ?>
     <header class="header header__product">
