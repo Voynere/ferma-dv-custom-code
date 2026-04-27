@@ -236,6 +236,24 @@ Last updated: 2026-04-27
   2. Open recipe detail and confirm no regression.
   3. Open stock/promo detail and confirm template-level fixes now apply.
 
+## Latest update (2026-04-27, enqueue-level CSS probe for single details)
+
+- Changed: `wp-content/themes/theme/inc/frontend/assets.php`
+  - Reason: inline-style probe in `header-home.php` produced no visual delta, so conflicting styles likely come from enqueued stylesheet handles.
+  - Update:
+    - added diagnostic probe `?ferma_css_probe=...` for non-product single pages with late dequeue (`priority 999999`):
+      - `no-new-style`
+      - `no-theme-style`
+      - `no-complect-style`
+      - `no-extra-catalog` (disables `catalog-qty` + `product-card-qty`)
+      - `no-all-theme-css`
+- Commit: not committed yet
+- Status: fixed in code, pending A/B visual checks to isolate exact stylesheet handle causing header drift.
+- Next verification:
+  1. Open one detail URL with each probe mode and compare header behavior.
+  2. Identify first mode that changes header geometry/colors.
+  3. Convert the probe result to permanent conditional dequeue/override.
+
 ## Known caution
 
 - `catalog-qty23.js` now contains strong fallback logic to survive inconsistent legacy markup.
