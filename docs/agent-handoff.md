@@ -55,6 +55,7 @@ Last updated: 2026-04-27
 - `d935290` Handle listing add-to-cart fallback by href pattern, not class only.
 - `70d3b86` Stabilize catalog add-to-cart fallback handlers for maintainability.
 - `22ce9a8` Fix add-to-cart toast title extraction and cart-anchor positioning fallback.
+- `495c9ef` Fix single-product add-to-cart toast title fallback.
 
 ## Latest update (2026-04-27)
 
@@ -65,6 +66,16 @@ Last updated: 2026-04-27
 - Next verification:
   1. Open single product, click `В корзину`, verify toast title is product name.
   2. Verify toast appears next to header cart icon (desktop and mobile header layouts).
+
+## Latest update (2026-04-27, follow-up)
+
+- Changed: `wp-content/themes/theme/assets/js/catalog-qty23.js`
+  - Reason: on single-product pages toast title still fell back to generic `Товар` because heading was outside cart container.
+- Commit: `495c9ef`
+- Status: fixed in code, pending user verification.
+- Next verification:
+  1. Open any single product page, click `В корзину`.
+  2. Confirm toast title equals actual product name (not `Товар`).
 
 ## Known caution
 
