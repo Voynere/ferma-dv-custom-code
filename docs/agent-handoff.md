@@ -270,6 +270,25 @@ Last updated: 2026-04-27
   2. Open same URL on desktop width and confirm mobile variant is hidden and desktop layout is stable.
   3. Compare with homepage/header reference.
 
+## Latest update (2026-04-27, server-side mobile single header guard)
+
+- Changed: `wp-content/themes/theme/header-home.php`
+  - Reason: live HTML confirms header fixes are present and `body` classes match, but mobile single detail still renders mixed header variants; likely runtime/mobile rendering conflict not resolved by media-query-only guards.
+  - Update:
+    - added server-side `wp_is_mobile()` guard for non-product single pages to force-hide:
+      - `.header__follow`
+      - `.header__desktop-top`
+      - `.header__desktop-menu`
+      - `.header__desktop-bot`
+      - `.header__tablet-top`
+      - `.header__tablet-menu`
+    - force-show `.header__mobile`
+- Commit: not committed yet
+- Status: fixed in code, pending mobile visual verification.
+- Next verification:
+  1. Open problematic single URL from mobile device/browser and confirm only one header variant remains.
+  2. Confirm logo/menu/cart row no longer duplicates.
+
 ## Known caution
 
 - `catalog-qty23.js` now contains strong fallback logic to survive inconsistent legacy markup.

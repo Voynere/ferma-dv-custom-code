@@ -150,6 +150,7 @@ if ( function_exists( 'is_post_type_archive' ) && is_post_type_archive( 'product
 <?php
 $ferma_style_probe = isset( $_GET['ferma_style_probe'] ) ? sanitize_key( wp_unslash( $_GET['ferma_style_probe'] ) ) : '';
 $ferma_probe_is_single_detail = is_single() && ! ( function_exists( 'is_product' ) && is_product() );
+$ferma_single_mobile_guard = $ferma_probe_is_single_detail && function_exists( 'wp_is_mobile' ) && wp_is_mobile();
 $ferma_probe_disable_swiper_fallback = $ferma_probe_is_single_detail && ( 'no-swiper-fallback' === $ferma_style_probe );
 $ferma_probe_disable_legacy_hide = $ferma_probe_is_single_detail && ( 'no-legacy-hide' === $ferma_style_probe );
 $ferma_probe_disable_single_guard = $ferma_probe_is_single_detail && ( 'no-single-guard' === $ferma_style_probe );
@@ -158,6 +159,22 @@ $ferma_probe_disable_inline_block = $ferma_probe_is_single_detail && ( 'no-inlin
 <?php if ( ! $ferma_probe_disable_inline_block ) : ?>
 <style>
     /* Probe mode: use ?ferma_style_probe=no-swiper-fallback|no-legacy-hide|no-single-guard|no-inline-block */
+<?php if ( $ferma_single_mobile_guard ) : ?>
+    /* Server-side mobile guard for single detail pages. */
+    body.single:not(.single-product) .header__follow,
+    body.single:not(.single-product) .header__desktop-top,
+    body.single:not(.single-product) .header__desktop-menu,
+    body.single:not(.single-product) .header__desktop-bot,
+    body.single:not(.single-product) .header__tablet-top,
+    body.single:not(.single-product) .header__tablet-menu {
+        display: none !important;
+    }
+
+    body.single:not(.single-product) .header__mobile {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+<?php endif; ?>
 <?php if ( ! $ferma_probe_disable_swiper_fallback ) : ?>
     /* Swiper navigation fallback: keep arrows vertically centered */
     .home-slider__inner .homeSwiper-next,
