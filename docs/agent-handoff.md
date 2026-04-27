@@ -305,6 +305,20 @@ Last updated: 2026-04-27
   1. Open problematic single URL on mobile and confirm duplicate headers disappear.
   2. Rotate device / resize viewport and confirm guard keeps a single active header variant.
 
+## Latest update (2026-04-27, full desktop container hide on mobile single)
+
+- Changed:
+  - `wp-content/themes/theme/inc/frontend/assets.php`
+  - `wp-content/themes/theme/header-home.php`
+- Reason: live mobile HTML contains full `.header__desktop` container in addition to desktop sub-blocks; hiding only child sections may still leave duplicated desktop fragments visible.
+- Update:
+  - added explicit hide for `.header__desktop` in all single-detail mobile guards:
+    - CSS inline guard
+    - runtime DOM guard
+    - server-side mobile guard in `header-home.php`
+- Commit: not committed yet
+- Status: fixed in code, pending visual verification.
+
 ## Known caution
 
 - `catalog-qty23.js` now contains strong fallback logic to survive inconsistent legacy markup.
