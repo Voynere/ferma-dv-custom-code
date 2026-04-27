@@ -377,6 +377,13 @@ function ferma_force_single_detail_header_variant_visibility() {
 
 	$css = ''
 		. 'body.single:not(.single-product) .header__follow{display:none !important;}'
+		. 'body.single:not(.single-product) .header.header__product .header__catalog img,'
+		. 'body.single:not(.single-product) .header.header__product .header__cart img,'
+		. 'body.single:not(.single-product) .header.header__product .header__bonus img,'
+		. 'body.single:not(.single-product) .header.header__product .header__profile img,'
+		. 'body.single:not(.single-product) .header.header__product .header__phone img,'
+		. 'body.single:not(.single-product) .header.header__product .header__search img,'
+		. 'body.single:not(.single-product) .header.header__product .header__socials img{border-radius:0 !important;}'
 		. '@media (max-width: 768px){'
 		. 'body.single:not(.single-product) .header.header__product > .container:first-of-type{display:none !important;}'
 		. 'body.single:not(.single-product) .header.header__product .header__desktop{display:block !important;}'

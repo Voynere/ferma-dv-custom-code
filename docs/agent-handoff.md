@@ -359,6 +359,23 @@ Last updated: 2026-04-27
 - Commit: not committed yet
 - Status: fixed in code, pending visual verification against homepage reference on desktop and mobile.
 
+## Latest update (2026-04-27, single-post image radius header icon fix)
+
+- Changed: `wp-content/themes/theme/inc/frontend/assets.php`
+  - Reason: global content rule `.single-post img { border-radius: 24px; }` also affects header icons on single detail pages (catalog/cart/profile/etc.), visually distorting header controls.
+  - Update:
+    - added explicit header icon override for non-product single pages:
+      - `.header__catalog img`
+      - `.header__cart img`
+      - `.header__bonus img`
+      - `.header__profile img`
+      - `.header__phone img`
+      - `.header__search img`
+      - `.header__socials img`
+    - all forced to `border-radius: 0 !important`.
+- Commit: not committed yet
+- Status: fixed in code, pending visual verification.
+
 ## Known caution
 
 - `catalog-qty23.js` now contains strong fallback logic to survive inconsistent legacy markup.
