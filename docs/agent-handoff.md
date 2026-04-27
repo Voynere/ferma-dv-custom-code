@@ -63,6 +63,7 @@ Last updated: 2026-04-27
 - `ffb6cf1` Apply header fixes on `.header__product` selectors (body-class-independent).
 - `73f70d5` Restore WooCommerce archive body classes in `header-home.php`.
 - `d8105b7` Force-disable legacy `style.css` on catalog/archive and harden menu link colors.
+- `89c536c` Normalize sticky header spacing on blog/recipe/stock detail pages.
 
 ## Latest update (2026-04-27)
 
@@ -156,6 +157,21 @@ Last updated: 2026-04-27
   - Purpose: eliminate blue-link and mixed-card-layout regressions caused by late legacy stylesheet injection.
 - Commit: `d8105b7`
 - Status: pushed to `main`; pending live verification with hard refresh.
+
+## Latest update (2026-04-27, detail pages sticky-header parity)
+
+- Changed: `wp-content/themes/theme/inc/frontend/assets.php`
+  - Added explicit `header__follow` resets for `body.single.single-post` and `.header.header__product`:
+    - menu container margin/padding/background
+    - nav gap and link color/size
+    - desktop-bottom spacing
+    - delivery button width and text truncation behavior
+  - Purpose: remove visual drift on pinned header in detail pages:
+    - blog article
+    - recipe article
+    - stock/promo article
+- Commit: `89c536c`
+- Status: pushed to `main`; pending user visual verification.
 
 ## Known caution
 
