@@ -127,6 +127,29 @@ function theme_scripts() {
 add_action( 'wp_enqueue_scripts', 'theme_scripts' );
 
 /**
+ * Prevent stale full-page cache on single content pages while
+ * header/style hotfixes are being stabilized.
+ */
+add_action( 'template_redirect', 'ferma_disable_cache_for_single_content_pages', 1 );
+function ferma_disable_cache_for_single_content_pages() {
+	if ( is_admin() ) {
+		return;
+	}
+	if ( is_single() && ! ( function_exists( 'is_product' ) && is_product() ) ) {
+		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+			define( 'DONOTCACHEPAGE', true );
+		}
+		if ( ! defined( 'DONOTCACHEOBJECT' ) ) {
+			define( 'DONOTCACHEOBJECT', true );
+		}
+		if ( ! defined( 'DONOTCACHEDB' ) ) {
+			define( 'DONOTCACHEDB', true );
+		}
+		nocache_headers();
+	}
+}
+
+/**
  * Safety guard: legacy style.css must stay off product/category/archive pages.
  * Query Monitor shows it can still appear there via late third-party/theme hooks.
  */
