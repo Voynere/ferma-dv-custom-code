@@ -6,6 +6,40 @@
 
 <?php get_header('home'); ?>
 
+<style>
+    body.single.single-post .header__desktop-menu nav ul {
+        display: flex !important;
+        justify-content: center !important;
+        gap: 64px !important;
+        flex-wrap: nowrap !important;
+    }
+    @media (max-width: 1300px) {
+        body.single.single-post .header__desktop-menu nav ul {
+            gap: 32px !important;
+        }
+    }
+    body.single.single-post .custom-breadcrumb--single {
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        gap: 10px !important;
+        font-size: 24px !important;
+    }
+    body.single.single-post .custom-breadcrumb--single > a,
+    body.single.single-post .custom-breadcrumb--single > .delimiter {
+        white-space: nowrap !important;
+        flex: 0 0 auto !important;
+    }
+    body.single.single-post .custom-breadcrumb--single > .custom-breadcrumb__this {
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+</style>
+
 <main class="recipe-post">
 
     <section class="selection">
