@@ -378,6 +378,9 @@ function ferma_force_single_detail_header_variant_visibility() {
 	$css = ''
 		. 'body.single:not(.single-product) .header__follow{display:none !important;}'
 		. '@media (max-width: 768px){'
+		. 'body.single:not(.single-product) .header.header__product > .container:first-of-type{display:none !important;}'
+		. 'body.single:not(.single-product) .header.header__product .header__desktop{display:block !important;}'
+		. 'body.single:not(.single-product) .header.header__product .header__desktop > *:not(.header__mobile){display:none !important;}'
 		. 'body.single:not(.single-product) .header__desktop-top,'
 		. 'body.single:not(.single-product) .header__desktop-menu,'
 		. 'body.single:not(.single-product) .header__desktop-bot,'
@@ -425,6 +428,9 @@ function ferma_force_single_detail_header_runtime_guard() {
 			setDisplay('.header__follow', 'none');
 
 			if (isMobile) {
+				setDisplay('.header.header__product > .container:first-of-type', 'none');
+				setDisplay('.header.header__product .header__desktop', 'block');
+				setDisplay('.header.header__product .header__desktop > *:not(.header__mobile)', 'none');
 				setDisplay('.header__desktop-top', 'none');
 				setDisplay('.header__desktop-menu', 'none');
 				setDisplay('.header__desktop-bot', 'none');

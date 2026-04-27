@@ -161,6 +161,18 @@ $ferma_probe_disable_inline_block = $ferma_probe_is_single_detail && ( 'no-inlin
     /* Probe mode: use ?ferma_style_probe=no-swiper-fallback|no-legacy-hide|no-single-guard|no-inline-block */
 <?php if ( $ferma_single_mobile_guard ) : ?>
     /* Server-side mobile guard for single detail pages. */
+    body.single:not(.single-product) .header.header__product > .container:first-of-type {
+        display: none !important;
+    }
+
+    body.single:not(.single-product) .header.header__product .header__desktop {
+        display: block !important;
+    }
+
+    body.single:not(.single-product) .header.header__product .header__desktop > *:not(.header__mobile) {
+        display: none !important;
+    }
+
     body.single:not(.single-product) .header__follow,
     body.single:not(.single-product) .header__desktop-top,
     body.single:not(.single-product) .header__desktop-menu,

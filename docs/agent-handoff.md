@@ -334,6 +334,21 @@ Last updated: 2026-04-27
 - Commit: not committed yet
 - Status: fixed in code, pending visual verification that mobile header returns while duplicates stay suppressed.
 
+## Latest update (2026-04-27, mobile single header structural guard)
+
+- Changed:
+  - `wp-content/themes/theme/inc/frontend/assets.php`
+  - `wp-content/themes/theme/header-home.php`
+- Reason: mobile header returned but remained visually broken; partial hides still allowed mixed sibling blocks inside the same header container.
+- Update:
+  - added structural mobile single guard to keep only one active header branch:
+    - hide first header container (`.header__follow` wrapper container)
+    - force show `.header__desktop` root
+    - hide all direct children of `.header__desktop` except `.header__mobile`
+  - retained existing explicit hides for desktop/tablet/follow blocks.
+- Commit: not committed yet
+- Status: fixed in code, pending visual verification.
+
 ## Known caution
 
 - `catalog-qty23.js` now contains strong fallback logic to survive inconsistent legacy markup.
