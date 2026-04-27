@@ -61,13 +61,20 @@ if ( function_exists( 'ferma_get_answer_user_shopping_flag' ) ) {
 }
 ?></p>
 <script>
-	const samovivizValue = document.querySelector('#data_of_samoviviz').innerHTML;
-const options = document.querySelectorAll('#billing_type_delivery_sam option');
-options.forEach(option => {
-  if (option.value === samovivizValue) {
-    option.selected = true;
-  }
-});
+	(function () {
+		var samovivizEl = document.querySelector('#data_of_samoviviz');
+		var selectEl = document.querySelector('#billing_type_delivery_sam');
+		if (!samovivizEl || !selectEl) {
+			return;
+		}
+		var samovivizValue = samovivizEl.innerHTML;
+		var options = selectEl.querySelectorAll('option');
+		options.forEach(function(option) {
+			if (option.value === samovivizValue) {
+				option.selected = true;
+			}
+		});
+	})();
 
 </script>
 <script>
