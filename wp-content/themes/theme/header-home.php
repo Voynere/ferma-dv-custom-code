@@ -1847,8 +1847,6 @@ if (!empty($_POST["vib"])) {
     <div class="overlay"></div>
 
     <header class="header header__product">
-        <?php $ferma_show_follow_header = ! ( is_single() && ! ( function_exists( 'is_product' ) && is_product() ) ); ?>
-        <?php if ( $ferma_show_follow_header ) : ?>
         <div class="header__follow">
             <div class="container">
                 <div class="header__follow-inner">
@@ -2002,7 +2000,6 @@ if (!empty($_POST["vib"])) {
                 </div>
             </div>
         </div>
-        <?php endif; ?>
         <div class="container">
             <div class="header__inner">
                 <div class="header__desktop">

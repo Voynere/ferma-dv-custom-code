@@ -231,6 +231,20 @@ function ferma_apply_internal_header_layout_fixes() {
 	wp_add_inline_style( 'new-style', $css );
 }
 
+add_action( 'wp_enqueue_scripts', 'ferma_hide_follow_header_on_single_posts', 1001 );
+function ferma_hide_follow_header_on_single_posts() {
+	if ( is_admin() ) {
+		return;
+	}
+	if ( ! is_single() || ( function_exists( 'is_product' ) && is_product() ) ) {
+		return;
+	}
+	if ( ! wp_style_is( 'new-style', 'enqueued' ) ) {
+		return;
+	}
+	wp_add_inline_style( 'new-style', 'body.single.single-post .header__follow{display:none !important;}' );
+}
+
 /**
  * jQuery cleanup for legacy theme scripts.
  * Keep only core jQuery and remove old custom handle if present.
