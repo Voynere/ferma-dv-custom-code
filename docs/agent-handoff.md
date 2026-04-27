@@ -173,6 +173,20 @@ Last updated: 2026-04-27
 - Commit: `89c536c`
 - Status: pushed to `main`; pending user visual verification.
 
+## Latest update (2026-04-27, non-post single header parity)
+
+- Changed: `wp-content/themes/theme/inc/frontend/assets.php`
+  - Reason: header parity fixes were scoped to `body.single.single-post` only, so custom single detail pages (recipes/promos/articles with non-`post` body classes) could miss sticky/header style resets.
+  - Update:
+    - widened selectors from `body.single.single-post` to `body.single:not(.single-product)`
+    - applied to both follow-header hide rule and desktop header color/layout normalization block
+- Commit: not committed yet
+- Status: fixed in code, pending visual verification on article/recipe/promo detail pages.
+- Next verification:
+  1. Open blog article detail page and compare header with homepage reference.
+  2. Open recipe detail page and confirm sticky/follow header does not distort top layout.
+  3. Open promo/stock detail page and confirm menu/logo/phone colors and spacing match baseline.
+
 ## Known caution
 
 - `catalog-qty23.js` now contains strong fallback logic to survive inconsistent legacy markup.
