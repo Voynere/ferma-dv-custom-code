@@ -2,6 +2,7 @@
 document.addEventListener('DOMContentLoaded', function () {
 
     const follow = document.querySelector('.header__follow');
+    if (!follow) return;
     let lastScroll = 0;
     const screenHeight = 350;
 
@@ -35,6 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const searchBox = document.querySelector('.header__search-content');
     const iconSearch = document.querySelector('.header-follow-search-icon');
     const iconClose = document.querySelector('.header-follow-close-icon');
+    if (!btn || !searchBox || !iconSearch || !iconClose) return;
 
     function openSearch() {
         searchBox.classList.add('active');
@@ -131,6 +133,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function changeTemplate() {
         const w = window.innerWidth;
         const logo = document.querySelector('.header__follow .header__logo');
+        if (!logo) return;
         let target = null;
 
         if (w <= 950) {
