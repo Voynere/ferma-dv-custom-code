@@ -358,3 +358,36 @@ function ferma_debug_probe_single_css_sources() {
 		wp_dequeue_style( 'product-card-qty' );
 	}
 }
+
+/**
+ * Hard guard for single detail header layout.
+ * Stabilizes visibility of header variants across breakpoints.
+ */
+add_action( 'wp_enqueue_scripts', 'ferma_force_single_detail_header_variant_visibility', 1003 );
+function ferma_force_single_detail_header_variant_visibility() {
+	if ( is_admin() ) {
+		return;
+	}
+	if ( ! is_single() || ( function_exists( 'is_product' ) && is_product() ) ) {
+		return;
+	}
+	if ( ! wp_style_is( 'new-style', 'enqueued' ) ) {
+		return;
+	}
+
+	$css = ''
+		. 'body.single:not(.single-product) .header__follow{display:none !important;}'
+		. '@media (max-width: 768px){'
+		. 'body.single:not(.single-product) .header__desktop-top,'
+		. 'body.single:not(.single-product) .header__desktop-menu,'
+		. 'body.single:not(.single-product) .header__desktop-bot,'
+		. 'body.single:not(.single-product) .header__tablet-top,'
+		. 'body.single:not(.single-product) .header__tablet-menu{display:none !important;}'
+		. 'body.single:not(.single-product) .header__mobile{display:flex !important;flex-direction:column !important;}'
+		. '}'
+		. '@media (min-width: 769px){'
+		. 'body.single:not(.single-product) .header__mobile{display:none !important;}'
+		. '}';
+
+	wp_add_inline_style( 'new-style', $css );
+}

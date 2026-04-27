@@ -254,6 +254,22 @@ Last updated: 2026-04-27
   2. Identify first mode that changes header geometry/colors.
   3. Convert the probe result to permanent conditional dequeue/override.
 
+## Latest update (2026-04-27, single header variant hard-guard)
+
+- Changed: `wp-content/themes/theme/inc/frontend/assets.php`
+  - Reason: probe confirmed `new-style` is the active source affecting header behavior on single detail pages; issue resembles variant visibility conflict (desktop/tablet/mobile/follow blocks rendered together).
+  - Update:
+    - added explicit variant visibility guard for `body.single:not(.single-product)`:
+      - always hide follow-header
+      - mobile (`<=768`): force hide desktop/tablet blocks, force show mobile block
+      - desktop/tablet (`>=769`): force hide mobile block
+- Commit: not committed yet
+- Status: fixed in code, pending visual verification on mobile and desktop widths for article/recipe/stock single pages.
+- Next verification:
+  1. Open problematic detail URL on mobile width and confirm only mobile header variant remains.
+  2. Open same URL on desktop width and confirm mobile variant is hidden and desktop layout is stable.
+  3. Compare with homepage/header reference.
+
 ## Known caution
 
 - `catalog-qty23.js` now contains strong fallback logic to survive inconsistent legacy markup.
