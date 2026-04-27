@@ -32,13 +32,13 @@ function theme_scripts() {
 		wp_add_inline_style(
 			'new-style',
 			'.ferma-checkout-submit-anchor{position:relative;display:block;width:100%;}' .
-			'.ferma-checkout-inline-notices{visibility:hidden;opacity:0;pointer-events:none;position:absolute;left:0;right:0;top:100%;margin-top:10px;padding:14px 40px 14px 16px;border-radius:12px;border:1px solid #e74c3c;background:#fff6f6;color:#1a1a1a;font-size:15px;line-height:1.45;box-shadow:0 6px 24px rgba(0,0,0,.12);z-index:5;max-height:min(40vh,280px);overflow:auto;}' .
-			'.ferma-checkout-inline-notices.is-visible{visibility:visible;opacity:1;pointer-events:auto;z-index:10050;}' .
+			'.ferma-checkout-inline-notices{visibility:hidden;opacity:0;pointer-events:none;position:fixed;left:50%;right:auto;top:auto;bottom:24px;transform:translateX(-50%);width:min(760px,calc(100vw - 32px));margin:0;padding:14px 40px 14px 16px;border-radius:12px;border:1px solid #e74c3c;background:#fff6f6;color:#1a1a1a;font-size:15px;line-height:1.45;box-shadow:0 6px 24px rgba(0,0,0,.12);z-index:2147483000;max-height:min(45vh,320px);overflow:auto;}' .
+			'.ferma-checkout-inline-notices.is-visible{visibility:visible;opacity:1;pointer-events:auto;z-index:2147483000;}' .
 			'.ferma-checkout-inline-notices__close{position:absolute;top:6px;right:6px;width:36px;height:36px;margin:0;padding:0;border:0;background:transparent;color:#333;font-size:26px;line-height:1;cursor:pointer;border-radius:8px;}' .
 			'.ferma-checkout-inline-notices__close:hover{background:rgba(0,0,0,.06);}' .
 			'.ferma-checkout-inline-notices__body:empty{display:none;}' .
 			'.ferma-checkout-inline-notices ul{margin:0.35em 0 0;padding-left:1.2em;}' .
-			'@media (max-width: 767px){.ferma-checkout-inline-notices{position:fixed;left:12px;right:12px;top:auto;bottom:calc(env(safe-area-inset-bottom, 0px) + 12px);margin-top:0;max-height:45vh;z-index:100500;}}' .
+			'@media (max-width: 767px){.ferma-checkout-inline-notices{left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom, 0px) + 12px);transform:none;width:auto;max-height:45vh;z-index:2147483000;}}' .
 			'.ferma-checkout-min-order p{margin:0 0 10px;}' .
 			'.ferma-checkout-min-order__actions{display:flex;gap:8px;flex-wrap:wrap;}' .
 			'.ferma-checkout-min-order__link,.ferma-checkout-min-order__stay{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 12px;border-radius:10px;font-size:14px;font-weight:600;text-decoration:none;cursor:pointer;}' .
