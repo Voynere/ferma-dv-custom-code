@@ -206,9 +206,17 @@ function ferma_apply_internal_header_layout_fixes() {
 		. '.header.header__product .catalog-menu__list li a{color:var(--color-light-black) !important;}'
 		. '.header.header__product .catalog-menu__new-title{color:var(--color-light-black) !important;}'
 		. '.header.header__product .header__follow .header__desktop-menu{margin:0 !important;padding:16px 0 !important;background:transparent !important;border-radius:0 !important;}'
+		. '.header.header__product .header__follow .header__desktop-menu nav ul{gap:16px !important;justify-content:space-between !important;}'
+		. '.header.header__product .header__follow .header__desktop-menu nav ul li a{color:var(--color-light-black) !important;font-size:16px !important;}'
 		. '.header.header__product .header__follow .header__desktop-bot{margin-top:0 !important;gap:24px !important;}'
 		. '.header.header__product .header__follow .header__desktop-bot .header__delivery{max-width:424px !important;}'
-		. '.header.header__product .header__follow .header__desktop-bot .header__delivery .header__delivery-result{max-width:260px !important;}';
+		. '.header.header__product .header__follow .header__desktop-bot .header__delivery .header__delivery-result{max-width:260px !important;}'
+		. 'body.single.single-post .header__follow .header__desktop-menu{margin:0 !important;padding:16px 0 !important;background:transparent !important;border-radius:0 !important;}'
+		. 'body.single.single-post .header__follow .header__desktop-menu nav ul{gap:16px !important;justify-content:space-between !important;}'
+		. 'body.single.single-post .header__follow .header__desktop-menu nav ul li a{color:var(--color-light-black) !important;font-size:16px !important;}'
+		. 'body.single.single-post .header__follow .header__desktop-bot{margin-top:0 !important;gap:24px !important;}'
+		. 'body.single.single-post .header__follow .header__desktop-bot .header__delivery{max-width:424px !important;}'
+		. 'body.single.single-post .header__follow .header__desktop-bot .header__delivery .header__delivery-result{display:inline-block !important;max-width:260px !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important;}';
 	wp_add_inline_style( 'new-style', $css );
 }
 
