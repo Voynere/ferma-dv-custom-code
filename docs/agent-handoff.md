@@ -443,3 +443,41 @@ Last updated: 2026-04-27
 - If there are multiple hotfix commits in one session, keep them in chronological order.
 - Do not close a production bug-fix session without synchronizing this file.
 
+## Latest update (2026-04-27, header/cascade stabilization accepted by visual check)
+
+- Scope summary:
+  - User reported cumulative "crooked header" regressions on non-product single pages (`/blog/...`, `/recipes/...`, `/stock/...`) caused by content typography rules leaking from `.single-post` into header structures (desktop + mobile).
+  - After iterative fixes and live checks, visual state was accepted as "more or less fixed" (`так сойдёт`).
+
+- Changed: `wp-content/themes/theme/inc/frontend/assets.php`
+  - Reason: isolate header UI from article content rules without disabling article typography.
+  - Finalized safeguards on `body.single:not(.single-product)`:
+    - logo/text isolation:
+      - `.header__logo p { margin: 0 !important; }`
+    - desktop catalog dropdown isolation:
+      - `.header .catalog-menu ul/ol { margin:0; padding:0; }`
+      - `.header .catalog-menu li { margin-bottom:0; padding-left:0; }`
+      - `.header .catalog-menu p { margin:0; }`
+    - mobile menu isolation:
+      - `.header .mob-menu ul/ol { margin:0; padding:0; }`
+      - `.header .mob-menu li { margin:0; padding-left:0; line-height:normal; }`
+      - `.header .mob-menu p { margin:0; line-height:normal; }`
+    - checkout UX side-fix (same session):
+      - checkout inline notice popup moved to fixed bottom overlay with topmost z-index so it is not hidden behind footer.
+
+- Commits shipped to `main` in this finishing phase:
+  - `036a860` — checkout inline notice layering above footer.
+  - `6721b89` — header logo paragraph margin isolation on non-product single pages.
+  - `7d0f6df` — isolate desktop catalog menu from `.single-post` typography leakage.
+  - `ce6a4d7` — isolate mobile header menu from `.single-post` typography leakage.
+  - `2540f3d` — handoff documentation sync for previous cleanup stage.
+
+- Current behavior status:
+  - Header on non-product single pages is visually close to homepage baseline and accepted by user.
+  - Known approach: targeted header-scope overrides are used as a protective layer against legacy/global content selectors.
+
+- Next verification (if refinement is needed later):
+  1. Re-check desktop header parity on `/blog/...`, `/recipes/...`, `/stock/...` after cache clear (layout, spacing, icon/text rhythm).
+  2. Re-check mobile menu drawer typography/spacing on <=576px against homepage.
+  3. If new leakage appears, prefer adding narrowly scoped `.header ...` overrides instead of weakening article content styles globally.
+
