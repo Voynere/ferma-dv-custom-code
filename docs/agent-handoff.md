@@ -60,6 +60,7 @@ Last updated: 2026-04-27
 - `92bd8c9` Align archive product header/footer with single-product baseline.
 - `18e5272` Prevent header delivery button wrapping on archive/category pages.
 - `25d5ea6` Normalize archive header logo spacing and phone link color.
+- `ffb6cf1` Apply header fixes on `.header__product` selectors (body-class-independent).
 
 ## Latest update (2026-04-27)
 
@@ -120,6 +121,16 @@ Last updated: 2026-04-27
 - Next verification:
   1. Open product category page and compare logo block spacing with single product page.
   2. Confirm phone link color is dark (not blue) and header row remains aligned.
+
+## Latest update (2026-04-27, cached-body-class follow-up)
+
+- Changed: `wp-content/themes/theme/inc/frontend/assets.php`
+  - Reason: live category response had body classes without taxonomy markers; previous CSS rules targeting `body.tax-product_cat` did not consistently apply.
+- Commit: `ffb6cf1`
+- Status: fixed in code, pending user verification.
+- Next verification:
+  1. Reload category page (`Ctrl+F5`) and compare header to single-product baseline.
+  2. Confirm logo subtitle spacing and tel-link color remain corrected even when body lacks taxonomy classes.
 
 ## Known caution
 
