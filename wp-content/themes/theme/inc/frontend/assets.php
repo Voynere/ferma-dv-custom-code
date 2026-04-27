@@ -442,3 +442,21 @@ function ferma_force_single_detail_header_runtime_guard() {
 	</script>
 	<?php
 }
+
+/**
+ * Visual debug marker for verifying live template/render path.
+ * Enable with ?ferma_hdr_test=1 on non-product single pages.
+ */
+add_action( 'wp_footer', 'ferma_single_header_debug_badge', 100000 );
+function ferma_single_header_debug_badge() {
+	if ( is_admin() ) {
+		return;
+	}
+	if ( ! is_single() || ( function_exists( 'is_product' ) && is_product() ) ) {
+		return;
+	}
+	if ( ! isset( $_GET['ferma_hdr_test'] ) || '1' !== (string) wp_unslash( $_GET['ferma_hdr_test'] ) ) {
+		return;
+	}
+	echo '<div style="position:fixed;right:8px;bottom:8px;z-index:2147483647;background:#ff0066;color:#fff;padding:8px 10px;border-radius:8px;font:700 12px/1 Arial,sans-serif;">HDR TEST 318c2bf</div>';
+}
