@@ -309,63 +309,10 @@ function ferma_frontend_expose_jquery_dollar_alias() {
 }
 
 /**
- * Diagnostic CSS probe for single detail pages.
- *
- * Usage (append to URL):
- * - ?ferma_css_probe=no-new-style
- * - ?ferma_css_probe=no-theme-style
- * - ?ferma_css_probe=no-complect-style
- * - ?ferma_css_probe=no-extra-catalog
- * - ?ferma_css_probe=no-all-theme-css
+ * Final single-detail header safeguards (minimal permanent set).
  */
-add_action( 'wp_enqueue_scripts', 'ferma_debug_probe_single_css_sources', 999999 );
-function ferma_debug_probe_single_css_sources() {
-	if ( is_admin() ) {
-		return;
-	}
-	if ( ! is_single() || ( function_exists( 'is_product' ) && is_product() ) ) {
-		return;
-	}
-
-	$probe = isset( $_GET['ferma_css_probe'] ) ? sanitize_key( wp_unslash( $_GET['ferma_css_probe'] ) ) : '';
-	if ( '' === $probe ) {
-		return;
-	}
-
-	if ( 'no-new-style' === $probe ) {
-		wp_dequeue_style( 'new-style' );
-	}
-
-	if ( 'no-theme-style' === $probe ) {
-		wp_dequeue_style( 'theme-style' );
-		wp_dequeue_style( 'theme-style-single' );
-	}
-
-	if ( 'no-complect-style' === $probe ) {
-		wp_dequeue_style( 'complect-style' );
-	}
-
-	if ( 'no-extra-catalog' === $probe ) {
-		wp_dequeue_style( 'catalog-qty' );
-		wp_dequeue_style( 'product-card-qty' );
-	}
-
-	if ( 'no-all-theme-css' === $probe ) {
-		wp_dequeue_style( 'new-style' );
-		wp_dequeue_style( 'theme-style' );
-		wp_dequeue_style( 'theme-style-single' );
-		wp_dequeue_style( 'complect-style' );
-		wp_dequeue_style( 'catalog-qty' );
-		wp_dequeue_style( 'product-card-qty' );
-	}
-}
-
-/**
- * Hard guard for single detail header layout.
- * Stabilizes visibility of header variants across breakpoints.
- */
-add_action( 'wp_enqueue_scripts', 'ferma_force_single_detail_header_variant_visibility', 1003 );
-function ferma_force_single_detail_header_variant_visibility() {
+add_action( 'wp_enqueue_scripts', 'ferma_single_detail_header_safeguards', 1003 );
+function ferma_single_detail_header_safeguards() {
 	if ( is_admin() ) {
 		return;
 	}
@@ -385,10 +332,9 @@ function ferma_force_single_detail_header_variant_visibility() {
 		. 'body.single:not(.single-product) .header.header__product .header__phone img,'
 		. 'body.single:not(.single-product) .header.header__product .header__search img,'
 		. 'body.single:not(.single-product) .header.header__product .header__socials img{border-radius:0 !important;}'
+		. 'body.single:not(.single-product) .header__desktop-menu nav ul,'
+		. 'body.single:not(.single-product) .header__desktop-menu nav ol{margin:0 !important;padding:0 !important;}'
 		. '@media (max-width: 768px){'
-		. 'body.single:not(.single-product) .header.header__product > .container:first-of-type{display:none !important;}'
-		. 'body.single:not(.single-product) .header.header__product .header__desktop{display:block !important;}'
-		. 'body.single:not(.single-product) .header.header__product .header__desktop > *:not(.header__mobile){display:none !important;}'
 		. 'body.single:not(.single-product) .header__desktop-top,'
 		. 'body.single:not(.single-product) .header__desktop-menu,'
 		. 'body.single:not(.single-product) .header__desktop-bot,'
@@ -401,76 +347,4 @@ function ferma_force_single_detail_header_variant_visibility() {
 		. '}';
 
 	wp_add_inline_style( 'new-style', $css );
-}
-
-/**
- * Runtime fallback: force correct header variant visibility on single detail pages.
- * Used when legacy CSS cascade still shows duplicate header blocks.
- */
-add_action( 'wp_footer', 'ferma_force_single_detail_header_runtime_guard', 99999 );
-function ferma_force_single_detail_header_runtime_guard() {
-	if ( is_admin() ) {
-		return;
-	}
-	if ( ! is_single() || ( function_exists( 'is_product' ) && is_product() ) ) {
-		return;
-	}
-	?>
-	<script>
-	(function () {
-		var body = document.body;
-		if (!body || !body.classList.contains('single') || body.classList.contains('single-product')) {
-			return;
-		}
-
-		function setDisplay(selector, value) {
-			document.querySelectorAll(selector).forEach(function (el) {
-				el.style.setProperty('display', value, 'important');
-			});
-		}
-
-		function applySingleHeaderGuard() {
-			var isMobile = window.matchMedia('(max-width: 768px)').matches;
-
-			// Follow header must never appear on non-product single pages.
-			setDisplay('.header__follow', 'none');
-
-			if (isMobile) {
-				setDisplay('.header.header__product > .container:first-of-type', 'none');
-				setDisplay('.header.header__product .header__desktop', 'block');
-				setDisplay('.header.header__product .header__desktop > *:not(.header__mobile)', 'none');
-				setDisplay('.header__desktop-top', 'none');
-				setDisplay('.header__desktop-menu', 'none');
-				setDisplay('.header__desktop-bot', 'none');
-				setDisplay('.header__tablet-top', 'none');
-				setDisplay('.header__tablet-menu', 'none');
-				setDisplay('.header__mobile', 'flex');
-			} else {
-				setDisplay('.header__mobile', 'none');
-			}
-		}
-
-		applySingleHeaderGuard();
-		window.addEventListener('resize', applySingleHeaderGuard);
-	})();
-	</script>
-	<?php
-}
-
-/**
- * Visual debug marker for verifying live template/render path.
- * Enable with ?ferma_hdr_test=1 on non-product single pages.
- */
-add_action( 'wp_footer', 'ferma_single_header_debug_badge', 100000 );
-function ferma_single_header_debug_badge() {
-	if ( is_admin() ) {
-		return;
-	}
-	if ( ! is_single() || ( function_exists( 'is_product' ) && is_product() ) ) {
-		return;
-	}
-	if ( ! isset( $_GET['ferma_hdr_test'] ) || '1' !== (string) wp_unslash( $_GET['ferma_hdr_test'] ) ) {
-		return;
-	}
-	echo '<div style="position:fixed;right:8px;bottom:8px;z-index:2147483647;background:#ff0066;color:#fff;padding:8px 10px;border-radius:8px;font:700 12px/1 Arial,sans-serif;">HDR TEST 318c2bf</div>';
 }

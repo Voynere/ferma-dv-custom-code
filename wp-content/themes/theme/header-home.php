@@ -51,10 +51,6 @@ if ( function_exists( 'is_post_type_archive' ) && is_post_type_archive( 'product
     $ferma_forced_body_classes[] = 'post-type-archive-product';
     $ferma_forced_body_classes[] = 'woocommerce-archive';
 }
-if ( is_single() && ! ( function_exists( 'is_product' ) && is_product() ) ) {
-    // Reuse homepage header style branch on article/recipe/promo single pages.
-    $ferma_forced_body_classes[] = 'home';
-}
 ?>
 <body <?php body_class( $ferma_forced_body_classes ); ?>>
 <!-- Старый код -->
@@ -151,47 +147,7 @@ if ( is_single() && ! ( function_exists( 'is_product' ) && is_product() ) ) {
         z-index: 111111111111111;
     }
 </style>
-<?php
-$ferma_style_probe = isset( $_GET['ferma_style_probe'] ) ? sanitize_key( wp_unslash( $_GET['ferma_style_probe'] ) ) : '';
-$ferma_probe_is_single_detail = is_single() && ! ( function_exists( 'is_product' ) && is_product() );
-$ferma_single_mobile_guard = $ferma_probe_is_single_detail && function_exists( 'wp_is_mobile' ) && wp_is_mobile();
-$ferma_probe_disable_swiper_fallback = $ferma_probe_is_single_detail && ( 'no-swiper-fallback' === $ferma_style_probe );
-$ferma_probe_disable_legacy_hide = $ferma_probe_is_single_detail && ( 'no-legacy-hide' === $ferma_style_probe );
-$ferma_probe_disable_single_guard = $ferma_probe_is_single_detail && ( 'no-single-guard' === $ferma_style_probe );
-$ferma_probe_disable_inline_block = $ferma_probe_is_single_detail && ( 'no-inline-block' === $ferma_style_probe );
-?>
-<?php if ( ! $ferma_probe_disable_inline_block ) : ?>
 <style>
-    /* Probe mode: use ?ferma_style_probe=no-swiper-fallback|no-legacy-hide|no-single-guard|no-inline-block */
-<?php if ( $ferma_single_mobile_guard ) : ?>
-    /* Server-side mobile guard for single detail pages. */
-    body.single:not(.single-product) .header.header__product > .container:first-of-type {
-        display: none !important;
-    }
-
-    body.single:not(.single-product) .header.header__product .header__desktop {
-        display: block !important;
-    }
-
-    body.single:not(.single-product) .header.header__product .header__desktop > *:not(.header__mobile) {
-        display: none !important;
-    }
-
-    body.single:not(.single-product) .header__follow,
-    body.single:not(.single-product) .header__desktop-top,
-    body.single:not(.single-product) .header__desktop-menu,
-    body.single:not(.single-product) .header__desktop-bot,
-    body.single:not(.single-product) .header__tablet-top,
-    body.single:not(.single-product) .header__tablet-menu {
-        display: none !important;
-    }
-
-    body.single:not(.single-product) .header__mobile {
-        display: flex !important;
-        flex-direction: column !important;
-    }
-<?php endif; ?>
-<?php if ( ! $ferma_probe_disable_swiper_fallback ) : ?>
     /* Swiper navigation fallback: keep arrows vertically centered */
     .home-slider__inner .homeSwiper-next,
     .home-slider__inner .homeSwiper-prev,
@@ -214,9 +170,6 @@ $ferma_probe_disable_inline_block = $ferma_probe_is_single_detail && ( 'no-inlin
         height: auto !important;
         align-items: stretch;
     }
-<?php endif; ?>
-
-<?php if ( ! $ferma_probe_disable_legacy_hide ) : ?>
     /* Guard against legacy global snippets from Simple CSS&JS on inner pages. */
     body:not(.home):not(.single-product) #photo_pc_1,
     body:not(.home):not(.single-product) #photo_pc_2,
@@ -233,7 +186,6 @@ $ferma_probe_disable_inline_block = $ferma_probe_is_single_detail && ( 'no-inlin
         margin: 0 !important;
         padding: 0 !important;
     }
-<?php endif; ?>
 
     /* Replacement for safe parts of disabled custom snippet 4438.css */
     body.woocommerce ul.products li.product .woocommerce-loop-category__title,
@@ -274,37 +226,7 @@ $ferma_probe_disable_inline_block = $ferma_probe_is_single_detail && ( 'no-inlin
     .mapboxgl-ctrl-geocoder--button {
         background: #e87e7e !important;
     }
-
-<?php if ( ! $ferma_probe_disable_single_guard ) : ?>
-    /* Keep single detail header deterministic even when inline legacy styles are present. */
-    body.single:not(.single-product) .header__follow {
-        display: none !important;
-    }
-
-    @media (min-width: 768px) {
-        body.single:not(.single-product) .header__desktop-menu {
-            margin: 40px 0 !important;
-            padding: 26px !important;
-            background-color: #fdf5e5 !important;
-            border-radius: 12px !important;
-        }
-
-        body.single:not(.single-product) .header__desktop-menu nav ul {
-            justify-content: center !important;
-            gap: 64px !important;
-        }
-
-        body.single:not(.single-product) .header__desktop-bot {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-            gap: 24px !important;
-        }
-    }
-<?php endif; ?>
-
 </style>
-<?php endif; ?>
 <p style="display:none;">
     <?
     $user_id = get_current_user_id();
