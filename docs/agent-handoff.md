@@ -376,6 +376,18 @@ Last updated: 2026-04-27
 - Commit: not committed yet
 - Status: fixed in code, pending visual verification.
 
+## Latest update (2026-04-27, header menu list margins on single pages)
+
+- Changed: `wp-content/themes/theme/inc/frontend/assets.php`
+  - Reason: on single pages, global `.single-post ul, .single-post ol` rule leaks into header menu lists (because `single-post` is on `<body>`), stretching menu background block.
+  - Update:
+    - added explicit reset for header menu lists on non-product single pages:
+      - `.header__desktop-menu nav ul { margin:0; padding:0; }`
+      - `.header__desktop-menu nav ol { margin:0; padding:0; }`
+    - rule applied in existing single-header override block with `!important`.
+- Commit: not committed yet
+- Status: fixed in code, pending visual verification that menu background height/spacing matches homepage.
+
 ## Known caution
 
 - `catalog-qty23.js` now contains strong fallback logic to survive inconsistent legacy markup.
