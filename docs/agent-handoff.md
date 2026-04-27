@@ -61,6 +61,7 @@ Last updated: 2026-04-27
 - `18e5272` Prevent header delivery button wrapping on archive/category pages.
 - `25d5ea6` Normalize archive header logo spacing and phone link color.
 - `ffb6cf1` Apply header fixes on `.header__product` selectors (body-class-independent).
+- `73f70d5` Restore WooCommerce archive body classes in `header-home.php`.
 
 ## Latest update (2026-04-27)
 
@@ -131,6 +132,16 @@ Last updated: 2026-04-27
 - Next verification:
   1. Reload category page (`Ctrl+F5`) and compare header to single-product baseline.
   2. Confirm logo subtitle spacing and tel-link color remain corrected even when body lacks taxonomy classes.
+
+## Latest update (2026-04-27, menu/cards parity follow-up)
+
+- Changed: `wp-content/themes/theme/header-home.php`
+  - Added forced classes for WooCommerce catalog contexts passed to `body_class()`:
+    - `archive`, `tax-product_cat`, `woocommerce-archive`
+    - `post-type-archive`, `post-type-archive-product` (for product post-type archive)
+  - Purpose: recover style rules that depend on standard Woo body classes for menu links and product-card listing layout.
+- Commit: `73f70d5`
+- Status: fixed in code, pending user verification on live category pages.
 
 ## Known caution
 
