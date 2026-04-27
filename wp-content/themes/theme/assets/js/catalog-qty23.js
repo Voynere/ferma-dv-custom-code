@@ -285,6 +285,10 @@ jQuery(document).ready(function($) {
         var name = $.trim($root.find(rootSelectors).first().text());
         if (!fermaIsBadProductName(name)) return name;
 
+        // Single-product pages often keep title outside cart form/container.
+        name = $.trim($('.single-product .product_title, .single-product h1.product_title, .product_title').first().text());
+        if (!fermaIsBadProductName(name)) return name;
+
         var pid = $button.data('product_id') || $button.attr('data-product_id') || $root.find('[data-product_id]').first().data('product_id');
         if (pid) {
             name = $.trim($('.post-' + pid + ' ' + rootSelectors).first().text());
