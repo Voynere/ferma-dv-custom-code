@@ -1848,6 +1848,20 @@ if (!empty($_POST["vib"])) {
 
     <?php if ( is_single() && ! ( function_exists( 'is_product' ) && is_product() ) ) : ?>
         <style>
+            .ferma-debug-style-test {
+                position: fixed;
+                top: 8px;
+                right: 8px;
+                z-index: 999999;
+                background: #111;
+                color: #fff;
+                font-size: 11px;
+                line-height: 1;
+                padding: 6px 8px;
+                border-radius: 6px;
+                opacity: .9;
+                pointer-events: none;
+            }
             body.single.single-post .header__logo div p { margin: 0 !important; line-height: 1.1 !important; letter-spacing: 0 !important; color: #1a1a1a !important; font-size: 48px !important; }
             body.single.single-post .header__logo div span { display: block !important; margin-top: 2px !important; line-height: 1.1 !important; letter-spacing: 0 !important; color: #1a1a1a !important; font-size: 20px !important; }
             body.single.single-post .header__phone { color: #1a1a1a !important; font-size: 18px !important; font-weight: 700 !important; text-decoration: none !important; }
@@ -1868,6 +1882,7 @@ if (!empty($_POST["vib"])) {
             body.single.single-post .header__follow .header__desktop-bot .header__delivery { max-width: 424px !important; }
             body.single.single-post .header__follow .header__desktop-bot .header__delivery .header__delivery-result { display: inline-block !important; max-width: 260px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
         </style>
+        <div class="ferma-debug-style-test">STYLE-TEST-5ef6fc7</div>
     <?php endif; ?>
     <header class="header header__product">
         <div class="header__follow">
