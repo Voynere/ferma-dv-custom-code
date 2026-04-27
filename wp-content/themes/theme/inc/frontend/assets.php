@@ -245,6 +245,37 @@ function ferma_hide_follow_header_on_single_posts() {
 	wp_add_inline_style( 'new-style', 'body.single.single-post .header__follow{display:none !important;}' );
 }
 
+add_action( 'wp_enqueue_scripts', 'ferma_fix_single_post_header_colors', 1002 );
+function ferma_fix_single_post_header_colors() {
+	if ( is_admin() ) {
+		return;
+	}
+	if ( ! is_single() || ( function_exists( 'is_product' ) && is_product() ) ) {
+		return;
+	}
+	if ( ! wp_style_is( 'new-style', 'enqueued' ) ) {
+		return;
+	}
+
+	$css = '@media (min-width: 768px){'
+		. 'body.single.single-post .header__desktop-top .header__logo,'
+		. 'body.single.single-post .header__desktop-top .header__logo:visited,'
+		. 'body.single.single-post .header__desktop-top .header__logo:hover,'
+		. 'body.single.single-post .header__desktop-top .header__logo:focus{color:#1a1a1a !important;text-decoration:none !important;}'
+		. 'body.single.single-post .header__desktop-top .header__logo div p,'
+		. 'body.single.single-post .header__desktop-top .header__logo div span{color:#1a1a1a !important;}'
+		. 'body.single.single-post .header__desktop-top .header__phone,'
+		. 'body.single.single-post .header__desktop-top .header__phone:visited,'
+		. 'body.single.single-post .header__desktop-top .header__phone:hover,'
+		. 'body.single.single-post .header__desktop-top .header__phone:focus{color:#1a1a1a !important;text-decoration:none !important;font-size:18px !important;}'
+		. 'body.single.single-post .header__desktop-menu nav ul li a,'
+		. 'body.single.single-post .header__desktop-menu nav ul li a:visited,'
+		. 'body.single.single-post .header__desktop-menu nav ul li a:hover,'
+		. 'body.single.single-post .header__desktop-menu nav ul li a:focus{color:#1a1a1a !important;text-decoration:none !important;}'
+		. '}';
+	wp_add_inline_style( 'new-style', $css );
+}
+
 /**
  * jQuery cleanup for legacy theme scripts.
  * Keep only core jQuery and remove old custom handle if present.
