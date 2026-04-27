@@ -57,6 +57,7 @@ Last updated: 2026-04-27
 - `22ce9a8` Fix add-to-cart toast title extraction and cart-anchor positioning fallback.
 - `495c9ef` Fix single-product add-to-cart toast title fallback.
 - `676b9c2` Prevent footer inline script crash on category pages.
+- `92bd8c9` Align archive product header/footer with single-product baseline.
 
 ## Latest update (2026-04-27)
 
@@ -87,6 +88,16 @@ Last updated: 2026-04-27
 - Next verification:
   1. Open any product category page in incognito.
   2. Confirm header and catalog styles/behavior load normally (no broken layout).
+
+## Latest update (2026-04-27, template alignment follow-up)
+
+- Changed: `wp-content/themes/theme/woocommerce/archive-product.php`
+  - Reason: category pages used `get_header('shop')/get_footer('shop')` while single-product baseline used `home` wrappers; mismatch could produce broken header/style composition.
+- Commit: `92bd8c9`
+- Status: fixed in code, pending user confirmation.
+- Next verification:
+  1. Open product category page and compare header with single product page.
+  2. Confirm menu/search/cart/header blocks render identically to single baseline.
 
 ## Known caution
 
