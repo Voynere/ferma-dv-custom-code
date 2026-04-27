@@ -51,6 +51,10 @@ if ( function_exists( 'is_post_type_archive' ) && is_post_type_archive( 'product
     $ferma_forced_body_classes[] = 'post-type-archive-product';
     $ferma_forced_body_classes[] = 'woocommerce-archive';
 }
+if ( is_single() && ! ( function_exists( 'is_product' ) && is_product() ) ) {
+    // Reuse homepage header style branch on article/recipe/promo single pages.
+    $ferma_forced_body_classes[] = 'home';
+}
 ?>
 <body <?php body_class( $ferma_forced_body_classes ); ?>>
 <!-- Старый код -->

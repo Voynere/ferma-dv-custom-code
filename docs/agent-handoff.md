@@ -349,6 +349,16 @@ Last updated: 2026-04-27
 - Commit: not committed yet
 - Status: fixed in code, pending visual verification.
 
+## Latest update (2026-04-27, force home body-class on non-product single)
+
+- Changed: `wp-content/themes/theme/header-home.php`
+  - Reason: scripts are identical between homepage and problematic single pages; key structural difference is missing `home` body-class on single pages, while header visual branch in theme CSS heavily depends on `body.home`.
+  - Update:
+    - append `home` to forced body classes for `is_single() && !is_product()`.
+    - goal: route single article/recipe/promo pages through the same header style branch as homepage.
+- Commit: not committed yet
+- Status: fixed in code, pending visual verification against homepage reference on desktop and mobile.
+
 ## Known caution
 
 - `catalog-qty23.js` now contains strong fallback logic to survive inconsistent legacy markup.
