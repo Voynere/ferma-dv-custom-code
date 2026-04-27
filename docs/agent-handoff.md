@@ -58,6 +58,7 @@ Last updated: 2026-04-27
 - `495c9ef` Fix single-product add-to-cart toast title fallback.
 - `676b9c2` Prevent footer inline script crash on category pages.
 - `92bd8c9` Align archive product header/footer with single-product baseline.
+- `18e5272` Prevent header delivery button wrapping on archive/category pages.
 
 ## Latest update (2026-04-27)
 
@@ -98,6 +99,16 @@ Last updated: 2026-04-27
 - Next verification:
   1. Open product category page and compare header with single product page.
   2. Confirm menu/search/cart/header blocks render identically to single baseline.
+
+## Latest update (2026-04-27, header alignment fine-tune)
+
+- Changed: `wp-content/themes/theme/inc/frontend/assets.php`
+  - Reason: delivery-address button text in category/archive headers wrapped to multiple lines and visually broke the top controls row.
+- Commit: `18e5272`
+- Status: fixed in code, pending screenshot confirmation.
+- Next verification:
+  1. Open category page with long pickup text (`Самовывоз: ...`).
+  2. Confirm delivery control stays single-line (ellipsis allowed) and header controls stay aligned.
 
 ## Known caution
 
