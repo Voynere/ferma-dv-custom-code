@@ -388,6 +388,30 @@ Last updated: 2026-04-27
 - Commit: not committed yet
 - Status: fixed in code, pending visual verification that menu background height/spacing matches homepage.
 
+## Latest update (2026-04-27, single-header cleanup and stabilization)
+
+- Changed: `wp-content/themes/theme/inc/frontend/assets.php`, `wp-content/themes/theme/header-home.php`
+  - Reason: remove temporary diagnostics/probes and layered runtime guards after isolating root causes; keep only minimal permanent non-product single header safeguards.
+  - Update:
+    - removed temporary query-param probes:
+      - `?ferma_css_probe=...` logic in assets enqueue flow
+      - `?ferma_style_probe=...` logic in header inline style flow
+    - removed runtime debug/fallback pieces:
+      - footer runtime JS guard for header visibility
+      - footer debug badge `HDR TEST 318c2bf`
+    - consolidated persistent safeguards into one compact CSS block on non-product single pages:
+      - hide `.header__follow`
+      - force header icon images to `border-radius: 0 !important`
+      - reset `.header__desktop-menu nav ul/ol` margins and paddings
+      - keep mobile/desktop header visibility deterministic by breakpoint
+    - removed forced `home` class injection for non-product single pages in `body_class`.
+- Commit: `a12566b`
+- Status: cleanup deployed to `main`; pending final visual pass on `/blog/...`, `/recipes/...`, `/stock/...` (desktop + mobile) against homepage header reference.
+- Next verification:
+  1. Hard refresh each target single page and compare header structure/spacing/colors with homepage.
+  2. Check mobile breakpoint (<=768px): only mobile header branch visible, no hidden desktop artifacts.
+  3. Confirm header menu background height is stable (no extra list margins/paddings leakage).
+
 ## Known caution
 
 - `catalog-qty23.js` now contains strong fallback logic to survive inconsistent legacy markup.
