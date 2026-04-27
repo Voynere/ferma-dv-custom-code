@@ -1862,20 +1862,31 @@ if (!empty($_POST["vib"])) {
                 opacity: .9;
                 pointer-events: none;
             }
+            body.single.single-post .header__logo { gap: 8px !important; }
+            body.single.single-post .header__logo div { align-items: center !important; text-align: center !important; }
             body.single.single-post .header__logo div p { margin: 0 !important; line-height: 1.1 !important; letter-spacing: 0 !important; color: #1a1a1a !important; font-size: 48px !important; }
             body.single.single-post .header__logo div span { display: block !important; margin-top: 2px !important; line-height: 1.1 !important; letter-spacing: 0 !important; color: #1a1a1a !important; font-size: 20px !important; }
-            body.single.single-post .header__phone { color: #1a1a1a !important; font-size: 18px !important; font-weight: 700 !important; text-decoration: none !important; }
+            body.single.single-post .header__phone,
+            body.single.single-post .header__phone:visited,
+            body.single.single-post .header__phone:hover,
+            body.single.single-post .header__phone:focus { color: #1a1a1a !important; font-size: 18px !important; font-weight: 700 !important; text-decoration: none !important; }
             body.single.single-post .header__socials a img { opacity: 1 !important; filter: none !important; }
-            body.single.single-post .header__desktop-menu { margin: 40px 0 !important; padding: 26px !important; min-height: 94px !important; background-color: #fdf5e5 !important; border-radius: 12px !important; }
+            body.single.single-post .header__desktop-menu { margin: 40px 0 !important; padding: 26px !important; min-height: 94px !important; background-color: #fdf5e5 !important; border-radius: 12px !important; display: block !important; }
             body.single.single-post .header__desktop-menu nav ul { justify-content: center !important; gap: 64px !important; }
-            body.single.single-post .header__desktop-menu nav ul li a { color: #1a1a1a !important; font-size: 18px !important; font-weight: 400 !important; text-decoration: none !important; }
+            body.single.single-post .header__desktop-menu nav ul li a,
+            body.single.single-post .header__desktop-menu nav ul li a:visited,
+            body.single.single-post .header__desktop-menu nav ul li a:hover,
+            body.single.single-post .header__desktop-menu nav ul li a:focus { color: #1a1a1a !important; font-size: 18px !important; font-weight: 400 !important; text-decoration: none !important; }
             body.single.single-post .header__desktop-bot { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 24px !important; margin-top: 0 !important; }
             body.single.single-post .header__desktop-bot .header__catalog { width: 200px !important; min-width: 200px !important; height: 56px !important; border-radius: 12px !important; }
             body.single.single-post .header__desktop-bot .header__catalog img { margin-right: 16px !important; }
 
             body.single.single-post .header__follow .header__desktop-menu { margin: 0 !important; padding: 16px 0 !important; min-height: auto !important; background: transparent !important; border-radius: 0 !important; }
             body.single.single-post .header__follow .header__desktop-menu nav ul { gap: 16px !important; justify-content: space-between !important; }
-            body.single.single-post .header__follow .header__desktop-menu nav ul li a { color: #1a1a1a !important; font-size: 16px !important; }
+            body.single.single-post .header__follow .header__desktop-menu nav ul li a,
+            body.single.single-post .header__follow .header__desktop-menu nav ul li a:visited,
+            body.single.single-post .header__follow .header__desktop-menu nav ul li a:hover,
+            body.single.single-post .header__follow .header__desktop-menu nav ul li a:focus { color: #1a1a1a !important; font-size: 16px !important; text-decoration: none !important; }
             body.single.single-post .header__follow .header__desktop-bot { margin-top: 0 !important; gap: 24px !important; }
             body.single.single-post .header__follow .header__desktop-bot .header__catalog { width: 56px !important; min-width: 56px !important; height: 56px !important; border-radius: 12px !important; }
             body.single.single-post .header__follow .header__desktop-bot .header__catalog img { margin: 0 !important; }
