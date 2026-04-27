@@ -38,7 +38,21 @@
     <title>Ферма DВ</title>
 </head>
 
-<body <?php body_class(); ?>>
+<?php
+$ferma_forced_body_classes = array();
+if ( function_exists( 'is_product_category' ) && is_product_category() ) {
+    $ferma_forced_body_classes[] = 'archive';
+    $ferma_forced_body_classes[] = 'tax-product_cat';
+    $ferma_forced_body_classes[] = 'woocommerce-archive';
+}
+if ( function_exists( 'is_post_type_archive' ) && is_post_type_archive( 'product' ) ) {
+    $ferma_forced_body_classes[] = 'archive';
+    $ferma_forced_body_classes[] = 'post-type-archive';
+    $ferma_forced_body_classes[] = 'post-type-archive-product';
+    $ferma_forced_body_classes[] = 'woocommerce-archive';
+}
+?>
+<body <?php body_class( $ferma_forced_body_classes ); ?>>
 <!-- Старый код -->
 <?if ( is_user_logged_in() && get_user_meta( get_current_user_id(), 'delivery', true ) == '1' ) {?>
     <style>
