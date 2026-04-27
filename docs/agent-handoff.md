@@ -56,6 +56,7 @@ Last updated: 2026-04-27
 - `70d3b86` Stabilize catalog add-to-cart fallback handlers for maintainability.
 - `22ce9a8` Fix add-to-cart toast title extraction and cart-anchor positioning fallback.
 - `495c9ef` Fix single-product add-to-cart toast title fallback.
+- `676b9c2` Prevent footer inline script crash on category pages.
 
 ## Latest update (2026-04-27)
 
@@ -76,6 +77,16 @@ Last updated: 2026-04-27
 - Next verification:
   1. Open any single product page, click `В корзину`.
   2. Confirm toast title equals actual product name (not `Товар`).
+
+## Latest update (2026-04-27, category UI follow-up)
+
+- Changed: `wp-content/themes/theme/footer-home.php`
+  - Reason: inline script used `document.querySelector(...).innerHTML` without null checks and could throw on category pages, breaking subsequent frontend init (header/catalog UI looked broken).
+- Commit: `676b9c2`
+- Status: fixed in code, pending visual confirmation on category pages.
+- Next verification:
+  1. Open any product category page in incognito.
+  2. Confirm header and catalog styles/behavior load normally (no broken layout).
 
 ## Known caution
 
