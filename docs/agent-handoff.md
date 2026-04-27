@@ -187,6 +187,21 @@ Last updated: 2026-04-27
   2. Open recipe detail page and confirm sticky/follow header does not distort top layout.
   3. Open promo/stock detail page and confirm menu/logo/phone colors and spacing match baseline.
 
+## Latest update (2026-04-27, single template baseline rewrite)
+
+- Changed: `wp-content/themes/theme/single-post.php`
+  - Reason: to reduce template-level drift vs reference pages, rebuilt single post detail scaffold to the same breadcrumb/content structure used by recipe/stock page templates.
+  - Update:
+    - replaced custom inline-styled breadcrumb wrapper with standard `woocommerce-breadcrumb` / `custom-breadcrumb` markup
+    - replaced one-off `the_post()/the_content()` block with canonical loop
+    - normalized content wrapper from ad-hoc nested `div` to sectioned body block
+- Commit: not committed yet
+- Status: fixed in code, pending visual verification of header parity on detail pages.
+- Next verification:
+  1. Open `/blog/...` detail and compare header row/spacing with homepage.
+  2. Open `/recipes/...` detail and compare desktop menu + delivery control alignment.
+  3. Open `/stock/...` detail and confirm no sticky/follow header visual corruption.
+
 ## Known caution
 
 - `catalog-qty23.js` now contains strong fallback logic to survive inconsistent legacy markup.

@@ -120,33 +120,39 @@
     <section class="recipe__breadcrumb">
         <div class="container">
             <?php
-        if (function_exists('custom-breadcrumb')) {
-            $args = array(
-                'delimiter'   => '<span class="delimiter">&gt;</span>',
-                'wrap_before' => '<nav class="woocommerce-breadcrumb custom-breadcrumb custom-breadcrumb--single" style="display:flex;align-items:center;flex-wrap:nowrap;gap:10px;">',
-                'wrap_after'  => '</nav>',
-                'home'        => _x('Магазин фермерских продуктов Ферма ДВ', 'breadcrumb', 'woocommerce'),
-            );
-            woocommerce_breadcrumb($args);
-        } else {
-            echo '<nav class="custom-breadcrumb custom-breadcrumb--single" style="display:flex;align-items:center;flex-wrap:nowrap;gap:10px;">';
-            echo '<a href="' . esc_url(home_url('/')) . '" style="white-space:nowrap;flex:0 0 auto;">Магазин фермерских продуктов Ферма ДВ</a>';
-            echo '<span class="delimiter" style="white-space:nowrap;flex:0 0 auto;">&gt;</span>';
-            echo '<span class="custom-breadcrumb__this" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;">' . get_the_title() . '</span>';
-            echo '</nav>';
-        }
-        ?>
+            if ( function_exists( 'custom-breadcrumb' ) ) {
+                $args = array(
+                    'delimiter'   => '<span class="delimiter">&gt;</span>',
+                    'wrap_before' => '<nav class="woocommerce-breadcrumb">',
+                    'wrap_after'  => '</nav>',
+                    'home'        => _x( 'Магазин фермерских продуктов Ферма ДВ', 'breadcrumb', 'woocommerce' ),
+                );
+                woocommerce_breadcrumb( $args );
+            } else {
+                echo '<nav class="custom-breadcrumb">';
+                echo '<a href="' . esc_url( home_url( '/' ) ) . '">Магазин фермерских продуктов Ферма ДВ</a>';
+                echo '<span class="delimiter">&gt;</span>';
+                echo '<span class="custom-breadcrumb__this">' . get_the_title() . '</span>';
+                echo '</nav>';
+            }
+            ?>
         </div>
     </section>
 
-    <div class="single-post recipe-post">
+    <section class="recipe-post__body">
         <div class="container">
             <div class="single-post__inner">
-                <?php the_post(); ?>
-                <?php the_content(); ?>
+                <?php
+                if ( have_posts() ) :
+                    while ( have_posts() ) :
+                        the_post();
+                        the_content();
+                    endwhile;
+                endif;
+                ?>
             </div>
         </div>
-    </div>
+    </section>
 
     <section class="farm-scene">
         <div class="container">
