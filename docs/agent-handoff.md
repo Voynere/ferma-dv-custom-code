@@ -62,6 +62,7 @@ Last updated: 2026-04-27
 - `25d5ea6` Normalize archive header logo spacing and phone link color.
 - `ffb6cf1` Apply header fixes on `.header__product` selectors (body-class-independent).
 - `73f70d5` Restore WooCommerce archive body classes in `header-home.php`.
+- `d8105b7` Force-disable legacy `style.css` on catalog/archive and harden menu link colors.
 
 ## Latest update (2026-04-27)
 
@@ -142,6 +143,19 @@ Last updated: 2026-04-27
   - Purpose: recover style rules that depend on standard Woo body classes for menu links and product-card listing layout.
 - Commit: `73f70d5`
 - Status: fixed in code, pending user verification on live category pages.
+
+## Latest update (2026-04-27, residual category visual drift)
+
+- Changed: `wp-content/themes/theme/inc/frontend/assets.php`
+  - Added final late safeguard (`priority 200000`) to dequeue+deregister `theme-style-single` on catalog/archive pages.
+  - Added explicit fallback colors for:
+    - `.header__desktop-menu nav ul li a`
+    - `.catalog-menu__list li a`
+    - `.catalog-menu__new-title`
+    under `.header.header__product`.
+  - Purpose: eliminate blue-link and mixed-card-layout regressions caused by late legacy stylesheet injection.
+- Commit: `d8105b7`
+- Status: pushed to `main`; pending live verification with hard refresh.
 
 ## Known caution
 
