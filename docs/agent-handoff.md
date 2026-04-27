@@ -202,6 +202,22 @@ Last updated: 2026-04-27
   2. Open `/recipes/...` detail and compare desktop menu + delivery control alignment.
   3. Open `/stock/...` detail and confirm no sticky/follow header visual corruption.
 
+## Latest update (2026-04-27, header-home inline guard for single details)
+
+- Changed: `wp-content/themes/theme/header-home.php`
+  - Reason: no visual delta after `single-post.php` rewrite indicated the distortion source is likely inline legacy header styles in `header-home.php`, not template markup.
+  - Update:
+    - added high-priority inline guard for `body.single:not(.single-product)`:
+      - hard-hide `.header__follow`
+      - enforce desktop menu spacing/background and nav distribution
+      - enforce desktop bottom row flex alignment
+- Commit: not committed yet
+- Status: fixed in code, pending hard-refresh visual verification.
+- Next verification:
+  1. Hard refresh (`Ctrl+F5`) on article/recipe/stock detail URL.
+  2. Compare header top/menu/bottom rows against homepage baseline.
+  3. Confirm sticky follow strip is not shown on these single detail pages.
+
 ## Known caution
 
 - `catalog-qty23.js` now contains strong fallback logic to survive inconsistent legacy markup.

@@ -228,8 +228,31 @@ if ( function_exists( 'is_post_type_archive' ) && is_post_type_archive( 'product
         background: #e87e7e !important;
     }
 
-    /* Keep header layout controlled by main stylesheets (style.min.css / style.css),
-       avoid page-wide inline overrides that break single blog/recipe/promo pages. */
+    /* Keep single detail header deterministic even when inline legacy styles are present. */
+    body.single:not(.single-product) .header__follow {
+        display: none !important;
+    }
+
+    @media (min-width: 768px) {
+        body.single:not(.single-product) .header__desktop-menu {
+            margin: 40px 0 !important;
+            padding: 26px !important;
+            background-color: #fdf5e5 !important;
+            border-radius: 12px !important;
+        }
+
+        body.single:not(.single-product) .header__desktop-menu nav ul {
+            justify-content: center !important;
+            gap: 64px !important;
+        }
+
+        body.single:not(.single-product) .header__desktop-bot {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 24px !important;
+        }
+    }
 
 </style>
 <p style="display:none;">
