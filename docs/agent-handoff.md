@@ -319,6 +319,21 @@ Last updated: 2026-04-27
 - Commit: not committed yet
 - Status: fixed in code, pending visual verification.
 
+## Latest update (2026-04-27, mobile header visibility hotfix rollback)
+
+- Changed:
+  - `wp-content/themes/theme/inc/frontend/assets.php`
+  - `wp-content/themes/theme/header-home.php`
+- Reason: previous step hid root `.header__desktop` on mobile single pages; in current markup mobile header block is nested under that container, so header disappeared entirely.
+- Update:
+  - removed root `.header__desktop` hide from:
+    - CSS hard-guard
+    - runtime DOM guard
+    - server-side mobile guard
+  - kept sub-block hides (`.header__desktop-top`, `.header__desktop-menu`, `.header__desktop-bot`, `.header__tablet-*`) and mobile-only show rules.
+- Commit: not committed yet
+- Status: fixed in code, pending visual verification that mobile header returns while duplicates stay suppressed.
+
 ## Known caution
 
 - `catalog-qty23.js` now contains strong fallback logic to survive inconsistent legacy markup.

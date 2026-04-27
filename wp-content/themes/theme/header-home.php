@@ -162,7 +162,6 @@ $ferma_probe_disable_inline_block = $ferma_probe_is_single_detail && ( 'no-inlin
 <?php if ( $ferma_single_mobile_guard ) : ?>
     /* Server-side mobile guard for single detail pages. */
     body.single:not(.single-product) .header__follow,
-    body.single:not(.single-product) .header__desktop,
     body.single:not(.single-product) .header__desktop-top,
     body.single:not(.single-product) .header__desktop-menu,
     body.single:not(.single-product) .header__desktop-bot,
