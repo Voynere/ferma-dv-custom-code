@@ -204,7 +204,11 @@ function ferma_apply_internal_header_layout_fixes() {
 		. '.header.header__product a[href^="tel"]{color:#1a1a1a !important;text-decoration:none !important;}'
 		. '.header.header__product .header__desktop-menu nav ul li a{color:var(--color-light-black) !important;}'
 		. '.header.header__product .catalog-menu__list li a{color:var(--color-light-black) !important;}'
-		. '.header.header__product .catalog-menu__new-title{color:var(--color-light-black) !important;}';
+		. '.header.header__product .catalog-menu__new-title{color:var(--color-light-black) !important;}'
+		. '.header.header__product .header__follow .header__desktop-menu{margin:0 !important;padding:16px 0 !important;background:transparent !important;border-radius:0 !important;}'
+		. '.header.header__product .header__follow .header__desktop-bot{margin-top:0 !important;gap:24px !important;}'
+		. '.header.header__product .header__follow .header__desktop-bot .header__delivery{max-width:424px !important;}'
+		. '.header.header__product .header__follow .header__desktop-bot .header__delivery .header__delivery-result{max-width:260px !important;}';
 	wp_add_inline_style( 'new-style', $css );
 }
 
