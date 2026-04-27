@@ -391,3 +391,54 @@ function ferma_force_single_detail_header_variant_visibility() {
 
 	wp_add_inline_style( 'new-style', $css );
 }
+
+/**
+ * Runtime fallback: force correct header variant visibility on single detail pages.
+ * Used when legacy CSS cascade still shows duplicate header blocks.
+ */
+add_action( 'wp_footer', 'ferma_force_single_detail_header_runtime_guard', 99999 );
+function ferma_force_single_detail_header_runtime_guard() {
+	if ( is_admin() ) {
+		return;
+	}
+	if ( ! is_single() || ( function_exists( 'is_product' ) && is_product() ) ) {
+		return;
+	}
+	?>
+	<script>
+	(function () {
+		var body = document.body;
+		if (!body || !body.classList.contains('single') || body.classList.contains('single-product')) {
+			return;
+		}
+
+		function setDisplay(selector, value) {
+			document.querySelectorAll(selector).forEach(function (el) {
+				el.style.setProperty('display', value, 'important');
+			});
+		}
+
+		function applySingleHeaderGuard() {
+			var isMobile = window.matchMedia('(max-width: 768px)').matches;
+
+			// Follow header must never appear on non-product single pages.
+			setDisplay('.header__follow', 'none');
+
+			if (isMobile) {
+				setDisplay('.header__desktop-top', 'none');
+				setDisplay('.header__desktop-menu', 'none');
+				setDisplay('.header__desktop-bot', 'none');
+				setDisplay('.header__tablet-top', 'none');
+				setDisplay('.header__tablet-menu', 'none');
+				setDisplay('.header__mobile', 'flex');
+			} else {
+				setDisplay('.header__mobile', 'none');
+			}
+		}
+
+		applySingleHeaderGuard();
+		window.addEventListener('resize', applySingleHeaderGuard);
+	})();
+	</script>
+	<?php
+}

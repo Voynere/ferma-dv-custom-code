@@ -289,6 +289,22 @@ Last updated: 2026-04-27
   1. Open problematic single URL from mobile device/browser and confirm only one header variant remains.
   2. Confirm logo/menu/cart row no longer duplicates.
 
+## Latest update (2026-04-27, runtime DOM guard for single header variants)
+
+- Changed: `wp-content/themes/theme/inc/frontend/assets.php`
+  - Reason: CSS-level and server-side guards are present in live HTML but visual duplication persists; indicates late cascade/runtime override, so a DOM-level fallback is required.
+  - Update:
+    - added `wp_footer` runtime guard script for non-product single pages:
+      - force-hides `.header__follow` always
+      - on mobile (`<=768`) force-hides desktop/tablet header blocks and force-shows `.header__mobile`
+      - on desktop (`>768`) force-hides `.header__mobile`
+    - applies initially and on `resize`.
+- Commit: not committed yet
+- Status: fixed in code, pending visual verification.
+- Next verification:
+  1. Open problematic single URL on mobile and confirm duplicate headers disappear.
+  2. Rotate device / resize viewport and confirm guard keeps a single active header variant.
+
 ## Known caution
 
 - `catalog-qty23.js` now contains strong fallback logic to survive inconsistent legacy markup.
