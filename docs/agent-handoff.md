@@ -218,6 +218,24 @@ Last updated: 2026-04-27
   2. Compare header top/menu/bottom rows against homepage baseline.
   3. Confirm sticky follow strip is not shown on these single detail pages.
 
+## Latest update (2026-04-27, single template routing fix)
+
+- Changed: `wp-content/themes/theme/wc-functions.php`
+  - Reason: `single-post.php` was routed only for `scontentsk` and `recipe`, so article/promo detail pages could bypass this template entirely and show no visual change despite template edits.
+  - Update:
+    - expanded category slug matching for `single-post.php` routing to include:
+      - `stock`
+      - `akcii`
+      - `fermerskij-blog`
+      - `blog`
+      - (kept existing `scontentsk`, `recipe`)
+- Commit: not committed yet
+- Status: fixed in code, pending verification that article/recipe/promo detail pages now use the same single template path.
+- Next verification:
+  1. Open article detail and confirm header behavior changed vs previous state.
+  2. Open recipe detail and confirm no regression.
+  3. Open stock/promo detail and confirm template-level fixes now apply.
+
 ## Known caution
 
 - `catalog-qty23.js` now contains strong fallback logic to survive inconsistent legacy markup.

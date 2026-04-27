@@ -592,16 +592,25 @@ function load_admin_styles() {
 }
 add_action('admin_enqueue_scripts', 'load_admin_styles');
 
-// Подключение шаблона single-post.php для рубрик scontentsk и recipe
+// Подключение шаблона single-post.php для целевых контентных рубрик.
 function custom_single_template($template) {
     global $post;
     
     if (is_single() && $post->post_type == 'post') {
         $categories = get_the_category($post->ID);
         $category_slugs = wp_list_pluck($categories, 'slug');
-        
-        // Применяем шаблон для рубрик "scontentsk" и "recipe"
-        if (in_array('scontentsk', $category_slugs) || in_array('recipe', $category_slugs)) {
+
+        // Применяем шаблон для статей/рецептов/акций.
+        $single_post_template_slugs = array(
+            'scontentsk',
+            'recipe',
+            'stock',
+            'akcii',
+            'fermerskij-blog',
+            'blog',
+        );
+
+        if (array_intersect($single_post_template_slugs, $category_slugs)) {
             $new_template = locate_template('single-post.php');
             if (!empty($new_template)) {
                 return $new_template;
