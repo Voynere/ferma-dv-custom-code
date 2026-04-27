@@ -325,6 +325,7 @@ function ferma_single_detail_header_safeguards() {
 
 	$css = ''
 		. 'body.single:not(.single-product) .header__follow{display:none !important;}'
+		. 'body.single:not(.single-product) .header__logo p{margin:0 !important;}'
 		. 'body.single:not(.single-product) .header.header__product .header__catalog img,'
 		. 'body.single:not(.single-product) .header.header__product .header__cart img,'
 		. 'body.single:not(.single-product) .header.header__product .header__bonus img,'
