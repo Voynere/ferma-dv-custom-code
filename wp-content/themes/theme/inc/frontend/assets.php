@@ -179,7 +179,10 @@ function ferma_apply_internal_header_layout_fixes() {
 		. 'body.tax-product_cat a[href^="tel"],body.post-type-archive-product a[href^="tel"]{color:#1a1a1a !important;text-decoration:none !important;}'
 		. '}'
 		. 'body.single.single-post .header__logo div span,body.single-post .header__logo div span,body.archive .header__logo div span,body.category .header__logo div span,body.blog .header__logo div span,body.tax-product_cat .header__logo div span,body.post-type-archive-product .header__logo div span,body.tax-product_cat .header__product .header__logo div span,body.post-type-archive-product .header__product .header__logo div span,.header.header__product .header__logo div span{color:var(--color-light-black) !important;}'
-		. '.header.header__product .header__logo div p,.header.header__product .header__logo div span,.header.header__product .header__desktop-menu a{color:var(--color-light-black) !important;}';
+		. '.header.header__product .header__logo div p,.header.header__product .header__logo div span,.header.header__product .header__desktop-menu a{color:var(--color-light-black) !important;}'
+		. '.header.header__product .header__logo div p{margin:0 !important;line-height:1.1 !important;letter-spacing:0 !important;}'
+		. '.header.header__product .header__logo div span{display:block !important;margin-top:2px !important;line-height:1.1 !important;letter-spacing:0 !important;}'
+		. '.header.header__product a[href^="tel"]{color:#1a1a1a !important;text-decoration:none !important;}';
 	wp_add_inline_style( 'new-style', $css );
 }
 
