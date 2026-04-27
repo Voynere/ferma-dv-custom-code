@@ -154,6 +154,25 @@ function ferma_dequeue_single_legacy_style_outside_single() {
 }
 
 /**
+ * Final safeguard: remove legacy stylesheet on catalog/archive pages even
+ * if it was enqueued by late hooks from legacy includes.
+ */
+add_action( 'wp_enqueue_scripts', 'ferma_force_dequeue_legacy_style_on_catalog', 200000 );
+function ferma_force_dequeue_legacy_style_on_catalog() {
+	if ( is_admin() ) {
+		return;
+	}
+	if (
+		( function_exists( 'is_product_category' ) && is_product_category() )
+		|| ( function_exists( 'is_shop' ) && is_shop() )
+		|| ( is_archive() && ! is_singular() )
+	) {
+		wp_dequeue_style( 'theme-style-single' );
+		wp_deregister_style( 'theme-style-single' );
+	}
+}
+
+/**
  * Late, deterministic header layout fixes for internal content pages.
  * Runs after styles are enqueued to avoid race/order issues.
  */
@@ -182,7 +201,10 @@ function ferma_apply_internal_header_layout_fixes() {
 		. '.header.header__product .header__logo div p,.header.header__product .header__logo div span,.header.header__product .header__desktop-menu a{color:var(--color-light-black) !important;}'
 		. '.header.header__product .header__logo div p{margin:0 !important;line-height:1.1 !important;letter-spacing:0 !important;}'
 		. '.header.header__product .header__logo div span{display:block !important;margin-top:2px !important;line-height:1.1 !important;letter-spacing:0 !important;}'
-		. '.header.header__product a[href^="tel"]{color:#1a1a1a !important;text-decoration:none !important;}';
+		. '.header.header__product a[href^="tel"]{color:#1a1a1a !important;text-decoration:none !important;}'
+		. '.header.header__product .header__desktop-menu nav ul li a{color:var(--color-light-black) !important;}'
+		. '.header.header__product .catalog-menu__list li a{color:var(--color-light-black) !important;}'
+		. '.header.header__product .catalog-menu__new-title{color:var(--color-light-black) !important;}';
 	wp_add_inline_style( 'new-style', $css );
 }
 
