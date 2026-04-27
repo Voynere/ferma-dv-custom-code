@@ -1848,7 +1848,7 @@ if (!empty($_POST["vib"])) {
 
     <?php if ( is_single() && ! ( function_exists( 'is_product' ) && is_product() ) ) : ?>
         <style>
-            @media (min-width: 868px) {
+            @media (min-width: 768px) {
                 body.single.single-post .header__logo div p { margin: 0 !important; line-height: 1.1 !important; letter-spacing: 0 !important; color: #1a1a1a !important; font-size: 48px !important; }
                 body.single.single-post .header__logo div span { display: block !important; margin-top: 2px !important; line-height: 1.1 !important; letter-spacing: 0 !important; color: #1a1a1a !important; font-size: 20px !important; }
                 body.single.single-post .header__phone { color: #1a1a1a !important; font-size: 18px !important; font-weight: 700 !important; text-decoration: none !important; }
